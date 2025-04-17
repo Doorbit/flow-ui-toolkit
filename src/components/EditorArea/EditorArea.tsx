@@ -375,6 +375,20 @@ const ElementRenderer: React.FC<{
   const dragRef = useRef(null);
   const { fieldValues } = useFieldValues();
 
+  // Setup drag source - muss vor bedingten Rückgaben aufgerufen werden
+  const [{ isDragging }, drag] = useDrag({
+    type: ItemTypes.ELEMENT,
+    item: {
+      type: ItemTypes.ELEMENT,
+      id: path.join('-'), // Erstelle eine eindeutige ID für das Element
+      path,
+      element,
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
   // Prüfe, ob das Element basierend auf seiner Visibility-Bedingung sichtbar sein sollte
   const isVisible = evaluateVisibilityCondition(element.element.visibility_condition, fieldValues);
 
@@ -402,19 +416,7 @@ const ElementRenderer: React.FC<{
           ? "Boolean zur Chip-Gruppe hinzufügen"
           : "";
 
-  // Setup drag source
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemTypes.ELEMENT,
-    item: {
-      type: ItemTypes.ELEMENT,
-      id: path.join('-'), // Erstelle eine eindeutige ID für das Element
-      path,
-      element,
-    },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
+
 
   // Wende den Ref auf das Element an
   drag(dragRef);

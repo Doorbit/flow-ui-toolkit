@@ -878,7 +878,7 @@ const AppContent: React.FC = () => {
     : null;
 
   return (
-    <FieldValuesProvider flow={state.currentFlow}>
+    <FieldValuesProvider flow={state.currentFlow || undefined}>
       <AppContainer>
         <Navigation
           onNew={handleNew}

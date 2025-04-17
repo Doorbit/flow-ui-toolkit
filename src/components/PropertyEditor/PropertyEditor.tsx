@@ -21,11 +21,13 @@ import {
   GridProps,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { PatternLibraryElement, VisibilityCondition, RelationalFieldOperator, LogicalOperator, FieldId } from '../../models/listingFlow';
 import {
   TextUIElement,
@@ -95,17 +97,26 @@ const TranslatableField: React.FC<{
 
 const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) => {
   const [newOptionKey, setNewOptionKey] = useState('');
-  const { setFieldValue } = useFieldValues();
+  const { setFieldValue, availableFields } = useFieldValues();
 
   // Aktualisiere die Feldwerte, wenn sich das Element ändert
   useEffect(() => {
     if (element && element.element) {
-      const { pattern_type, field_id, default_value } = element.element;
+      // Prüfe den Typ des Elements und extrahiere die Werte entsprechend
+      const { pattern_type } = element.element;
 
-      // Für BooleanUIElement, SingleSelectionUIElement, etc.
-      if (field_id && field_id.field_name && default_value !== undefined) {
-        setFieldValue(field_id.field_name, default_value);
+      if (pattern_type === 'BooleanUIElement') {
+        const boolElement = element.element as BooleanUIElement;
+        if (boolElement.field_id?.field_name && boolElement.default_value !== undefined) {
+          setFieldValue(boolElement.field_id.field_name, boolElement.default_value);
+        }
+      } else if (pattern_type === 'SingleSelectionUIElement') {
+        const selectionElement = element.element as SingleSelectionUIElement;
+        if (selectionElement.field_id?.field_name && selectionElement.default !== undefined) {
+          setFieldValue(selectionElement.field_id.field_name, selectionElement.default);
+        }
       }
+      // Weitere Elementtypen können hier hinzugefügt werden
     }
   }, [element, setFieldValue]);
 
@@ -125,8 +136,23 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
 
     return (
       <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Sichtbarkeitsregeln</Typography>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            backgroundColor: !!visibilityCondition ? '#e3f2fd' : 'inherit',
+            '&:hover': {
+              backgroundColor: !!visibilityCondition ? '#bbdefb' : '#f5f5f5'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <Typography sx={{ flex: 1 }}>Sichtbarkeitsregeln</Typography>
+            {!!visibilityCondition && (
+              <Tooltip title="Dieses Element hat aktive Sichtbarkeitsregeln">
+                <VisibilityIcon fontSize="small" color="primary" sx={{ mr: 1 }} />
+              </Tooltip>
+            )}
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -166,6 +192,12 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
               }
               label="Sichtbarkeitsregel aktivieren"
             />
+
+            {!!visibilityCondition && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Sichtbarkeitsregeln bestimmen, wann dieses Element angezeigt wird. Das Element wird nur angezeigt, wenn die Bedingung erfüllt ist.
+              </Typography>
+            )}
 
             {visibilityCondition && (
               <>
@@ -212,27 +244,35 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
 
                 {visibilityCondition.operator_type === 'RFO' && (
                   <>
-                    <TextField
-                      label="Feld-ID"
-                      size="small"
-                      fullWidth
-                      value={(visibilityCondition as RelationalFieldOperator).field_id?.field_name || ''}
-                      onChange={(e) => {
-                        const updatedCondition: RelationalFieldOperator = {
-                          ...(visibilityCondition as RelationalFieldOperator),
-                          field_id: { field_name: e.target.value }
-                        };
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Feld-ID</InputLabel>
+                      <Select
+                        value={(visibilityCondition as RelationalFieldOperator).field_id?.field_name || ''}
+                        label="Feld-ID"
+                        onChange={(e) => {
+                          const updatedCondition: RelationalFieldOperator = {
+                            ...(visibilityCondition as RelationalFieldOperator),
+                            field_id: { field_name: e.target.value as string }
+                          };
 
-                        const updatedElement = {
-                          ...element,
-                          element: {
-                            ...element.element,
-                            visibility_condition: updatedCondition
-                          }
-                        };
-                        onUpdate(updatedElement);
-                      }}
-                    />
+                          const updatedElement = {
+                            ...element,
+                            element: {
+                              ...element.element,
+                              visibility_condition: updatedCondition
+                            }
+                          };
+                          onUpdate(updatedElement);
+                        }}
+                      >
+                        <MenuItem value=""><em>Feld auswählen</em></MenuItem>
+                        {availableFields.map((field) => (
+                          <MenuItem key={field.fieldName} value={field.fieldName}>
+                            {field.title} ({field.fieldName})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
 
                     <FormControl fullWidth size="small">
                       <InputLabel>Operator</InputLabel>
@@ -257,41 +297,140 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                       >
                         <MenuItem value="eq">Gleich (=)</MenuItem>
                         <MenuItem value="ne">Ungleich (≠)</MenuItem>
-                        <MenuItem value="gt">Größer als (>)</MenuItem>
-                        <MenuItem value="lt">Kleiner als (<)</MenuItem>
+                        <MenuItem value="gt">Größer als ({'>'})</MenuItem>
+                        <MenuItem value="lt">Kleiner als ({'<'})</MenuItem>
                         <MenuItem value="gte">Größer oder gleich (≥)</MenuItem>
                         <MenuItem value="lte">Kleiner oder gleich (≤)</MenuItem>
                       </Select>
                     </FormControl>
 
-                    <TextField
-                      label="Wert"
-                      size="small"
-                      fullWidth
-                      value={JSON.stringify((visibilityCondition as RelationalFieldOperator).value) || ''}
-                      onChange={(e) => {
-                        let value;
-                        try {
-                          value = JSON.parse(e.target.value);
-                        } catch {
-                          value = e.target.value;
-                        }
+                    {/* Wert-Eingabe basierend auf dem Feldtyp */}
+                    {(() => {
+                      const fieldName = (visibilityCondition as RelationalFieldOperator).field_id?.field_name;
+                      const field = availableFields.find(f => f.fieldName === fieldName);
+                      const fieldType = field?.elementType;
 
-                        const updatedCondition: RelationalFieldOperator = {
-                          ...(visibilityCondition as RelationalFieldOperator),
-                          value: value
-                        };
+                      // Standardwert
+                      const currentValue = (visibilityCondition as RelationalFieldOperator).value;
 
-                        const updatedElement = {
-                          ...element,
-                          element: {
-                            ...element.element,
-                            visibility_condition: updatedCondition
-                          }
-                        };
-                        onUpdate(updatedElement);
-                      }}
-                    />
+                      if (fieldType === 'BooleanUIElement') {
+                        // Boolean-Wert
+                        return (
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Wert</InputLabel>
+                            <Select
+                              value={currentValue === true ? 'true' : currentValue === false ? 'false' : ''}
+                              label="Wert"
+                              onChange={(e) => {
+                                const value = e.target.value === 'true' ? true : e.target.value === 'false' ? false : null;
+
+                                const updatedCondition: RelationalFieldOperator = {
+                                  ...(visibilityCondition as RelationalFieldOperator),
+                                  value: value
+                                };
+
+                                const updatedElement = {
+                                  ...element,
+                                  element: {
+                                    ...element.element,
+                                    visibility_condition: updatedCondition
+                                  }
+                                };
+                                onUpdate(updatedElement);
+                              }}
+                            >
+                              <MenuItem value="true">Wahr</MenuItem>
+                              <MenuItem value="false">Falsch</MenuItem>
+                            </Select>
+                          </FormControl>
+                        );
+                      } else if (fieldType === 'SingleSelectionUIElement') {
+                        // Auswahl-Wert
+                        return (
+                          <TextField
+                            label="Wert (Schlüssel)"
+                            size="small"
+                            fullWidth
+                            value={typeof currentValue === 'string' ? currentValue : ''}
+                            onChange={(e) => {
+                              const updatedCondition: RelationalFieldOperator = {
+                                ...(visibilityCondition as RelationalFieldOperator),
+                                value: e.target.value
+                              };
+
+                              const updatedElement = {
+                                ...element,
+                                element: {
+                                  ...element.element,
+                                  visibility_condition: updatedCondition
+                                }
+                              };
+                              onUpdate(updatedElement);
+                            }}
+                          />
+                        );
+                      } else if (fieldType === 'NumberUIElement') {
+                        // Numerischer Wert
+                        return (
+                          <TextField
+                            label="Wert (Zahl)"
+                            type="number"
+                            size="small"
+                            fullWidth
+                            value={typeof currentValue === 'number' ? currentValue : ''}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? '' : Number(e.target.value);
+
+                              const updatedCondition: RelationalFieldOperator = {
+                                ...(visibilityCondition as RelationalFieldOperator),
+                                value: value
+                              };
+
+                              const updatedElement = {
+                                ...element,
+                                element: {
+                                  ...element.element,
+                                  visibility_condition: updatedCondition
+                                }
+                              };
+                              onUpdate(updatedElement);
+                            }}
+                          />
+                        );
+                      } else {
+                        // Standardfall: Textfeld mit JSON-Eingabe
+                        return (
+                          <TextField
+                            label="Wert"
+                            size="small"
+                            fullWidth
+                            value={JSON.stringify(currentValue) || ''}
+                            onChange={(e) => {
+                              let value;
+                              try {
+                                value = JSON.parse(e.target.value);
+                              } catch {
+                                value = e.target.value;
+                              }
+
+                              const updatedCondition: RelationalFieldOperator = {
+                                ...(visibilityCondition as RelationalFieldOperator),
+                                value: value
+                              };
+
+                              const updatedElement = {
+                                ...element,
+                                element: {
+                                  ...element.element,
+                                  visibility_condition: updatedCondition
+                                }
+                              };
+                              onUpdate(updatedElement);
+                            }}
+                          />
+                        );
+                      }
+                    })()}
                   </>
                 )}
 
@@ -331,33 +470,41 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             {condition.operator_type === 'RFO' && (
                               <>
-                                <TextField
-                                  label="Feld-ID"
-                                  size="small"
-                                  fullWidth
-                                  value={(condition as RelationalFieldOperator).field_id?.field_name || ''}
-                                  onChange={(e) => {
-                                    const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
-                                    updatedConditions[index] = {
-                                      ...condition,
-                                      field_id: { field_name: e.target.value }
-                                    } as RelationalFieldOperator;
+                                <FormControl fullWidth size="small">
+                                  <InputLabel>Feld-ID</InputLabel>
+                                  <Select
+                                    value={(condition as RelationalFieldOperator).field_id?.field_name || ''}
+                                    label="Feld-ID"
+                                    onChange={(e) => {
+                                      const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
+                                      updatedConditions[index] = {
+                                        ...condition,
+                                        field_id: { field_name: e.target.value as string }
+                                      } as RelationalFieldOperator;
 
-                                    const updatedLogicalCondition: LogicalOperator = {
-                                      ...(visibilityCondition as LogicalOperator),
-                                      conditions: updatedConditions
-                                    };
+                                      const updatedLogicalCondition: LogicalOperator = {
+                                        ...(visibilityCondition as LogicalOperator),
+                                        conditions: updatedConditions
+                                      };
 
-                                    const updatedElement = {
-                                      ...element,
-                                      element: {
-                                        ...element.element,
-                                        visibility_condition: updatedLogicalCondition
-                                      }
-                                    };
-                                    onUpdate(updatedElement);
-                                  }}
-                                />
+                                      const updatedElement = {
+                                        ...element,
+                                        element: {
+                                          ...element.element,
+                                          visibility_condition: updatedLogicalCondition
+                                        }
+                                      };
+                                      onUpdate(updatedElement);
+                                    }}
+                                  >
+                                    <MenuItem value=""><em>Feld auswählen</em></MenuItem>
+                                    {availableFields.map((field) => (
+                                      <MenuItem key={field.fieldName} value={field.fieldName}>
+                                        {field.title} ({field.fieldName})
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
 
                                 <FormControl fullWidth size="small">
                                   <InputLabel>Operator</InputLabel>
@@ -388,47 +535,164 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                                   >
                                     <MenuItem value="eq">Gleich (=)</MenuItem>
                                     <MenuItem value="ne">Ungleich (≠)</MenuItem>
-                                    <MenuItem value="gt">Größer als (>)</MenuItem>
-                                    <MenuItem value="lt">Kleiner als (<)</MenuItem>
+                                    <MenuItem value="gt">Größer als ({'>'})</MenuItem>
+                                    <MenuItem value="lt">Kleiner als ({'<'})</MenuItem>
                                     <MenuItem value="gte">Größer oder gleich (≥)</MenuItem>
                                     <MenuItem value="lte">Kleiner oder gleich (≤)</MenuItem>
                                   </Select>
                                 </FormControl>
 
-                                <TextField
-                                  label="Wert"
-                                  size="small"
-                                  fullWidth
-                                  value={JSON.stringify((condition as RelationalFieldOperator).value) || ''}
-                                  onChange={(e) => {
-                                    let value;
-                                    try {
-                                      value = JSON.parse(e.target.value);
-                                    } catch {
-                                      value = e.target.value;
-                                    }
+                                {/* Wert-Eingabe basierend auf dem Feldtyp */}
+                                {(() => {
+                                  const fieldName = (condition as RelationalFieldOperator).field_id?.field_name;
+                                  const field = availableFields.find(f => f.fieldName === fieldName);
+                                  const fieldType = field?.elementType;
 
-                                    const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
-                                    updatedConditions[index] = {
-                                      ...condition,
-                                      value: value
-                                    } as RelationalFieldOperator;
+                                  // Standardwert
+                                  const currentValue = (condition as RelationalFieldOperator).value;
 
-                                    const updatedLogicalCondition: LogicalOperator = {
-                                      ...(visibilityCondition as LogicalOperator),
-                                      conditions: updatedConditions
-                                    };
+                                  if (fieldType === 'BooleanUIElement') {
+                                    // Boolean-Wert
+                                    return (
+                                      <FormControl fullWidth size="small">
+                                        <InputLabel>Wert</InputLabel>
+                                        <Select
+                                          value={currentValue === true ? 'true' : currentValue === false ? 'false' : ''}
+                                          label="Wert"
+                                          onChange={(e) => {
+                                            const value = e.target.value === 'true' ? true : e.target.value === 'false' ? false : null;
 
-                                    const updatedElement = {
-                                      ...element,
-                                      element: {
-                                        ...element.element,
-                                        visibility_condition: updatedLogicalCondition
-                                      }
-                                    };
-                                    onUpdate(updatedElement);
-                                  }}
-                                />
+                                            const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
+                                            updatedConditions[index] = {
+                                              ...condition,
+                                              value: value
+                                            } as RelationalFieldOperator;
+
+                                            const updatedLogicalCondition: LogicalOperator = {
+                                              ...(visibilityCondition as LogicalOperator),
+                                              conditions: updatedConditions
+                                            };
+
+                                            const updatedElement = {
+                                              ...element,
+                                              element: {
+                                                ...element.element,
+                                                visibility_condition: updatedLogicalCondition
+                                              }
+                                            };
+                                            onUpdate(updatedElement);
+                                          }}
+                                        >
+                                          <MenuItem value="true">Wahr</MenuItem>
+                                          <MenuItem value="false">Falsch</MenuItem>
+                                        </Select>
+                                      </FormControl>
+                                    );
+                                  } else if (fieldType === 'SingleSelectionUIElement') {
+                                    // Auswahl-Wert
+                                    return (
+                                      <TextField
+                                        label="Wert (Schlüssel)"
+                                        size="small"
+                                        fullWidth
+                                        value={typeof currentValue === 'string' ? currentValue : ''}
+                                        onChange={(e) => {
+                                          const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
+                                          updatedConditions[index] = {
+                                            ...condition,
+                                            value: e.target.value
+                                          } as RelationalFieldOperator;
+
+                                          const updatedLogicalCondition: LogicalOperator = {
+                                            ...(visibilityCondition as LogicalOperator),
+                                            conditions: updatedConditions
+                                          };
+
+                                          const updatedElement = {
+                                            ...element,
+                                            element: {
+                                              ...element.element,
+                                              visibility_condition: updatedLogicalCondition
+                                            }
+                                          };
+                                          onUpdate(updatedElement);
+                                        }}
+                                      />
+                                    );
+                                  } else if (fieldType === 'NumberUIElement') {
+                                    // Numerischer Wert
+                                    return (
+                                      <TextField
+                                        label="Wert (Zahl)"
+                                        type="number"
+                                        size="small"
+                                        fullWidth
+                                        value={typeof currentValue === 'number' ? currentValue : ''}
+                                        onChange={(e) => {
+                                          const value = e.target.value === '' ? '' : Number(e.target.value);
+
+                                          const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
+                                          updatedConditions[index] = {
+                                            ...condition,
+                                            value: value
+                                          } as RelationalFieldOperator;
+
+                                          const updatedLogicalCondition: LogicalOperator = {
+                                            ...(visibilityCondition as LogicalOperator),
+                                            conditions: updatedConditions
+                                          };
+
+                                          const updatedElement = {
+                                            ...element,
+                                            element: {
+                                              ...element.element,
+                                              visibility_condition: updatedLogicalCondition
+                                            }
+                                          };
+                                          onUpdate(updatedElement);
+                                        }}
+                                      />
+                                    );
+                                  } else {
+                                    // Standardfall: Textfeld mit JSON-Eingabe
+                                    return (
+                                      <TextField
+                                        label="Wert"
+                                        size="small"
+                                        fullWidth
+                                        value={JSON.stringify(currentValue) || ''}
+                                        onChange={(e) => {
+                                          let value;
+                                          try {
+                                            value = JSON.parse(e.target.value);
+                                          } catch {
+                                            value = e.target.value;
+                                          }
+
+                                          const updatedConditions = [...(visibilityCondition as LogicalOperator).conditions];
+                                          updatedConditions[index] = {
+                                            ...condition,
+                                            value: value
+                                          } as RelationalFieldOperator;
+
+                                          const updatedLogicalCondition: LogicalOperator = {
+                                            ...(visibilityCondition as LogicalOperator),
+                                            conditions: updatedConditions
+                                          };
+
+                                          const updatedElement = {
+                                            ...element,
+                                            element: {
+                                              ...element.element,
+                                              visibility_condition: updatedLogicalCondition
+                                            }
+                                          };
+                                          onUpdate(updatedElement);
+                                        }}
+                                      />
+                                    );
+                                  }
+                                })()}
                               </>
                             )}
 

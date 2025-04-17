@@ -6,12 +6,14 @@ interface FieldValuesContextType {
   fieldValues: Record<string, any>;
   setFieldValue: (fieldName: string, value: any) => void;
   resetFieldValues: () => void;
+  availableFields: Array<{ fieldName: string, elementType: string, title: string }>;
 }
 
 const FieldValuesContext = createContext<FieldValuesContextType>({
   fieldValues: {},
   setFieldValue: () => {},
-  resetFieldValues: () => {}
+  resetFieldValues: () => {},
+  availableFields: []
 });
 
 // Hook zum Zugriff auf den Kontext
@@ -23,6 +25,7 @@ export const FieldValuesProvider: React.FC<{
   flow?: ListingFlow;
 }> = ({ children, flow }) => {
   const [fieldValues, setFieldValues] = useState<Record<string, any>>({});
+  const [availableFields, setAvailableFields] = useState<Array<{ fieldName: string, elementType: string, title: string }>>([]);
 
   // Setze einen einzelnen Feldwert
   const setFieldValue = (fieldName: string, value: any) => {
@@ -37,55 +40,79 @@ export const FieldValuesProvider: React.FC<{
     setFieldValues({});
   };
 
-  // Extrahiere Standardwerte aus dem Flow beim Laden
+  // Extrahiere Standardwerte und verfügbare Felder aus dem Flow beim Laden
   useEffect(() => {
     if (flow) {
       const defaultValues: Record<string, any> = {};
-      
-      // Funktion zum rekursiven Extrahieren von Standardwerten
-      const extractDefaultValues = (elements: any[]) => {
+      const fields: Array<{ fieldName: string, elementType: string, title: string }> = [];
+
+      // Funktion zum rekursiven Extrahieren von Standardwerten und Feldern
+      const extractFieldsAndValues = (elements: any[]) => {
         elements.forEach(element => {
           if (element.element) {
-            const { pattern_type, field_id, default_value } = element.element;
-            
-            // Für BooleanUIElement, SingleSelectionUIElement, etc.
-            if (field_id && field_id.field_name && default_value !== undefined) {
-              defaultValues[field_id.field_name] = default_value;
+            const { pattern_type, field_id, default_value, title } = element.element;
+
+            // Für Elemente mit field_id
+            if (field_id && field_id.field_name) {
+              // Standardwerte extrahieren
+              if (default_value !== undefined) {
+                defaultValues[field_id.field_name] = default_value;
+              }
+
+              // Feld zur Liste hinzufügen
+              const fieldTitle = title && (title.de || title.en) ? (title.de || title.en) : field_id.field_name;
+              fields.push({
+                fieldName: field_id.field_name,
+                elementType: pattern_type,
+                title: fieldTitle
+              });
             }
-            
+
             // Rekursiv für verschachtelte Elemente
             if (pattern_type === 'GroupUIElement' && element.element.elements) {
-              extractDefaultValues(element.element.elements);
+              extractFieldsAndValues(element.element.elements);
             } else if (pattern_type === 'ArrayUIElement' && element.element.elements) {
-              extractDefaultValues(element.element.elements);
+              extractFieldsAndValues(element.element.elements);
             } else if (pattern_type === 'ChipGroupUIElement' && element.element.chips) {
-              // Für ChipGroups: Extrahiere Standardwerte aus den Chips
+              // Für ChipGroups: Extrahiere Felder und Werte aus den Chips
               element.element.chips.forEach((chip: any) => {
-                if (chip.field_id && chip.field_id.field_name && chip.default_value !== undefined) {
-                  defaultValues[chip.field_id.field_name] = chip.default_value;
+                if (chip.field_id && chip.field_id.field_name) {
+                  // Standardwerte extrahieren
+                  if (chip.default_value !== undefined) {
+                    defaultValues[chip.field_id.field_name] = chip.default_value;
+                  }
+
+                  // Feld zur Liste hinzufügen
+                  const chipTitle = chip.title && (chip.title.de || chip.title.en) ? (chip.title.de || chip.title.en) : chip.field_id.field_name;
+                  fields.push({
+                    fieldName: chip.field_id.field_name,
+                    elementType: chip.pattern_type,
+                    title: chipTitle
+                  });
                 }
               });
             }
           }
         });
       };
-      
-      // Extrahiere Standardwerte aus allen Seiten
+
+      // Extrahiere Felder und Werte aus allen Seiten
       if (flow.pages_edit) {
         flow.pages_edit.forEach(page => {
           if (page.elements) {
-            extractDefaultValues(page.elements);
+            extractFieldsAndValues(page.elements);
           }
         });
       }
-      
-      // Setze die extrahierten Standardwerte
+
+      // Setze die extrahierten Werte
       setFieldValues(defaultValues);
+      setAvailableFields(fields);
     }
   }, [flow]);
 
   return (
-    <FieldValuesContext.Provider value={{ fieldValues, setFieldValue, resetFieldValues }}>
+    <FieldValuesContext.Provider value={{ fieldValues, setFieldValue, resetFieldValues, availableFields }}>
       {children}
     </FieldValuesContext.Provider>
   );
