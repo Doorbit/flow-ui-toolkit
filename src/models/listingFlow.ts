@@ -23,6 +23,8 @@ export interface Page {
   title?: TranslatableString;
   icon?: string;
   elements: PatternLibraryElement[];
+  // Visibility-Bedingung für die Seite
+  visibility_condition?: VisibilityCondition;
   // Weitere Eigenschaften für doorbit_esg.json Kompatibilität
   sub_flows?: SubFlow[];
   related_custom_ui_element_id?: string;

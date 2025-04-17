@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Box,
   Tabs,
@@ -18,6 +18,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '../../models/listingFlow';
 import { useEditor } from '../../context/EditorContext';
+import { useFieldValues } from '../../context/FieldValuesContext';
+import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 import PageTab from './PageTab';
 import EditPageDialog from './EditPageDialog';
 
@@ -28,12 +30,24 @@ interface PageNavigatorProps {
 
 const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) => {
   const { dispatch } = useEditor();
+  const { fieldValues } = useFieldValues();
   const [openNewPageDialog, setOpenNewPageDialog] = React.useState(false);
   const [newPageTitle, setNewPageTitle] = React.useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
   const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
   const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
+
+  // Filtere Seiten basierend auf Visibility-Bedingungen
+  const visiblePages = pages.filter(page => {
+    // Wenn keine Visibility-Bedingung vorhanden ist, ist die Seite immer sichtbar
+    if (!page.visibility_condition) {
+      return true;
+    }
+
+    // Evaluiere die Visibility-Bedingung
+    return evaluateVisibilityCondition(page.visibility_condition, fieldValues);
+  });
 
   const handlePageChange = (_: React.SyntheticEvent, newPageId: string) => {
     dispatch({ type: 'SELECT_PAGE', pageId: newPageId });
@@ -114,8 +128,18 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     setPageToEdit(null);
   };
 
+  // Wenn die aktuell ausgewählte Seite nicht mehr sichtbar ist, wähle die erste sichtbare Seite aus
+  useEffect(() => {
+    if (selectedPageId && visiblePages.length > 0) {
+      const selectedPageVisible = visiblePages.some(page => page.id === selectedPageId);
+      if (!selectedPageVisible) {
+        dispatch({ type: 'SELECT_PAGE', pageId: visiblePages[0].id });
+      }
+    }
+  }, [selectedPageId, visiblePages, dispatch]);
+
   // Bei leerer Seitenliste Hinweis anzeigen
-  if (pages.length === 0) {
+  if (visiblePages.length === 0) {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary" gutterBottom>
@@ -136,19 +160,19 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
       <Tabs
-        value={selectedPageId || (pages.length > 0 ? pages[0].id : false)}
+        value={selectedPageId || (visiblePages.length > 0 ? visiblePages[0].id : false)}
         onChange={handlePageChange}
         variant="scrollable"
         scrollButtons="auto"
         sx={{ flex: 1 }}
       >
-        {pages.map((page, index) => (
+        {visiblePages.map((page, index) => (
           <PageTab
             key={page.id}
             page={page}
             index={index}
             selectedPageId={selectedPageId}
-            isLastPage={pages.length <= 1}
+            isLastPage={visiblePages.length <= 1}
             onDelete={handleDeletePage}
             onEdit={handleEditPage}
             onMove={handleMovePage}
