@@ -11,6 +11,7 @@ import JsonPreview from './components/JsonPreview/JsonPreview';
 import PageNavigator from './components/PageNavigator/PageNavigator';
 import { DndProvider } from './components/DndProvider';
 import { EditorProvider, useEditor, getElementByPath } from './context/EditorContext';
+import { FieldValuesProvider } from './context/FieldValuesContext';
 import { SchemaProvider } from './context/SchemaContext';
 import { ListingFlow, PatternLibraryElement } from './models/listingFlow';
 import {
@@ -458,6 +459,8 @@ const AppContent: React.FC = () => {
     dispatch({ type: 'SET_FLOW', flow: emptyFlow });
   }, [dispatch]);
 
+
+
   // Finde aktuelle Seite anhand der selectedPageId im EditorContext
   const currentPage = state.currentFlow?.pages_edit.find(page => page.id === state.selectedPageId);
   const currentElements = currentPage?.elements || [];
@@ -875,26 +878,27 @@ const AppContent: React.FC = () => {
     : null;
 
   return (
-    <AppContainer>
-      <Navigation
-        onNew={handleNew}
-        onOpen={handleOpen}
-        onSave={handleSave}
-        canUndo={state.undoStack.length > 0}
-        canRedo={state.redoStack.length > 0}
-        onUndo={() => dispatch({ type: 'UNDO' })}
-        onRedo={() => dispatch({ type: 'REDO' })}
-      />
+    <FieldValuesProvider flow={state.currentFlow}>
+      <AppContainer>
+        <Navigation
+          onNew={handleNew}
+          onOpen={handleOpen}
+          onSave={handleSave}
+          canUndo={state.undoStack.length > 0}
+          canRedo={state.redoStack.length > 0}
+          onUndo={() => dispatch({ type: 'UNDO' })}
+          onRedo={() => dispatch({ type: 'REDO' })}
+        />
 
-      {/* Seitennavigation */}
-      {state.currentFlow && (
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f5f5f5' }}>
-          <PageNavigator
-            pages={state.currentFlow.pages_edit}
-            selectedPageId={state.selectedPageId}
-          />
-        </Box>
-      )}
+        {/* Seitennavigation */}
+        {state.currentFlow && (
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f5f5f5' }}>
+            <PageNavigator
+              pages={state.currentFlow.pages_edit}
+              selectedPageId={state.selectedPageId}
+            />
+          </Box>
+        )}
 
       <MainContent>
         <ElementPalette onElementClick={(type) => handleAddElement(type)} />
@@ -979,6 +983,7 @@ const AppContent: React.FC = () => {
         </Box>
       )}
     </AppContainer>
+    </FieldValuesProvider>
   );
 };
 

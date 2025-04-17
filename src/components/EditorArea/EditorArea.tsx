@@ -18,11 +18,14 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Add as AddIcon,
-  DragIndicator as DragHandleIcon
+  DragIndicator as DragHandleIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { UIElement } from '../../models/uiElements';
 import { getElementByPath } from '../../context/EditorContext';
+import { useFieldValues } from '../../context/FieldValuesContext';
+import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 // Import der react-dnd Hooks
 import { useDrag } from 'react-dnd';
 import { useDrop } from 'react-dnd';
@@ -370,6 +373,15 @@ const ElementRenderer: React.FC<{
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const dragRef = useRef(null);
+  const { fieldValues } = useFieldValues();
+
+  // Prüfe, ob das Element basierend auf seiner Visibility-Bedingung sichtbar sein sollte
+  const isVisible = evaluateVisibilityCondition(element.element.visibility_condition, fieldValues);
+
+  // Wenn das Element nicht sichtbar sein soll, rendere nichts
+  if (!isVisible) {
+    return null;
+  }
 
   const isSelected = selectedPath &&
     selectedPath.length === path.length &&
@@ -442,6 +454,13 @@ const ElementRenderer: React.FC<{
           </Box>
 
             <ElementActions>
+              {element.element.visibility_condition && (
+                <Tooltip title="Element hat Sichtbarkeitsregeln">
+                  <IconButton size="small" disabled>
+                    <VisibilityIcon fontSize="small" color="primary" />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title="Duplizieren">
                 <IconButton
                   size="small"
