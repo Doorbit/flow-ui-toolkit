@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
-import { 
-  Box, 
-  Tabs, 
-  IconButton, 
-  Tooltip, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
+import {
+  Box,
+  Tabs,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
   TextField,
   Typography
 } from '@mui/material';
@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Page } from '../../models/listingFlow';
 import { useEditor } from '../../context/EditorContext';
 import PageTab from './PageTab';
+import EditPageDialog from './EditPageDialog';
 
 interface PageNavigatorProps {
   pages: Page[];
@@ -31,6 +32,8 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   const [newPageTitle, setNewPageTitle] = React.useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
+  const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
+  const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
 
   const handlePageChange = (_: React.SyntheticEvent, newPageId: string) => {
     dispatch({ type: 'SELECT_PAGE', pageId: newPageId });
@@ -46,14 +49,16 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   };
 
   const handleCreateNewPage = () => {
-    const pageId = `page-${uuidv4()}`;
+    const pageId = `edit-${uuidv4()}`;
     const newPage: Page = {
-      pattern_type: 'Page',
+      pattern_type: 'CustomUIElement',
       id: pageId,
+      layout: '2_COL_RIGHT_FILL', // Standard-Layout für Edit-Seiten
       title: { de: newPageTitle || 'Neue Seite', en: newPageTitle || 'New Page' },
+      short_title: { de: '', en: '' }, // Leere Kurztitel
       elements: []
     };
-    
+
     dispatch({ type: 'ADD_PAGE', page: newPage });
     setOpenNewPageDialog(false);
     setNewPageTitle('');
@@ -90,6 +95,25 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     }
   };
 
+  // Handler für Bearbeiten einer Seite
+  const handleEditPage = (page: Page) => {
+    setPageToEdit(page);
+    setEditPageDialogOpen(true);
+  };
+
+  // Handler für Speichern der bearbeiteten Seite
+  const handleSaveEditedPage = (updatedPage: Page) => {
+    dispatch({ type: 'UPDATE_PAGE', page: updatedPage });
+    setEditPageDialogOpen(false);
+    setPageToEdit(null);
+  };
+
+  // Handler für Schließen des Bearbeitungsdialogs
+  const handleCloseEditDialog = () => {
+    setEditPageDialogOpen(false);
+    setPageToEdit(null);
+  };
+
   // Bei leerer Seitenliste Hinweis anzeigen
   if (pages.length === 0) {
     return (
@@ -97,9 +121,9 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
         <Typography variant="body1" color="text.secondary" gutterBottom>
           Keine Seiten vorhanden
         </Typography>
-        <Button 
-          variant="outlined" 
-          size="small" 
+        <Button
+          variant="outlined"
+          size="small"
           startIcon={<AddIcon />}
           onClick={handleAddPage}
         >
@@ -111,27 +135,28 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
-      <Tabs 
-        value={selectedPageId || (pages.length > 0 ? pages[0].id : false)} 
+      <Tabs
+        value={selectedPageId || (pages.length > 0 ? pages[0].id : false)}
         onChange={handlePageChange}
         variant="scrollable"
         scrollButtons="auto"
         sx={{ flex: 1 }}
       >
         {pages.map((page, index) => (
-          <PageTab 
+          <PageTab
             key={page.id}
             page={page}
             index={index}
             selectedPageId={selectedPageId}
             isLastPage={pages.length <= 1}
             onDelete={handleDeletePage}
+            onEdit={handleEditPage}
             onMove={handleMovePage}
             onClick={() => handleTabClick(page.id)}
           />
         ))}
       </Tabs>
-      
+
       <Tooltip title="Neue Seite hinzufügen">
         <IconButton onClick={handleAddPage} color="primary" sx={{ mx: 1 }}>
           <AddIcon />
@@ -173,6 +198,18 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           <Button onClick={handleConfirmDelete} color="error" variant="contained">Löschen</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Dialog für Seite bearbeiten */}
+      {pageToEdit && (
+        <EditPageDialog
+          open={editPageDialogOpen}
+          onClose={handleCloseEditDialog}
+          onSave={handleSaveEditedPage}
+          page={pageToEdit}
+          pages={pages}
+          isEditPage={pageToEdit.id.startsWith('edit-') || !pageToEdit.id.includes('-')}
+        />
+      )}
     </Box>
   );
 };

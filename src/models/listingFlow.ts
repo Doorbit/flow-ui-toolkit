@@ -15,12 +15,22 @@ export interface ListingFlow {
 }
 
 export interface Page {
-  pattern_type: string;
+  pattern_type: string; // Im alten Schema "Page", im doorbit_esg.json Schema "CustomUIElement"
   id: string;
-  layout?: string;
-  related_pages?: RelatedPage[];
+  layout?: string; // z.B. "2_COL_RIGHT_FILL" für Edit-Seiten, "2_COL_RIGHT_WIDER" für View-Seiten
+  related_pages?: RelatedPage[]; // Verknüpfung zu korrespondierenden View- oder Edit-Seiten
   short_title?: TranslatableString;
   title?: TranslatableString;
+  icon?: string;
+  elements: PatternLibraryElement[];
+  // Weitere Eigenschaften für doorbit_esg.json Kompatibilität
+  sub_flows?: SubFlow[];
+  related_custom_ui_element_id?: string;
+  type?: string;
+}
+
+export interface SubFlow {
+  type: string; // z.B. "POI", "ROOM", "POI_PHOTO", "ROOM_GROUP" etc.
   elements: PatternLibraryElement[];
 }
 

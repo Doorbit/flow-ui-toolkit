@@ -110,7 +110,7 @@ export interface CustomUIElement extends UIElementEdit {
 }
 
 export interface SubFlow {
-  type: 'SLAB' | 'WINDOW' | 'DOOR' | 'WALL' | 'ROOM';
+  type: 'SLAB' | 'WINDOW' | 'DOOR' | 'WALL' | 'ROOM' | 'POI_PHOTO';
   elements: any[]; // PatternLibraryElement[]
 }
 

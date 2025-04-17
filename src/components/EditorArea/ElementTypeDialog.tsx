@@ -66,8 +66,18 @@ const ElementTypeDialog: React.FC<ElementTypeDialogProps> = ({
     setTabIndex(newValue);
   };
 
-  const basicElements = elements.filter(e => e.category === 'basic');
-  const complexElements = elements.filter(e => e.category === 'complex');
+  // Filter Elemente basierend auf dem übergeordneten Element
+  const getFilteredElements = (category: 'basic' | 'complex') => {
+    // Wenn das übergeordnete Element eine ChipGroup ist, nur BooleanUIElement erlauben
+    if (parentElementType === 'ChipGroupUIElement') {
+      return elements.filter(e => e.type === 'BooleanUIElement');
+    }
+    // Ansonsten normale Kategoriefilterung
+    return elements.filter(e => e.category === category);
+  };
+
+  const basicElements = getFilteredElements('basic');
+  const complexElements = getFilteredElements('complex');
   
   const handleElementSelect = (type: string) => {
     onSelectElementType(type);
@@ -75,10 +85,12 @@ const ElementTypeDialog: React.FC<ElementTypeDialogProps> = ({
   };
 
   const dialogTitle = parentElementType === 'GroupUIElement' 
-    ? 'Element zur Gruppe hinzufügen'
-    : parentElementType === 'ArrayUIElement'
-      ? 'Element zum Array hinzufügen'
-      : 'Element hinzufügen';
+      ? 'Element zur Gruppe hinzufügen'
+      : parentElementType === 'ArrayUIElement'
+        ? 'Element zum Array hinzufügen'
+        : parentElementType === 'ChipGroupUIElement'
+          ? 'Boolean Element zur Chip-Gruppe hinzufügen'
+          : 'Element hinzufügen';
 
   return (
     <Dialog 

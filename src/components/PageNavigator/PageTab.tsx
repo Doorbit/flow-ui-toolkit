@@ -1,7 +1,8 @@
 import React, { useRef, forwardRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Tab, IconButton, Tooltip, TabProps } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Tab, IconButton, Tooltip, TabProps, Box } from '@mui/material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import * as Icons from '@mui/icons-material';
 import { Page } from '../../models/listingFlow';
 
 // Konstanten für DnD
@@ -15,6 +16,7 @@ interface PageTabProps {
   selectedPageId: string | null;
   isLastPage: boolean;
   onDelete: (pageId: string) => void;
+  onEdit: (page: Page) => void;
   onMove: (dragIndex: number, hoverIndex: number) => void;
   onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
@@ -25,17 +27,18 @@ interface DragItem {
   type: string;
 }
 
-const PageTab: React.FC<PageTabProps> = ({ 
-  page, 
-  index, 
-  selectedPageId, 
+const PageTab: React.FC<PageTabProps> = ({
+  page,
+  index,
+  selectedPageId,
   isLastPage,
   onDelete,
+  onEdit,
   onMove,
   onClick
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  
+
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.PAGE_TAB,
     item: () => {
@@ -45,7 +48,7 @@ const PageTab: React.FC<PageTabProps> = ({
       isDragging: monitor.isDragging()
     })
   });
-  
+
   const [{ handlerId }, drop] = useDrop<
     DragItem,
     void,
@@ -61,57 +64,64 @@ const PageTab: React.FC<PageTabProps> = ({
       if (!ref.current) {
         return;
       }
-      
+
       const dragIndex = item.index;
       const hoverIndex = index;
-      
+
       // Nicht auf sich selbst droppen
       if (dragIndex === hoverIndex) {
         return;
       }
-      
+
       // Bestimme Rechteck des Hover-Elements
       const hoverBoundingRect = ref.current.getBoundingClientRect();
-      
+
       // Bestimme horizontale Mitte
       const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
-      
+
       // Bestimme Mausposition
       const clientOffset = monitor.getClientOffset();
-      
+
       // Horizontale Position relativ zum Tab
       const hoverClientX = (clientOffset as { x: number }).x - hoverBoundingRect.left;
-      
+
       // Verschieben nur, wenn Maus über die Mitte geht
       // Nach links verschieben
       if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
         return;
       }
-      
+
       // Nach rechts verschieben
       if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
         return;
       }
-      
+
       // Zeit zum Verschieben
       onMove(dragIndex, hoverIndex);
-      
+
       // Anpassen des Monitor-Items für korrekte Positionierung
       item.index = hoverIndex;
     },
   });
-  
+
   // Setzen der Drag-and-Drop-Referenzen
   drag(drop(ref));
-  
+
   // CSS für Drag-and-Drop
   const opacity = isDragging ? 0.4 : 1;
-  
+
+  // Render icon if it exists
+  const renderIcon = () => {
+    if (!page.icon) return null;
+    const IconComponent = (Icons as any)[page.icon];
+    return IconComponent ? <IconComponent fontSize="small" /> : null;
+  };
+
   return (
-    <div 
-      ref={ref} 
-      style={{ 
-        opacity, 
+    <div
+      ref={ref}
+      style={{
+        opacity,
         cursor: 'move',
         display: 'inline-flex',
         alignItems: 'center'
@@ -121,38 +131,66 @@ const PageTab: React.FC<PageTabProps> = ({
       // Um das onClick-Event von eventuellen Parent-Elementen zu empfangen
       className="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary"
     >
-      <Tab 
-        value={page.id} 
-        label={page.title?.de || page.id}
+      <Tab
+        value={page.id}
+        label={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {renderIcon()}
+            <span>{page.title?.de || page.id}</span>
+          </Box>
+        }
         sx={{
           cursor: 'move',
-          '&:hover .delete-icon': {
+          '&:hover .delete-icon, &:hover .edit-icon': {
             opacity: 1,
           },
         }}
         iconPosition="end"
         icon={
           !isLastPage ? (
-            <Tooltip title="Seite löschen">
-              <IconButton
-                size="small"
-                className="delete-icon"
-                onClick={(e) => {
-                  e.stopPropagation(); // Verhindern, dass der Tab ausgewählt wird
-                  onDelete(page.id);
-                }}
-                sx={{
-                  opacity: 0.5,
-                  transition: 'opacity 0.2s',
-                  '&:hover': {
-                    opacity: 1,
-                    color: 'error.main'
-                  }
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: 'flex' }}>
+              <Tooltip title="Seite bearbeiten">
+                <IconButton
+                  size="small"
+                  className="edit-icon"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Verhindern, dass der Tab ausgewählt wird
+                    onEdit(page);
+                  }}
+                  sx={{
+                    opacity: 0.5,
+                    transition: 'opacity 0.2s',
+                    mr: 0.5,
+                    '&:hover': {
+                      opacity: 1,
+                      color: 'primary.main'
+                    }
+                  }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Seite löschen">
+                <IconButton
+                  size="small"
+                  className="delete-icon"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Verhindern, dass der Tab ausgewählt wird
+                    onDelete(page.id);
+                  }}
+                  sx={{
+                    opacity: 0.5,
+                    transition: 'opacity 0.2s',
+                    '&:hover': {
+                      opacity: 1,
+                      color: 'error.main'
+                    }
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           ) : undefined
         }
       />

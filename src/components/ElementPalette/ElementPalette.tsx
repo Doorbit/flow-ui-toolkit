@@ -11,7 +11,11 @@ import {
   ViewModule as GroupIcon,
   List as ArrayIcon,
   Apps as CustomIcon,
-  Label as ChipGroupIcon
+  Label as ChipGroupIcon,
+  ViewInAr as ScannerIcon,
+  LocationOn as LocationIcon,
+  Home as AddressIcon,
+  Apartment as AdminBoundaryIcon
 } from '@mui/icons-material';
 
 const PaletteContainer = styled(Paper)`
@@ -73,8 +77,12 @@ const elements: ElementType[] = [
   { type: 'FileUIElement', label: 'Datei', icon: <FileIcon />, category: 'basic' },
   { type: 'GroupUIElement', label: 'Gruppe', icon: <GroupIcon />, category: 'complex' },
   { type: 'ArrayUIElement', label: 'Array', icon: <ArrayIcon />, category: 'complex' },
-  { type: 'CustomUIElement', label: 'Benutzerdefiniert', icon: <CustomIcon />, category: 'complex' },
-  { type: 'ChipGroupUIElement', label: 'Chip-Gruppe', icon: <ChipGroupIcon />, category: 'complex' }
+  { type: 'ChipGroupUIElement', label: 'Chip-Gruppe', icon: <ChipGroupIcon />, category: 'complex' },
+  // Spezifische CustomUIElement-Typen
+  { type: 'CustomUIElement_SCANNER', label: 'Scanner', icon: <ScannerIcon />, category: 'complex' },
+  { type: 'CustomUIElement_ADDRESS', label: 'Adresseingabe', icon: <AddressIcon />, category: 'complex' },
+  { type: 'CustomUIElement_LOCATION', label: 'Standort/Karte', icon: <LocationIcon />, category: 'complex' },
+  { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <AdminBoundaryIcon />, category: 'complex' }
 ];
 
 // Vereinfachte Version ohne Drag-and-Drop für die erste Implementation
@@ -97,13 +105,13 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
       <PaletteHeader variant="h6">
         Element-Palette
       </PaletteHeader>
-      
+
       {/* Tabs */}
       <Box sx={{ display: 'flex', borderBottom: 1, borderColor: 'divider' }}>
-        <Button 
-          sx={{ 
-            flex: 1, 
-            py: 1, 
+        <Button
+          sx={{
+            flex: 1,
+            py: 1,
             borderRadius: 0,
             backgroundColor: activeTab === 'basic' ? '#e3f2fd' : 'transparent',
             fontWeight: activeTab === 'basic' ? 'bold' : 'normal',
@@ -113,10 +121,10 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
         >
           Basis-Elemente
         </Button>
-        <Button 
-          sx={{ 
-            flex: 1, 
-            py: 1, 
+        <Button
+          sx={{
+            flex: 1,
+            py: 1,
             borderRadius: 0,
             backgroundColor: activeTab === 'complex' ? '#e3f2fd' : 'transparent',
             fontWeight: activeTab === 'complex' ? 'bold' : 'normal',
@@ -127,16 +135,16 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
           Komplexe Elemente
         </Button>
       </Box>
-      
+
       <ScrollableSection>
         {activeTab === 'basic' && (
           <ElementsSection>
             <List>
               {basicElements.map((element) => (
-                <ElementItem 
-                  key={element.type} 
-                  element={element} 
-                  onClick={() => onElementClick(element.type)} 
+                <ElementItem
+                  key={element.type}
+                  element={element}
+                  onClick={() => onElementClick(element.type)}
                 />
               ))}
             </List>
@@ -147,10 +155,10 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
           <ComplexElementsSection>
             <List>
               {complexElements.map((element) => (
-                <ElementItem 
-                  key={element.type} 
-                  element={element} 
-                  onClick={() => onElementClick(element.type)} 
+                <ElementItem
+                  key={element.type}
+                  element={element}
+                  onClick={() => onElementClick(element.type)}
                 />
               ))}
             </List>
