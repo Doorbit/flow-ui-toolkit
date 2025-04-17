@@ -51,9 +51,6 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const [shortTitleEn, setShortTitleEn] = useState(page.short_title?.en || '');
   const [icon, setIcon] = useState(page.icon || '');
   const [layout, setLayout] = useState(page.layout || (isEditPage ? '2_COL_RIGHT_FILL' : '2_COL_RIGHT_WIDER'));
-  const [relatedPageId, setRelatedPageId] = useState(
-    page.related_pages && page.related_pages.length > 0 ? page.related_pages[0].page_id : ''
-  );
   const [iconSelectorOpen, setIconSelectorOpen] = useState(false);
   const [visibilityCondition, setVisibilityCondition] = useState<VisibilityCondition | undefined>(page.visibility_condition);
 
@@ -63,11 +60,6 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const getDefaultPatternType = () => isEditPage ? "CustomUIElement" : "CustomUIElement";
 
   const handleSave = () => {
-    const relatedPages: RelatedPage[] = relatedPageId ? [{
-      viewing_context: isEditPage ? 'VIEW' : 'EDIT',
-      page_id: relatedPageId
-    }] : [];
-
     const updatedPage: Page = {
       ...page,
       pattern_type: page.pattern_type || getDefaultPatternType(),
@@ -81,7 +73,6 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
       },
       icon: icon,
       layout: layout,
-      related_pages: relatedPages,
       visibility_condition: visibilityCondition
     };
 
@@ -177,33 +168,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
               </FormHelperText>
             </FormControl>
 
-            {/* Verknüpfte Seite */}
-            {pages.length > 0 && (
-              <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
-                <InputLabel id="related-page-select-label">Verknüpfte Seite</InputLabel>
-                <Select
-                  labelId="related-page-select-label"
-                  id="related-page-select"
-                  value={relatedPageId}
-                  label="Verknüpfte Seite"
-                  onChange={(e) => setRelatedPageId(e.target.value)}
-                >
-                  <MenuItem value="">Keine Verknüpfung</MenuItem>
-                  {pages
-                    .filter(p => p.id !== page.id)
-                    .filter(p => isEditPage ? p.pattern_type !== "CustomUIElement" : p.pattern_type === "CustomUIElement")
-                    .map(p => (
-                      <MenuItem key={p.id} value={p.id}>
-                        {p.title?.de || p.id} {isEditPage ? "(View)" : "(Edit)"}
-                      </MenuItem>
-                    ))
-                  }
-                </Select>
-                <FormHelperText>
-                  Verbinde diese {isEditPage ? "Edit" : "View"}-Seite mit einer entsprechenden {isEditPage ? "View" : "Edit"}-Seite
-                </FormHelperText>
-              </FormControl>
-            )}
+
 
             {/* Icon-Auswahl */}
             <Typography variant="subtitle1" gutterBottom>
@@ -309,11 +274,13 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                           }}
                         >
                           <MenuItem value=""><em>Feld auswählen</em></MenuItem>
-                          {availableFields.map((field) => (
-                            <MenuItem key={field.fieldName} value={field.fieldName}>
-                              {field.title} ({field.fieldName})
-                            </MenuItem>
-                          ))}
+                          {availableFields
+                            .filter(field => field.elementType === 'BooleanUIElement')
+                            .map((field) => (
+                              <MenuItem key={field.fieldName} value={field.fieldName}>
+                                {field.title} ({field.fieldName}) - {field.pageName}
+                              </MenuItem>
+                            ))}
                         </Select>
                       </FormControl>
 

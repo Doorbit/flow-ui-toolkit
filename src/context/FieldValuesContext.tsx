@@ -6,7 +6,13 @@ interface FieldValuesContextType {
   fieldValues: Record<string, any>;
   setFieldValue: (fieldName: string, value: any) => void;
   resetFieldValues: () => void;
-  availableFields: Array<{ fieldName: string, elementType: string, title: string }>;
+  availableFields: Array<{
+    fieldName: string,
+    elementType: string,
+    title: string,
+    pageName?: string, // Name der Seite, zu der das Feld gehört
+    pageId?: string // ID der Seite, zu der das Feld gehört
+  }>;
 }
 
 const FieldValuesContext = createContext<FieldValuesContextType>({
@@ -25,7 +31,13 @@ export const FieldValuesProvider: React.FC<{
   flow?: ListingFlow;
 }> = ({ children, flow }) => {
   const [fieldValues, setFieldValues] = useState<Record<string, any>>({});
-  const [availableFields, setAvailableFields] = useState<Array<{ fieldName: string, elementType: string, title: string }>>([]);
+  const [availableFields, setAvailableFields] = useState<Array<{
+    fieldName: string,
+    elementType: string,
+    title: string,
+    pageName?: string,
+    pageId?: string
+  }>>([]);
 
   // Setze einen einzelnen Feldwert
   const setFieldValue = (fieldName: string, value: any) => {
@@ -44,10 +56,16 @@ export const FieldValuesProvider: React.FC<{
   useEffect(() => {
     if (flow) {
       const defaultValues: Record<string, any> = {};
-      const fields: Array<{ fieldName: string, elementType: string, title: string }> = [];
+      const fields: Array<{
+        fieldName: string,
+        elementType: string,
+        title: string,
+        pageName?: string,
+        pageId?: string
+      }> = [];
 
       // Funktion zum rekursiven Extrahieren von Standardwerten und Feldern
-      const extractFieldsAndValues = (elements: any[]) => {
+      const extractFieldsAndValues = (elements: any[], pageId: string, pageName: string) => {
         elements.forEach(element => {
           if (element.element) {
             const { pattern_type, field_id, default_value, title } = element.element;
@@ -64,15 +82,17 @@ export const FieldValuesProvider: React.FC<{
               fields.push({
                 fieldName: field_id.field_name,
                 elementType: pattern_type,
-                title: fieldTitle
+                title: fieldTitle,
+                pageName: pageName,
+                pageId: pageId
               });
             }
 
             // Rekursiv für verschachtelte Elemente
             if (pattern_type === 'GroupUIElement' && element.element.elements) {
-              extractFieldsAndValues(element.element.elements);
+              extractFieldsAndValues(element.element.elements, pageId, pageName);
             } else if (pattern_type === 'ArrayUIElement' && element.element.elements) {
-              extractFieldsAndValues(element.element.elements);
+              extractFieldsAndValues(element.element.elements, pageId, pageName);
             } else if (pattern_type === 'ChipGroupUIElement' && element.element.chips) {
               // Für ChipGroups: Extrahiere Felder und Werte aus den Chips
               element.element.chips.forEach((chip: any) => {
@@ -86,8 +106,10 @@ export const FieldValuesProvider: React.FC<{
                   const chipTitle = chip.title && (chip.title.de || chip.title.en) ? (chip.title.de || chip.title.en) : chip.field_id.field_name;
                   fields.push({
                     fieldName: chip.field_id.field_name,
-                    elementType: chip.pattern_type,
-                    title: chipTitle
+                    elementType: chip.pattern_type || 'BooleanUIElement', // ChipGroups enthalten normalerweise BooleanUIElements
+                    title: chipTitle,
+                    pageName: pageName,
+                    pageId: pageId
                   });
                 }
               });
@@ -100,7 +122,8 @@ export const FieldValuesProvider: React.FC<{
       if (flow.pages_edit) {
         flow.pages_edit.forEach(page => {
           if (page.elements) {
-            extractFieldsAndValues(page.elements);
+            const pageName = page.title?.de || page.title?.en || page.id;
+            extractFieldsAndValues(page.elements, page.id, pageName);
           }
         });
       }
