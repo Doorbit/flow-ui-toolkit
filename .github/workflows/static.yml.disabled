@@ -1,3 +1,4 @@
+# DEAKTIVIERT: Dieser Workflow wurde deaktiviert, um Konflikte mit deploy.yml zu vermeiden
 # Simple workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
 
