@@ -272,7 +272,6 @@ export const updateElementByPath = (
 
   // Navigiere zum übergeordneten Element
   let currentElements = updatedCustomElement.sub_flows[path.subflowIndex].elements;
-  let parentElements = currentElements;
   let lastIndex = path.path[path.path.length - 1];
 
   // Navigiere durch den Pfad bis zum vorletzten Element

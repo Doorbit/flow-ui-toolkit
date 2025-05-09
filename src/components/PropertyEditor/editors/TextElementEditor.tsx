@@ -6,7 +6,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
   SelectChangeEvent
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
