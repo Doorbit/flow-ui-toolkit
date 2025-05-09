@@ -1558,7 +1558,11 @@ const AppContent: React.FC = () => {
 
   // Handler für das Öffnen der Dokumentation in einem neuen Tab
   const handleOpenDocumentation = () => {
-    window.open('/documentation.html', '_blank');
+    // Verwende relative URL für GitHub Pages Kompatibilität
+    const baseUrl = window.location.pathname.includes('/flow-ui-toolkit')
+      ? '/flow-ui-toolkit'
+      : '';
+    window.open(`${baseUrl}/documentation.html`, '_blank');
   };
 
 
