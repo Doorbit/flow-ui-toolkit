@@ -16,7 +16,6 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { VisibilityConditionEditor } from '../PropertyEditor/editors/VisibilityConditionEditor';
-import { useSubflow } from '../../context/SubflowContext';
 import StructureNavigator from './StructureNavigator';
 import EnhancedElementEditorFactory from './EnhancedElementEditorFactory';
 
@@ -96,7 +95,6 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
   selectedElementPath
 }) => {
   const [activeTab, setActiveTab] = useState<string>('general');
-  const { state: _ } = useSubflow(); // Subflow-State wird für zukünftige Erweiterungen benötigt
 
   // Handler für Tab-Wechsel
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {

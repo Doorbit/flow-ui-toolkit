@@ -9,8 +9,7 @@ import {
   SingleSelectionUIElementItem,
   SingleSelectionUIElementItemOther,
   CustomUIElement,
-  SubFlow,
-  KeyValueListUIElement
+  SubFlow
 } from '../models/uiElements';
 
 /**

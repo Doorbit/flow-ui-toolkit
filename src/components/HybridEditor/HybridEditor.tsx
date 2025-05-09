@@ -7,13 +7,11 @@ import {
   Link,
   Divider,
   IconButton,
-  Tooltip,
-  Paper
+  Tooltip
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import HomeIcon from '@mui/icons-material/Home';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { useEditor, getElementByPath } from '../../context/EditorContext';
