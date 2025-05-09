@@ -7,12 +7,11 @@ import {
   Switch,
   InputAdornment,
   Tooltip,
-  FormHelperText,
-  Input
+  FormHelperText
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
 import { StringUIElement } from '../../../models/uiElements';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';

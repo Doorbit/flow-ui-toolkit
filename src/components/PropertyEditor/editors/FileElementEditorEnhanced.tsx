@@ -11,14 +11,11 @@ import {
   Switch,
   Button,
   Chip,
-  Divider,
   IconButton,
   Card,
   CardMedia,
   CardContent,
   CardActions,
-  Stack,
-  Tooltip,
   Grid,
   InputAdornment,
   FormHelperText
@@ -33,10 +30,10 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 import { FileUIElement } from '../../../models/uiElements';
 import { TranslatableField } from '../common/TranslatableField';
-import { VisibilityConditionEditor } from './VisibilityConditionEditor';
+
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
 import { ElementPreview } from '../common/ElementPreview';
@@ -81,6 +78,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
   };
 
   // Funktion zum Aktualisieren der Visibility-Bedingung
+  /*
   const handleVisibilityChange = (newCondition: any) => {
     if (newCondition) {
       onChange({
@@ -93,6 +91,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
       onChange(restElement as FileUIElement);
     }
   };
+  */
 
   // Hilfsfunktion zum Ermitteln des Icons basierend auf dem Dateityp
   const getFileTypeIcon = (fileType: string) => {

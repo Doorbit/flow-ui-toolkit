@@ -285,8 +285,7 @@ export const updateElementByPath = (
 
     const currentElement = currentElements[index];
 
-    // Speichere die aktuellen Elemente als übergeordnete Elemente
-    parentElements = currentElements;
+
 
     // Gehe tiefer
     if (currentElement.element.pattern_type === 'GroupUIElement') {

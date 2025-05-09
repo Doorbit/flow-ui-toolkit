@@ -9,7 +9,6 @@ import {
   Select,
   MenuItem,
   Typography,
-  Stack,
   Tabs,
   Tab,
   Checkbox,

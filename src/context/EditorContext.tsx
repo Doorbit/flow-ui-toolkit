@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
-import { GroupUIElement, ArrayUIElement, ChipGroupUIElement } from '../models/uiElements';
+import { ChipGroupUIElement } from '../models/uiElements';
 import { ensureUUIDs } from '../utils/uuidUtils';
 
 interface EditorState {
@@ -98,6 +98,7 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
 };
 
 // Hilfsfunktion zum Aktualisieren tief verschachtelter Elemente
+/*
 const updateElementAtPath = (
   elements: PatternLibraryElement[],
   path: number[],
@@ -155,6 +156,7 @@ const updateElementAtPath = (
     return element;
   });
 };
+*/
 
 // Hilfsfunktion zum Hinzufügen eines Elements an einem bestimmten Pfad
 const addElementAtPath = (

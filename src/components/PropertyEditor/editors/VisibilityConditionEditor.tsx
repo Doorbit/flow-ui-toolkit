@@ -17,8 +17,7 @@ import {
   Tooltip,
   Paper,
   Chip,
-  SelectChangeEvent,
-  Divider
+  SelectChangeEvent
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -54,7 +53,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
 
   // Funktion zum Rendern eines relationalen Feldoperators
   const renderRelationalFieldOperator = (condition: RelationalFieldOperator) => {
-    const { field_id, op, value, value_list } = condition;
+    const { field_id, op } = condition;
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -287,7 +286,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
 
   // Funktion zum Rendern der Wert-Eingabe basierend auf dem Feldtyp
   const renderValueInput = (condition: RelationalFieldOperator) => {
-    const { field_id, op, value, value_list } = condition;
+    const { field_id, op } = condition;
 
     if (!field_id || !field_id.field_name) {
       return null;
@@ -308,7 +307,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             fullWidth
             size="small"
             placeholder="Wert1, Wert2, Wert3"
-            value={value_list ? value_list.join(', ') : ''}
+            value={condition.value_list ? condition.value_list.join(', ') : ''}
             onChange={(e) => {
               const valueList = e.target.value.split(',').map(v => v.trim());
 
@@ -321,12 +320,12 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             }}
           />
           <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {value_list && value_list.map((val, index) => (
+            {condition.value_list && condition.value_list.map((val, index) => (
               <Chip
                 key={index}
                 label={val}
                 onDelete={() => {
-                  const newValueList = [...value_list];
+                  const newValueList = [...condition.value_list!];
                   newValueList.splice(index, 1);
 
                   const updatedCondition: RelationalFieldOperator = {
@@ -350,7 +349,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
           <FormControl fullWidth size="small">
             <InputLabel>Wert</InputLabel>
             <Select
-              value={value === true ? 'true' : value === false ? 'false' : ''}
+              value={condition.value === true ? 'true' : condition.value === false ? 'false' : ''}
               label="Wert"
               onChange={(e: SelectChangeEvent) => {
                 const newValue = e.target.value === 'true' ? true : e.target.value === 'false' ? false : null;
@@ -377,7 +376,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             label="Wert (Schlüssel der Option)"
             size="small"
             fullWidth
-            value={value || ''}
+            value={condition.value || ''}
             onChange={(e) => {
               const updatedCondition: RelationalFieldOperator = {
                 ...condition,
@@ -395,7 +394,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             label="Wert"
             size="small"
             fullWidth
-            value={value || ''}
+            value={condition.value || ''}
             onChange={(e) => {
               const updatedCondition: RelationalFieldOperator = {
                 ...condition,
@@ -414,7 +413,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             size="small"
             fullWidth
             type="number"
-            value={value || ''}
+            value={condition.value || ''}
             onChange={(e) => {
               const updatedCondition: RelationalFieldOperator = {
                 ...condition,
@@ -432,7 +431,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             label="Wert (YYYY-MM-DD)"
             size="small"
             fullWidth
-            value={value || ''}
+            value={condition.value || ''}
             onChange={(e) => {
               const updatedCondition: RelationalFieldOperator = {
                 ...condition,
@@ -450,7 +449,7 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
             label="Wert"
             size="small"
             fullWidth
-            value={value || ''}
+            value={condition.value || ''}
             onChange={(e) => {
               const updatedCondition: RelationalFieldOperator = {
                 ...condition,

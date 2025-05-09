@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { PatternLibraryElement } from '../models/listingFlow';
-import { CustomUIElement, SubFlow } from '../models/uiElements';
-import { ElementPath, findElementByPath, updateElementByPath } from '../utils/SubflowManager';
+import { CustomUIElement } from '../models/uiElements';
+import { findElementByPath, updateElementByPath } from '../utils/SubflowManager';
 import { useEditor } from './EditorContext';
 
 /**
@@ -308,7 +308,6 @@ function subflowReducer(state: SubflowState, action: SubflowAction): SubflowStat
 
       // Finde das übergeordnete Element
       let currentElements = subflow.elements;
-      let parentElements = currentElements;
       let lastIndex = action.path[action.path.length - 1];
 
       for (let i = 0; i < action.path.length - 1; i++) {
@@ -320,8 +319,7 @@ function subflowReducer(state: SubflowState, action: SubflowAction): SubflowStat
 
         const element = currentElements[index];
 
-        // Speichere die aktuellen Elemente als übergeordnete Elemente
-        parentElements = currentElements;
+
 
         // Gehe tiefer
         if (element.element.pattern_type === 'GroupUIElement') {

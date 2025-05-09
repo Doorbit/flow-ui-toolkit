@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
 import { TextUIElement } from '../../../models/uiElements';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
@@ -20,7 +20,7 @@ import IconField from '../common/IconField';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import TitleIcon from '@mui/icons-material/Title';
 import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 
 interface TextElementEditorProps {
   element: PatternLibraryElement;

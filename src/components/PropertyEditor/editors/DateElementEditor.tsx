@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
 import { DateUIElement } from '../../../models/uiElements';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
@@ -26,7 +26,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 

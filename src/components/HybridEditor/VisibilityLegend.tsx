@@ -4,8 +4,7 @@ import {
   Typography,
   Paper,
   Divider,
-  Tooltip,
-  IconButton
+  Tooltip
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -48,11 +47,11 @@ const VisibilityLegend: React.FC<VisibilityLegendProps> = ({ compact = false }) 
           Sichtbarkeitskonzepte
         </Typography>
       </Box>
-      
+
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         In dieser Anwendung gibt es zwei verschiedene Konzepte, die mit der "Sichtbarkeit" von Elementen zu tun haben:
       </Typography>
-      
+
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <VisibilityIcon color="primary" sx={{ mr: 1 }} />
@@ -66,9 +65,9 @@ const VisibilityLegend: React.FC<VisibilityLegendProps> = ({ compact = false }) 
           Beispiel: "Zeige dieses Feld nur an, wenn 'Hat PV-Anlage' = Ja."
         </Typography>
       </Box>
-      
+
       <Divider sx={{ my: 2 }} />
-      
+
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <AccountTreeIcon color="success" sx={{ mr: 1 }} />

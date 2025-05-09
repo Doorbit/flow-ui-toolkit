@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
 import { NumberUIElement } from '../../../models/uiElements';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
@@ -25,7 +25,7 @@ import NumbersIcon from '@mui/icons-material/Numbers';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 
 interface NumberElementEditorProps {
   element: PatternLibraryElement;

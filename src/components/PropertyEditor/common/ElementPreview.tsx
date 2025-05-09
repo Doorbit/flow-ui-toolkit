@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Paper,
-  Divider,
   IconButton,
   Collapse,
   Tooltip,

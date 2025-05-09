@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Typography,
   FormControlLabel,
   Switch,
   TextField
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import TitleIcon from '@mui/icons-material/Title';

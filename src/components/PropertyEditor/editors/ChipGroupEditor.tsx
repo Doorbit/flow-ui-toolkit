@@ -23,10 +23,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import TitleIcon from '@mui/icons-material/Title';
-import TuneIcon from '@mui/icons-material/Tune';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import { ChipGroupUIElement, BooleanUIElement } from '../../../models/uiElements';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
 import { VisibilityConditionEditor } from './VisibilityConditionEditor';
@@ -56,7 +55,7 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
     icon: '',
   });
   // Subflow-State wird für zukünftige Erweiterungen benötigt
-  const { state: _ } = useSubflow();
+  useSubflow();
 
   // Funktion zum Öffnen des Dialogs für einen neuen Chip
   const handleOpenNewChipDialog = () => {
@@ -114,6 +113,8 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
     });
   };
 
+  // Diese Funktionen werden in zukünftigen Erweiterungen verwendet
+  /*
   // Funktion zum Aktualisieren der Visibility-Bedingung des ChipGroup-Elements
   const handleVisibilityChange = (newCondition: any) => {
     if (newCondition) {
@@ -128,9 +129,8 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
     }
   };
 
-  // Diese Funktion wird in zukünftigen Erweiterungen verwendet
   // Funktion zum Aktualisieren der Visibility-Bedingung eines Chips
-  const _handleChipVisibilityChange = (index: number, newCondition: any) => {
+  const handleChipVisibilityChange = (index: number, newCondition: any) => {
     const updatedChips = [...element.chips];
 
     if (newCondition) {
@@ -149,6 +149,7 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
       chips: updatedChips,
     });
   };
+  */
 
   return (
     <Paper sx={{ p: 2, mb: 2 }}>

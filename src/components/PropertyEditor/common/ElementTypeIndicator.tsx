@@ -4,8 +4,7 @@ import {
   Typography,
   Paper,
   Tooltip,
-  useTheme,
-  Link
+  useTheme
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import DocumentationLink from './DocumentationLink';

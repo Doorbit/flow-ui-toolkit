@@ -12,12 +12,7 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Stack,
-  Divider,
   Paper,
-  Chip,
-  Card,
-  CardContent,
   Table,
   TableBody,
   TableCell,
@@ -29,18 +24,18 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 import { SingleSelectionUIElement, StringUIElement } from '../../../models/uiElements';
 import { v4 as uuidv4 } from 'uuid';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
 import { ElementPreview } from '../common/ElementPreview';
-import { TranslatableField } from '../common/TranslatableField';
+
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 
 interface SingleSelectionElementEditorEnhancedProps {
