@@ -2,6 +2,8 @@
 
 Ein leistungsstarkes Tool zur visuellen Erstellung und Bearbeitung von UI-Flows mit Drag & Drop Funktionalität und Mehrsprachenunterstützung.
 
+**Live-Demo:** [https://doorbit.github.io/flow-ui-toolkit](https://doorbit.github.io/flow-ui-toolkit)
+
 ## Features
 
 - 🎨 Visueller Editor mit Drag & Drop
@@ -37,6 +39,7 @@ Die Anwendung ist dann unter [http://localhost:3000](http://localhost:3000) erre
 - `npm start` - Startet den Entwicklungsserver
 - `npm test` - Führt die Tests aus
 - `npm run build` - Erstellt eine optimierte Production-Build
+- `npm run deploy` - Erstellt einen Build und veröffentlicht ihn auf GitHub Pages
 - `npm run eject` - Erlaubt tiefgreifende Konfigurationsänderungen
 
 ## Dokumentation
