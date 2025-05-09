@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flow UI Toolkit - Dokumentation</title>
+  <link rel="icon" href="./dbt_logo_icon.svg" />
+  <style>
+    :root {
+      --primary-color: #009F64;
+      --primary-dark: #008D58;
+      --primary-light: #4CC695;
+      --secondary-color: #F05B29;
+      --text-color: #2A2E3F;
+      --text-secondary: #343951;
+      --background-color: #F8FAFC;
+      --paper-color: #FFFFFF;
+      --border-color: #E0E0E0;
+      --success-color: #43E77F;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--text-color);
+      background-color: var(--background-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background-color: #2A2E3F;
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin: 30px 0 15px;
+      color: var(--text-color);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      margin: 25px 0 10px;
+      color: var(--text-color);
+    }
+
+    h4 {
+      font-size: 1.2rem;
+      margin: 20px 0 10px;
+      color: var(--text-color);
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+
+    ul, ol {
+      margin: 15px 0;
+      padding-left: 25px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      background-color: #f1f1f1;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    }
+
+    .card {
+      background-color: var(--paper-color);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .element-card {
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .note {
+      background-color: #e8f5e9;
+      border-left: 4px solid var(--primary-color);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .warning {
+      background-color: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid var(--primary-color);
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .toc {
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .toc ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .toc ul ul {
+      padding-left: 20px;
+    }
+
+    .toc a {
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Flow UI Toolkit - Dokumentation</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="toc">
+      <h3>Inhaltsverzeichnis</h3>
+      <ul>
+        <li><a href="#overview">Übersicht</a></li>
+        <li><a href="#main-features">Hauptfunktionen</a>
+          <ul>
+            <li><a href="#navigation">Navigation und Werkzeugleiste</a></li>
+            <li><a href="#page-management">Seitenverwaltung</a></li>
+            <li><a href="#ui-elements">UI-Elemente</a></li>
+            <li><a href="#property-editor">Eigenschaftseditor</a></li>
+            <li><a href="#visibility-conditions">Sichtbarkeitsbedingungen</a></li>
+          </ul>
+        </li>
+        <li><a href="#element-types">Elementtypen</a>
+          <ul>
+            <li><a href="#text-elements">Textelemente</a></li>
+            <li><a href="#input-elements">Eingabeelemente</a></li>
+            <li><a href="#selection-elements">Auswahlelemente</a></li>
+            <li><a href="#container-elements">Container-Elemente</a></li>
+            <li><a href="#custom-elements">Benutzerdefinierte Elemente</a></li>
+          </ul>
+        </li>
+        <li><a href="#workflow">Arbeitsablauf</a></li>
+        <li><a href="#tips">Tipps und Tricks</a></li>
+      </ul>
+    </div>
+
+    <section id="overview" class="card">
+      <h2>Übersicht</h2>
+      <p>Das Flow UI Toolkit ermöglicht die visuelle Erstellung und Bearbeitung von individuellem Workflow in der doorbit App und in doorbit Web. Sie können verschiedene UI-Elemente per Drag & Drop platzieren, deren Eigenschaften anpassen und mehrsprachige Inhalte verwalten.</p>
+
+      <p>Mit diesem Tool können Sie:</p>
+      <ul>
+        <li>Verschiedene UI-Elemente per Drag & Drop platzieren</li>
+        <li>Eigenschaften der Elemente anpassen</li>
+        <li>Mehrsprachige Inhalte verwalten (Deutsch und Englisch)</li>
+        <li>Komplexe Sichtbarkeitsbedingungen definieren</li>
+        <li>Mehrere Seiten in einem Flow verwalten</li>
+        <li>JSON-Dateien importieren und exportieren</li>
+      </ul>
+    </section>
+
+    <section id="main-features">
+      <h2>Hauptfunktionen</h2>
+
+      <div id="navigation" class="card">
+        <h3>Navigation und Werkzeugleiste</h3>
+        <p>Die Hauptnavigation bietet folgende Funktionen:</p>
+        <ul>
+          <li><strong>Neu</strong>: Erstellt einen neuen, leeren Flow</li>
+          <li><strong>Öffnen</strong>: Lädt einen bestehenden Flow aus einer JSON-Datei</li>
+          <li><strong>Speichern</strong>: Speichert den aktuellen Flow als JSON-Datei</li>
+          <li><strong>Workflow-Name</strong>: Bearbeitet den Namen des aktuellen Workflows</li>
+          <li><strong>Rückgängig/Wiederholen</strong>: Ermöglicht das Rückgängigmachen und Wiederholen von Änderungen</li>
+        </ul>
+      </div>
+
+      <div id="page-management" class="card">
+        <h3>Seitenverwaltung</h3>
+        <p>Das Flow UI Toolkit unterstützt die Verwaltung mehrerer Seiten innerhalb eines Flows:</p>
+        <ul>
+          <li>Seiten über Tabs navigieren</li>
+          <li>Seiten durch Drag & Drop neu anordnen</li>
+          <li>Seiten hinzufügen, bearbeiten oder löschen</li>
+          <li>Seitentitel in mehreren Sprachen anpassen (Deutsch und Englisch)</li>
+          <li>Material Design Icons für Seiten auswählen</li>
+          <li>Sichtbarkeitsbedingungen für Seiten definieren</li>
+        </ul>
+
+        <h4>Seiten bearbeiten</h4>
+        <ol>
+          <li>Klicken Sie auf das Bearbeiten-Symbol (Stift) neben dem Seiten-Tab</li>
+          <li>Im Dialog können Sie folgende Eigenschaften anpassen:
+            <ul>
+              <li>Titel in verschiedenen Sprachen (lang und kurz)</li>
+              <li>Icon aus der Material Design Bibliothek</li>
+              <li>Layout der Seite</li>
+              <li>Verknüpfung mit korrespondierenden Seiten</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h4>Icon-Auswahl</h4>
+        <ol>
+          <li>Klicken Sie im Seiten-Dialog auf "Icon auswählen"</li>
+          <li>Wählen Sie eine Kategorie (z.B. "Haus & Gebäude", "Smart Home & HVAC")</li>
+          <li>Nutzen Sie die Suchfunktion für spezifische Icons</li>
+          <li>Klicken Sie auf ein Icon, um es auszuwählen</li>
+        </ol>
+      </div>
+    </section>
+
+      <div id="ui-elements" class="card">
+        <h3>UI-Elemente</h3>
+        <p>Das Flow UI Toolkit bietet verschiedene UI-Elemente, die per Drag & Drop platziert werden können:</p>
+
+        <h4>Elementtypen</h4>
+        <table>
+          <tr>
+            <th>Element</th>
+            <th>Beschreibung</th>
+            <th>Anpassbare Eigenschaften</th>
+          </tr>
+          <tr>
+            <td>TextUIElement</td>
+            <td>Statischer Text (Überschriften, Absätze)</td>
+            <td>Text, Texttyp (Überschrift, Absatz), Mehrsprachigkeit</td>
+          </tr>
+          <tr>
+            <td>BooleanUIElement</td>
+            <td>Ja/Nein-Auswahl</td>
+            <td>Darstellungsart (Checkbox, Toggle, Dropdown), Beschriftungen</td>
+          </tr>
+          <tr>
+            <td>SingleSelectionUIElement</td>
+            <td>Auswahl aus mehreren Optionen</td>
+            <td>Optionen, Darstellungsart (Dropdown, Radio)</td>
+          </tr>
+          <tr>
+            <td>NumberUIElement</td>
+            <td>Zahleneingabe</td>
+            <td>Min/Max-Werte, Schrittgröße, Einheit</td>
+          </tr>
+          <tr>
+            <td>DateUIElement</td>
+            <td>Datumseingabe</td>
+            <td>Format, Min/Max-Datum</td>
+          </tr>
+          <tr>
+            <td>FileUIElement</td>
+            <td>Datei-Upload</td>
+            <td>Erlaubte Dateitypen, Maximale Größe</td>
+          </tr>
+          <tr>
+            <td>GroupUIElement</td>
+            <td>Container für andere Elemente</td>
+            <td>Layout, Titel, enthaltene Elemente</td>
+          </tr>
+          <tr>
+            <td>ArrayUIElement</td>
+            <td>Liste gleichartiger Elemente</td>
+            <td>Min/Max-Anzahl, Elementtyp</td>
+          </tr>
+          <tr>
+            <td>ChipGroupUIElement</td>
+            <td>Gruppe von auswählbaren Chips</td>
+            <td>Optionen, Mehrfachauswahl</td>
+          </tr>
+          <tr>
+            <td>CustomUIElement</td>
+            <td>Benutzerdefinierte Komponenten</td>
+            <td>Typ (Scanner/doorbit Studio, Address, Location, Environment)</td>
+          </tr>
+        </table>
+      </div>
+
+      <div id="property-editor" class="card">
+        <h3>Eigenschaftseditor</h3>
+        <p>Der Eigenschaftseditor ermöglicht die detaillierte Anpassung der ausgewählten Elemente:</p>
+
+        <h4>Allgemeine Eigenschaften</h4>
+        <ul>
+          <li><strong>Titel</strong>: Der Titel des Elements (mehrsprachig)</li>
+          <li><strong>Beschreibung</strong>: Eine optionale Beschreibung (mehrsprachig)</li>
+          <li><strong>Feld-ID</strong>: Eine eindeutige ID für das Element (wird automatisch generiert)</li>
+          <li><strong>Pflichtfeld</strong>: Gibt an, ob das Feld ausgefüllt werden muss</li>
+        </ul>
+
+        <h4>Elementspezifische Eigenschaften</h4>
+        <p>Je nach Elementtyp stehen verschiedene spezifische Eigenschaften zur Verfügung:</p>
+        <ul>
+          <li>Für Textelemente: Texttyp (Überschrift, Absatz), Textinhalt</li>
+          <li>Für Boolesche Elemente: Darstellungsart, Beschriftungen für Wahr/Falsch</li>
+          <li>Für Auswahlfelder: Optionen, Darstellungsart</li>
+          <li>Für Zahlenfelder: Min/Max-Werte, Schrittgröße</li>
+          <li>Für Container: Layout, enthaltene Elemente</li>
+        </ul>
+      </div>
+
+      <div id="visibility-conditions" class="card">
+        <h3>Sichtbarkeitsbedingungen</h3>
+        <p>Mit Sichtbarkeitsbedingungen können Sie festlegen, wann ein Element oder eine Seite angezeigt wird:</p>
+
+        <h4>Bedingungstypen</h4>
+        <ul>
+          <li><strong>Einfache Bedingung</strong>: Basierend auf dem Wert eines anderen Feldes</li>
+          <li><strong>Komplexe Bedingung</strong>: Mehrere Bedingungen mit UND/ODER verknüpft</li>
+        </ul>
+
+        <h4>Verfügbare Operatoren</h4>
+        <ul>
+          <li>Gleich (=)</li>
+          <li>Ungleich (!=)</li>
+          <li>Größer als (>)</li>
+          <li>Kleiner als (<)</li>
+          <li>Größer oder gleich (>=)</li>
+          <li>Kleiner oder gleich (<=)</li>
+          <li>Enthält (contains)</li>
+        </ul>
+
+        <div class="note">
+          <p><strong>Hinweis:</strong> Sichtbarkeitsbedingungen können auf alle Felder im Flow angewendet werden, auch auf Felder anderer Seiten.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="element-types">
+      <h2>Elementtypen im Detail</h2>
+
+      <div id="text-elements" class="card element-card">
+        <h3>Textelemente</h3>
+        <p>Textelemente dienen zur Anzeige von statischem Text wie Überschriften, Absätzen oder Hinweisen.</p>
+
+        <h4>Eigenschaften</h4>
+        <ul>
+          <li><strong>Texttyp</strong>: HEADING (Überschrift), PARAGRAPH (Absatz), SMALL (Kleingedrucktes)</li>
+          <li><strong>Text</strong>: Der anzuzeigende Text (mehrsprachig)</li>
+          <li><strong>Formatierung</strong>: Grundlegende Textformatierung</li>
+        </ul>
+
+        <h4>Verwendung</h4>
+        <p>Textelemente eignen sich besonders für:</p>
+        <ul>
+          <li>Abschnittsüberschriften</li>
+          <li>Erklärungstexte und Anleitungen</li>
+          <li>Hinweise und Warnungen</li>
+          <li>Rechtliche Informationen</li>
+        </ul>
+      </div>
+
+      <div id="input-elements" class="card element-card">
+        <h3>Eingabeelemente</h3>
+        <p>Eingabeelemente ermöglichen die Erfassung verschiedener Datentypen.</p>
+
+        <h4>Typen von Eingabeelementen</h4>
+        <ul>
+          <li><strong>StringUIElement</strong>: Für Texteingaben</li>
+          <li><strong>NumberUIElement</strong>: Für Zahleneingaben</li>
+          <li><strong>DateUIElement</strong>: Für Datumseingaben</li>
+          <li><strong>FileUIElement</strong>: Für Datei-Uploads</li>
+        </ul>
+
+        <h4>Validierung</h4>
+        <p>Für Eingabeelemente können verschiedene Validierungsregeln definiert werden:</p>
+        <ul>
+          <li>Pflichtfeld-Validierung</li>
+          <li>Min/Max-Länge für Texte</li>
+          <li>Min/Max-Werte für Zahlen</li>
+          <li>Datumsbereich für Datumsfelder</li>
+          <li>Dateitypen und -größen für Datei-Uploads</li>
+        </ul>
+      </div>
+
+      <div id="selection-elements" class="card element-card">
+        <h3>Auswahlelemente</h3>
+        <p>Auswahlelemente ermöglichen die Auswahl aus vordefinierten Optionen.</p>
+
+        <h4>Typen von Auswahlelementen</h4>
+        <ul>
+          <li><strong>BooleanUIElement</strong>: Ja/Nein-Auswahl (Checkbox, Toggle, Dropdown)</li>
+          <li><strong>SingleSelectionUIElement</strong>: Einzelauswahl aus mehreren Optionen</li>
+          <li><strong>ChipGroupUIElement</strong>: Mehrfachauswahl mit visuellen Chips</li>
+        </ul>
+
+        <h4>Darstellungsarten</h4>
+        <p>Je nach Elementtyp stehen verschiedene Darstellungsarten zur Verfügung:</p>
+        <ul>
+          <li>Für BooleanUIElement: SWITCH, CHECKBOX, DROPDOWN, RADIO, BUTTONGROUP</li>
+          <li>Für SingleSelectionUIElement: DROPDOWN, RADIO, BUTTONGROUP</li>
+        </ul>
+
+        <div class="note">
+          <p><strong>Hinweis:</strong> Bei ChipGroupUIElement können nur BooleanUIElements als Unterelemente hinzugefügt werden. Diese erhalten automatisch eine eindeutige UUID als Feld-ID.</p>
+        </div>
+      </div>
+
+      <div id="container-elements" class="card element-card">
+        <h3>Container-Elemente</h3>
+        <p>Container-Elemente dienen zur Strukturierung und Gruppierung anderer Elemente.</p>
+
+        <h4>Typen von Container-Elementen</h4>
+        <ul>
+          <li><strong>GroupUIElement</strong>: Gruppiert verschiedene Elemente</li>
+          <li><strong>ArrayUIElement</strong>: Enthält mehrere Instanzen des gleichen Elementtyps</li>
+        </ul>
+
+        <h4>Einschränkungen</h4>
+        <ul>
+          <li>GroupUIElement kann alle Elementtypen enthalten, außer andere GroupUIElements</li>
+          <li>ArrayUIElement sollte keine komplexen Elemente oder andere Arrays enthalten</li>
+        </ul>
+
+        <div class="warning">
+          <p><strong>Wichtig:</strong> Alle Elemente, die zu Containern hinzugefügt werden, sollten eindeutige UUIDs als Feld-IDs haben, damit Sichtbarkeitsregeln korrekt funktionieren.</p>
+        </div>
+      </div>
+
+      <div id="custom-elements" class="card element-card">
+        <h3>Benutzerdefinierte Elemente</h3>
+        <p>CustomUIElements sind spezialisierte Komponenten für bestimmte Anwendungsfälle.</p>
+
+        <h4>Verfügbare Typen</h4>
+        <ul>
+          <li><strong>Scanner</strong>: Scan- und doorbit Studio Integration. Hier können die Screens, die während des Scans bearbeitet werden inkl. der Notizfunktion individualisiert werden</li>
+          <li><strong>Address</strong>: Für strukturierte Adresseingaben</li>
+          <li><strong>Location</strong>: Für Standortdaten mit Koordinaten</li>
+          <li><strong>Environment</strong>: Für sozioökonomische Umgebungsdaten (Statistiken)</li>
+        </ul>
+
+        <h4>Besonderheiten</h4>
+        <p>CustomUIElements generieren komplexe JSON-Strukturen, die Subflows enthalten können. Diese werden automatisch mit eindeutigen UUIDs für alle Elemente generiert.</p>
+      </div>
+    </section>
+
+    <section id="workflow" class="card">
+      <h2>Arbeitsablauf</h2>
+      <p>Ein typischer Arbeitsablauf im Flow UI Toolkit sieht wie folgt aus:</p>
+
+      <ol>
+        <li><strong>Workflow erstellen oder öffnen</strong>
+          <ul>
+            <li>Neuen Workflow erstellen über den "Neu"-Button</li>
+            <li>Bestehenden Workflow öffnen über den "Öffnen"-Button</li>
+            <li>Workflow-Namen festlegen</li>
+          </ul>
+        </li>
+        <li><strong>Seiten verwalten</strong>
+          <ul>
+            <li>Seiten hinzufügen, bearbeiten oder löschen</li>
+            <li>Seitentitel und Icons anpassen</li>
+            <li>Seitenreihenfolge durch Drag & Drop ändern</li>
+          </ul>
+        </li>
+        <li><strong>UI-Elemente hinzufügen</strong>
+          <ul>
+            <li>Elemente per Drag & Drop aus der Elementpalette ziehen</li>
+            <li>Elemente in Container-Elementen verschachteln</li>
+            <li>Elemente in der Hierarchie neu anordnen</li>
+          </ul>
+        </li>
+        <li><strong>Eigenschaften anpassen</strong>
+          <ul>
+            <li>Allgemeine Eigenschaften wie Titel und Beschreibung festlegen</li>
+            <li>Elementspezifische Eigenschaften konfigurieren</li>
+            <li>Mehrsprachige Inhalte für Deutsch und Englisch definieren</li>
+          </ul>
+        </li>
+        <li><strong>Sichtbarkeitsbedingungen definieren</strong>
+          <ul>
+            <li>Bedingungen für die Anzeige von Elementen festlegen</li>
+            <li>Komplexe Bedingungen mit UND/ODER-Verknüpfungen erstellen</li>
+          </ul>
+        </li>
+        <li><strong>Workflow speichern</strong>
+          <ul>
+            <li>Workflow als JSON-Datei speichern</li>
+            <li>Die generierte JSON-Datei kann direkt verwendet werden</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section id="tips" class="card">
+      <h2>Tipps und Tricks</h2>
+
+      <h3>Allgemeine Tipps</h3>
+      <ul>
+        <li><strong>Regelmäßiges Speichern</strong>: Speichern Sie Ihren Workflow regelmäßig, um Datenverlust zu vermeiden.</li>
+        <li><strong>Undo/Redo</strong>: Nutzen Sie die Undo/Redo-Funktionen, um Änderungen rückgängig zu machen oder wiederherzustellen.</li>
+        <li><strong>Eindeutige IDs</strong>: Achten Sie darauf, dass alle Elemente eindeutige UUIDs als Feld-IDs haben, besonders wenn Sie Sichtbarkeitsbedingungen verwenden.</li>
+        <li><strong>Mehrsprachigkeit</strong>: Füllen Sie immer beide Sprachversionen (Deutsch und Englisch) aus, um eine vollständige Mehrsprachigkeit zu gewährleisten.</li>
+      </ul>
+
+      <h3>Leistungsoptimierung</h3>
+      <ul>
+        <li><strong>Komplexität reduzieren</strong>: Vermeiden Sie zu tiefe Verschachtelungen von Elementen.</li>
+        <li><strong>Sichtbarkeitsbedingungen</strong>: Komplexe Sichtbarkeitsbedingungen können die Leistung beeinträchtigen. Halten Sie sie so einfach wie möglich.</li>
+        <li><strong>Icon-Auswahl</strong>: Die Suche nach Icons funktioniert über alle Kategorien hinweg, auch wenn ein bestimmter Filter ausgewählt ist.</li>
+      </ul>
+
+      <h3>Bekannte Einschränkungen</h3>
+      <ul>
+        <li>GroupUIElements können keine anderen GroupUIElements enthalten.</li>
+        <li>ArrayUIElements sollten keine komplexen Elemente oder andere Arrays enthalten.</li>
+        <li>Bei ChipGroupUIElements können nur BooleanUIElements hinzugefügt werden.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // JavaScript für Tab-Funktionalität
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Aktiven Tab setzen
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          // Aktiven Inhalt anzeigen
+          const tabId = tab.getAttribute('data-tab');
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+
+      // Smooth scrolling für Anker-Links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 80,
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
