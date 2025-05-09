@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import { AppBar, Toolbar, Button, IconButton, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, Button, IconButton, Tooltip, Box } from '@mui/material';
 import {
   Add as AddIcon,
   FolderOpen as OpenIcon,
   Save as SaveIcon,
   Undo as UndoIcon,
-  Redo as RedoIcon
+  Redo as RedoIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 
 interface NavigationProps {
@@ -17,25 +18,31 @@ interface NavigationProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  onEditWorkflowName: () => void;
+  workflowName: string;
 }
 
 const StyledAppBar = styled(AppBar)`
-  background-color: #2c2c2c;
+  background-color: #2A2E3F;
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
 const StyledToolbar = styled(Toolbar)`
   justify-content: space-between;
+  padding: 0 16px;
 `;
 
 const LeftActions = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
 `;
 
 const RightActions = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
 `;
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -45,49 +52,88 @@ const Navigation: React.FC<NavigationProps> = ({
   canUndo,
   canRedo,
   onUndo,
-  onRedo
+  onRedo,
+  onEditWorkflowName,
+  workflowName
 }) => {
   return (
     <StyledAppBar position="static">
       <StyledToolbar>
-        <LeftActions>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <LeftActions>
           <Tooltip title="Neu">
             <Button
-              color="inherit"
+              variant="contained"
               startIcon={<AddIcon />}
               onClick={onNew}
+              sx={{
+                bgcolor: '#009F64',
+                color: 'white',
+                '&:hover': { bgcolor: '#008D58' }
+              }}
             >
               Neu
             </Button>
           </Tooltip>
           <Tooltip title="Öffnen">
             <Button
-              color="inherit"
+              variant="contained"
               startIcon={<OpenIcon />}
               onClick={onOpen}
+              sx={{
+                bgcolor: '#009F64',
+                color: 'white',
+                '&:hover': { bgcolor: '#008D58' }
+              }}
             >
               Öffnen
             </Button>
           </Tooltip>
           <Tooltip title="Speichern">
             <Button
-              color="inherit"
+              variant="contained"
               startIcon={<SaveIcon />}
               onClick={onSave}
+              sx={{
+                bgcolor: '#009F64',
+                color: 'white',
+                '&:hover': { bgcolor: '#008D58' }
+              }}
             >
               Speichern
             </Button>
           </Tooltip>
+          <Tooltip title="Workflow-Namen bearbeiten">
+            <Button
+              variant="contained"
+              startIcon={<EditIcon />}
+              onClick={onEditWorkflowName}
+              sx={{
+                bgcolor: '#009F64',
+                color: 'white',
+                '&:hover': { bgcolor: '#008D58' },
+                fontWeight: 'bold'
+              }}
+            >
+              {workflowName || "Workflow"}
+            </Button>
+          </Tooltip>
         </LeftActions>
+        </Box>
 
         <RightActions>
           <Tooltip title="Rückgängig">
             <span>
               <IconButton
-                color="inherit"
                 onClick={onUndo}
                 disabled={!canUndo}
                 size="large"
+                sx={{
+                  bgcolor: '#009F64',
+                  color: 'white',
+                  '&:hover': { bgcolor: '#008D58' },
+                  '&.Mui-disabled': { opacity: 0.4, color: 'rgba(255, 255, 255, 0.5)' }
+                }}
               >
                 <UndoIcon />
               </IconButton>
@@ -96,10 +142,15 @@ const Navigation: React.FC<NavigationProps> = ({
           <Tooltip title="Wiederherstellen">
             <span>
               <IconButton
-                color="inherit"
                 onClick={onRedo}
                 disabled={!canRedo}
                 size="large"
+                sx={{
+                  bgcolor: '#009F64',
+                  color: 'white',
+                  '&:hover': { bgcolor: '#008D58' },
+                  '&.Mui-disabled': { opacity: 0.4, color: 'rgba(255, 255, 255, 0.5)' }
+                }}
               >
                 <RedoIcon />
               </IconButton>

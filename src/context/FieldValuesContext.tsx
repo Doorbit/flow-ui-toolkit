@@ -52,7 +52,7 @@ export const FieldValuesProvider: React.FC<{
     setFieldValues({});
   };
 
-  // Extrahiere Standardwerte und verfügbare Felder aus dem Flow beim Laden
+  // Extrahiere Default-Werte und verfügbare Felder aus dem Flow beim Laden
   useEffect(() => {
     if (flow) {
       const defaultValues: Record<string, any> = {};
@@ -64,7 +64,7 @@ export const FieldValuesProvider: React.FC<{
         pageId?: string
       }> = [];
 
-      // Funktion zum rekursiven Extrahieren von Standardwerten und Feldern
+      // Funktion zum rekursiven Extrahieren von Default-Werten und Feldern
       const extractFieldsAndValues = (elements: any[], pageId: string, pageName: string) => {
         elements.forEach(element => {
           if (element.element) {
@@ -72,7 +72,7 @@ export const FieldValuesProvider: React.FC<{
 
             // Für Elemente mit field_id
             if (field_id && field_id.field_name) {
-              // Standardwerte extrahieren
+              // Default-Werte extrahieren
               if (default_value !== undefined) {
                 defaultValues[field_id.field_name] = default_value;
               }
@@ -97,7 +97,7 @@ export const FieldValuesProvider: React.FC<{
               // Für ChipGroups: Extrahiere Felder und Werte aus den Chips
               element.element.chips.forEach((chip: any) => {
                 if (chip.field_id && chip.field_id.field_name) {
-                  // Standardwerte extrahieren
+                  // Default-Werte extrahieren
                   if (chip.default_value !== undefined) {
                     defaultValues[chip.field_id.field_name] = chip.default_value;
                   }

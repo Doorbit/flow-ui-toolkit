@@ -1,0 +1,111 @@
+{
+    "workbench.colorTheme": "One Dark Modern",
+    "codeium.enableConfig": {
+        "*": true,
+        "markdown": true
+    },
+    "editor.minimap.showSlider": "always",
+    "workbench.editor.enablePreview": false,
+    "workbench.editorAssociations": {
+      "*.copilotmd": "vscode.markdown.preview.editor",
+      "*.md": "default"
+    },
+    "markdown-preview-enhanced.previewTheme": "vue.css",
+    "markdown-preview-enhanced.codeBlockTheme": "auto.css",
+    "markdown-preview-enhanced.enablePreviewZenMode": true,
+    "redhat.telemetry.enabled": false,
+    "yaml.schemas": {
+        "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
+    },
+    "yaml.customTags": [ 
+        "!ENV scalar",
+        "!ENV sequence",
+        "!relative scalar",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.to_svg",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.twemoji",
+        "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format",
+        "tag:yaml.org,2002:python/object/apply:pymdownx.slugs.slugify mapping"
+    ],
+    "cline.preferredLanguage": "German - Deutsch",
+    "cline.vsCodeLmModelSelector": {},
+    "augment.advanced": {
+       "mcpServers": {
+         "github.com/modelcontextprotocol/servers/tree/main/src/brave-search": {
+           "autoApprove": [
+             "brave_web_search",
+             "brave_local_search"
+           ],
+           "disabled": false,
+           "timeout": 60,
+           "command": "C:\\Program Files\\nodejs\\node.exe",
+           "args": [
+             "C:\\Users\\dboss\\AppData\\Roaming\\npm\\node_modules\\@modelcontextprotocol\\server-brave-search\\dist\\index.js"
+           ],
+           "env": {
+             "BRAVE_API_KEY": "BSAhyVwG5QsUVAFaKYdYFsDCq0tFI1B"
+           },
+           "transportType": "stdio"
+         },
+         "github.com/zcaceres/fetch-mcp": {
+           "autoApprove": [
+             "fetch_html",
+             "fetch_markdown",
+             "fetch_txt",
+             "fetch_json"
+           ],
+           "disabled": false,
+           "timeout": 60,
+           "command": "node",
+           "args": [
+             "C:/Users/dboss/OneDrive/Dokumente/Cline/MCP/fetch-mcp/dist/index.js"
+           ],
+           "transportType": "stdio"
+         },
+         "github.com/upstash/context7-mcp": {
+           "autoApprove": [
+             "resolve-library-id",
+             "get-library-docs"
+           ],
+           "disabled": false,
+           "timeout": 60,
+           "command": "node",
+           "args": [
+             "C:/Users/dboss/OneDrive/Dokumente/Cline/MCP/context7-mcp/node_modules/@upstash/context7-mcp/dist/index.js"
+           ],
+           "transportType": "stdio"
+         },
+         "github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking": {
+           "autoApprove": [
+             "sequentialthinking"
+           ],
+           "disabled": false,
+           "timeout": 60,
+           "command": "C:\\Program Files\\nodejs\\node.exe",
+           "args": [
+             "C:\\Users\\dboss\\OneDrive\\Dokumente\\Cline\\MCP\\sequential-thinking\\node_modules\\@modelcontextprotocol\\server-sequential-thinking\\dist\\index.js"
+           ],
+           "transportType": "stdio"
+         },
+         "@modelcontextprotocol-server-filesystem": {
+           "runtime": "node",
+           "command": "npx",
+           "args": [
+             "-y",
+             "@modelcontextprotocol/server-filesystem"
+           ]
+         }
+       }
+    },
+    "github.copilot.enable": {
+      "*": false
+    },
+    "roo-cline.allowedCommands": [
+      "npm test",
+      "npm install",
+      "tsc",
+      "git log",
+      "git diff",
+      "git show"
+    ],
+    "augment.nextEdit.enableGlobalBackgroundSuggestions": true
+}

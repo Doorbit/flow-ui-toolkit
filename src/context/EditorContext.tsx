@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
 import { GroupUIElement, ArrayUIElement, ChipGroupUIElement } from '../models/uiElements';
+import { ensureUUIDs } from '../utils/uuidUtils';
 
 interface EditorState {
   currentFlow: ListingFlow | null;
@@ -63,15 +64,35 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
     return getElementByPath((element.element as any).elements || [], restPath);
   }
 
-// Für ChipGroupUIElement mit chips-Array
-if (element.element.pattern_type === 'ChipGroupUIElement') {
-  // Konvertiere jedes BooleanUIElement in chips zu PatternLibraryElement für die weitere Navigation
-  const chipElements = ((element.element as any).chips || []).map((chip: any) => ({
-    element: chip
-  }));
-  console.log('ChipGroup gefunden, navigiere zu Unterelementen', chipElements);
-  return getElementByPath(chipElements, restPath);
-}
+  // Für ChipGroupUIElement mit chips-Array
+  if (element.element.pattern_type === 'ChipGroupUIElement') {
+    // Konvertiere jedes BooleanUIElement in chips zu PatternLibraryElement für die weitere Navigation
+    const chipElements = ((element.element as any).chips || []).map((chip: any) => ({
+      element: chip
+    }));
+    console.log('ChipGroup gefunden, navigiere zu Unterelementen', chipElements);
+    return getElementByPath(chipElements, restPath);
+  }
+
+  // Für CustomUIElement mit sub_flows
+  if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
+    const subFlows = (element.element as any).sub_flows || [];
+
+    if (restPath.length > 0) {
+      const subFlowIndex = restPath[0];
+
+      if (subFlowIndex < subFlows.length) {
+        if (restPath.length === 1) {
+          // Gib den Subflow selbst zurück
+          return { element: subFlows[subFlowIndex] };
+        } else {
+          // Navigiere zu einem Element innerhalb des Subflows
+          const subflowElements = subFlows[subFlowIndex].elements || [];
+          return getElementByPath(subflowElements, restPath.slice(1));
+        }
+      }
+    }
+  }
 
   return null;
 };
@@ -268,16 +289,19 @@ const removeElementAtPath = (
 function editorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'SET_FLOW':
+      // Sicherstellen, dass alle Elemente UUIDs haben
+      const flowWithUUIDs = ensureUUIDs(action.flow);
+
       return {
         ...state,
-        currentFlow: action.flow,
+        currentFlow: flowWithUUIDs,
         undoStack: [],
         redoStack: [],
         selectedElement: null,
         selectedElementPath: [],
         isDirty: false,
         // Erste Seite als Standard auswählen, wenn verfügbar
-        selectedPageId: action.flow?.pages_edit.length > 0 ? action.flow.pages_edit[0].id : null,
+        selectedPageId: flowWithUUIDs?.pages_edit.length > 0 ? flowWithUUIDs.pages_edit[0].id : null,
       };
 
     case 'UPDATE_FLOW':

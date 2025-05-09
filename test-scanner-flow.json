@@ -1,0 +1,22 @@
+{
+  "id": "test-scanner-flow",
+  "url-key": "test-scanner-flow",
+  "name": "Test Scanner Flow",
+  "title": {
+    "de": "Test Scanner Flow",
+    "en": "Test Scanner Flow"
+  },
+  "icon": "mdiFileOutline",
+  "pages_edit": [
+    {
+      "pattern_type": "Page",
+      "id": "page-1",
+      "title": {
+        "de": "Scanner Test",
+        "en": "Scanner Test"
+      },
+      "elements": []
+    }
+  ],
+  "pages_view": []
+}

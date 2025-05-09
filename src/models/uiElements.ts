@@ -11,7 +11,8 @@ export type UIElement =
   | FileUIElement
   | ArrayUIElement
   | GroupUIElement
-  | TextUIElement;
+  | TextUIElement
+  | KeyValueListUIElement;
 
 export interface TextUIElement extends UIElementEdit {
   pattern_type: 'TextUIElement';
@@ -24,6 +25,7 @@ export interface SingleSelectionUIElement extends UIElementEdit {
   type?: 'BUTTONGROUP' | 'DROPDOWN';
   field_id: FieldId;
   options: SingleSelectionUIElementItem[];
+  items?: SingleSelectionUIElementItem[]; // Alias für options für Kompatibilität
   default?: string;
   sorting?: 'ASC';
   other_user_value?: SingleSelectionUIElementItemOther;
@@ -47,8 +49,13 @@ export interface SingleSelectionUIElementItemOther {
 
 export interface BooleanUIElement extends UIElementEdit {
   pattern_type: 'BooleanUIElement';
+  type?: 'SWITCH' | 'CHECKBOX' | 'DROPDOWN' | 'RADIO' | 'BUTTONGROUP';
   field_id: FieldId;
   default_value?: boolean;
+  options?: {
+    true_label?: TranslatableString;
+    false_label?: TranslatableString;
+  };
 }
 
 export interface StringUIElement extends UIElementEdit {
@@ -58,6 +65,10 @@ export interface StringUIElement extends UIElementEdit {
   length_minimum?: number;
   length_maximum?: number;
   rows?: number;
+  default_value?: string;
+  placeholder?: TranslatableString;
+  multiline?: boolean;
+  pattern?: string;
 }
 
 export interface NumberUIElement extends UIElementEdit {
@@ -65,16 +76,20 @@ export interface NumberUIElement extends UIElementEdit {
   type?: 'INTEGER' | 'DOUBLE';
   field_id: FieldId;
   unit?: string;
-  minimum?: number;
-  maximum?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  default?: number;
+  default_value?: number;
 }
 
 export interface DateUIElement extends UIElementEdit {
   pattern_type: 'DateUIElement';
   field_id: FieldId;
-  type: 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'MINUTE';
+  type: 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'MINUTE' | 'YMD';
   minimum?: string;
   maximum?: string;
+  default_value?: string;
 }
 
 export interface FileUIElement extends UIElementEdit {
@@ -110,11 +125,25 @@ export interface CustomUIElement extends UIElementEdit {
 }
 
 export interface SubFlow {
-  type: 'SLAB' | 'WINDOW' | 'DOOR' | 'WALL' | 'ROOM' | 'POI_PHOTO';
+  type: 'SLAB' | 'WINDOW' | 'DOOR' | 'WALL' | 'ROOM' | 'ROOM_GROUP' | 'POI' | 'POI_PHOTO';
   elements: any[]; // PatternLibraryElement[]
 }
 
 export interface ChipGroupUIElement extends UIElementEdit {
   pattern_type: 'ChipGroupUIElement';
   chips: BooleanUIElement[];
+}
+
+export interface KeyValueListUIElement extends UIElementEdit {
+  pattern_type: 'KeyValueListUIElement';
+  type: 'TABLE';
+  items: KeyValueListItem[];
+}
+
+export interface KeyValueListItem {
+  key: TranslatableString;
+  field_value: {
+    field_id: FieldId;
+  };
+  icon?: string;
 }

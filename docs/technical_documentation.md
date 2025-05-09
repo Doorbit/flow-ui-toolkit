@@ -68,6 +68,8 @@ interface TranslatableString {
 Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - TextUIElement
 - BooleanUIElement
+  - Unterstützt verschiedene Darstellungsarten: SWITCH, CHECKBOX, DROPDOWN, RADIO, BUTTONGROUP
+  - Anpassbare Beschriftungen für Wahr/Falsch-Werte
 - SingleSelectionUIElement
 - NumberUIElement
 - DateUIElement
@@ -85,10 +87,49 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Unterstützt Drag & Drop
 - Ermöglicht verschachtelte Strukturen
 
-#### PropertyEditor
+#### PropertyEditor und EnhancedPropertyEditor
 - Bearbeitung von Element-Eigenschaften
 - Dynamische Anpassung an Elementtyp
 - Mehrsprachenunterstützung
+- Modulare Struktur mit spezialisierten Editor-Komponenten
+- Factory-Pattern für elementtypspezifische Editoren
+- Wiederverwendbare UI-Komponenten für konsistente Benutzeroberfläche
+
+##### ElementEditorFactory und EnhancedElementEditorFactory
+- Factory-Pattern zur Instanziierung des passenden Editors für jeden Elementtyp
+- Zentrale Stelle für die Registrierung neuer Editor-Komponenten
+- Erleichtert die Erweiterung um neue Elementtypen
+- Verbesserte Wartbarkeit durch Trennung von Logik und Darstellung
+
+##### Spezialisierte Editor-Komponenten
+- **TextElementEditor**: Bearbeitung von Textblöcken (Überschriften, Absätze)
+- **BooleanElementEditor**: Bearbeitung von Ja/Nein-Feldern mit verschiedenen Darstellungsarten
+- **SingleSelectionElementEditor**: Bearbeitung von Auswahlfeldern mit konfigurierbaren Optionen
+- **NumberElementEditor**: Bearbeitung von Zahlenfeldern mit Min/Max-Werten und Schrittweite
+- **DateElementEditor**: Bearbeitung von Datumsfeldern mit verschiedenen Formaten
+- **StringElementEditor**: Bearbeitung von Texteingabefeldern mit Validierungsoptionen
+- **GroupElementEditor**: Bearbeitung von Gruppenelementen mit Einklapp-Funktion
+- **ArrayElementEditor**: Bearbeitung von Array-Elementen mit Min/Max-Anzahl
+- **ChipGroupEditor**: Bearbeitung von Chip-Gruppen mit konfigurierbaren Optionen
+- **FileElementEditor**: Bearbeitung von Datei-Upload-Elementen
+- **CustomElementEditor**: Bearbeitung von benutzerdefinierten Komponenten (Scanner, Adresse, etc.)
+
+##### VisibilityConditionEditor
+- Eigenständige Komponente für die Bearbeitung von Sichtbarkeitsregeln
+- Unterstützt komplexe logische Verknüpfungen (AND, OR, NOT)
+- Feldbasierte Bedingungen mit verschiedenen Operatoren
+- Kontextbasierte Bedingungen (CREATE, EDIT, VIEW, BACK_OFFICE)
+- Dynamische Feldauswahl aus allen verfügbaren Feldern
+- Typspezifische Werteeingabe je nach Feldtyp
+
+#### HybridEditor
+- Kombiniert die Vorteile von EditorArea und PropertyEditor
+- Verbesserte Benutzeroberfläche mit drei Hauptbereichen:
+  - Strukturnavigator: Hierarchische Anzeige aller Elemente
+  - EnhancedPropertyEditor: Verbesserte Eigenschaftsbearbeitung
+  - ElementContextView: Kontextinformationen zum ausgewählten Element
+- Unterstützt komplexe Elementstrukturen und Subflows
+- Optimierte Benutzerführung für verschachtelte Elemente
 
 #### PageNavigator
 - Verwaltung mehrerer Seiten
@@ -143,6 +184,13 @@ src/
 │   ├── DndProvider/
 │   ├── EditorArea/
 │   ├── ElementPalette/
+│   ├── HybridEditor/          # Verbesserte Editor-Komponente
+│   │   ├── HybridEditor.tsx   # Hauptkomponente des verbesserten Editors
+│   │   ├── StructureNavigator.tsx # Hierarchische Anzeige der Elementstruktur
+│   │   ├── EnhancedPropertyEditor.tsx # Verbesserte Eigenschaftsbearbeitung
+│   │   ├── ElementContextView.tsx # Kontextinformationen zum ausgewählten Element
+│   │   ├── EnhancedElementEditorFactory.tsx # Factory für spezialisierte Editoren
+│   │   └── VisibilityLegend.tsx # Legende für Sichtbarkeitsregeln
 │   ├── IconSelector/
 │   │   └── IconSelector.tsx  # Komponente zur Auswahl von Material Design Icons
 │   ├── JsonPreview/
@@ -152,13 +200,38 @@ src/
 │   │   ├── PageTab.tsx        # Einzelne Seiten-Tabs mit Icon-Unterstützung
 │   │   └── EditPageDialog.tsx # Dialog zur Bearbeitung von Seiteneigenschaften
 │   └── PropertyEditor/
+│       ├── common/            # Wiederverwendbare UI-Komponenten
+│       │   ├── TranslatableField.tsx # Mehrsprachige Texteingabe
+│       │   └── SectionTitle.tsx # Formatierte Abschnittstitel
+│       ├── editors/           # Spezialisierte Editor-Komponenten
+│       │   ├── TextElementEditor.tsx # Editor für Textblöcke
+│       │   ├── BooleanElementEditor.tsx # Editor für Ja/Nein-Felder
+│       │   ├── SingleSelectionElementEditor.tsx # Editor für Auswahlfelder
+│       │   ├── NumberElementEditor.tsx # Editor für Zahlenfelder
+│       │   ├── DateElementEditor.tsx # Editor für Datumsfelder
+│       │   ├── StringElementEditor.tsx # Editor für Texteingabefelder
+│       │   ├── GroupElementEditor.tsx # Editor für Gruppenelemente
+│       │   ├── ArrayElementEditor.tsx # Editor für Array-Elemente
+│       │   ├── ChipGroupEditor.tsx # Editor für Chip-Gruppen
+│       │   ├── FileElementEditor.tsx # Editor für Datei-Upload
+│       │   ├── CustomElementEditor.tsx # Editor für benutzerdefinierte Komponenten
+│       │   ├── VisibilityConditionEditor.tsx # Editor für Sichtbarkeitsregeln
+│       │   └── index.ts # Export aller Editor-Komponenten
+│       ├── ElementEditorFactory.tsx  # Factory für elementtypspezifische Editoren
+│       ├── CommonPropertiesEditor.tsx # Editor für gemeinsame Eigenschaften
+│       └── PropertyEditor.tsx # Klassische PropertyEditor-Implementierung
 ├── context/
 │   ├── EditorContext.tsx     # Verwaltet den Zustand inkl. Seitentitel und Icons
-│   └── SchemaContext.tsx     # JSON-Schema-Validierung
+│   ├── SchemaContext.tsx     # JSON-Schema-Validierung
+│   └── FieldValuesContext.tsx # Verwaltet Feldwerte für Visibility-Bedingungen
 ├── models/
 │   ├── listingFlow.ts        # Datenmodelle für Flow, Page, etc.
 │   └── uiElements.ts         # UI-Element-Definitionen
 └── utils/
+    ├── visibilityUtils.ts    # Auswertung von Visibility-Bedingungen
+    ├── optimizedVisibilityUtils.ts # Optimierte Auswertung mit Memoization
+    ├── SubflowManager.ts     # Verwaltung von Subflows
+    └── uuidUtils.ts          # UUID-Generierung und -Verwaltung
 ```
 
 ## Technische Abhängigkeiten
@@ -167,20 +240,30 @@ src/
 - Material-UI (@mui/material)
 - Styled Components
 - React DnD
+- Lodash (für Memoization und Utility-Funktionen)
 
 ## Performance-Überlegungen
 
 1. **Zustandsmanagement**
    - Optimierte Render-Zyklen durch Context
    - Selektive Updates von UI-Elementen
+   - Memoization für rechenintensive Operationen
+   - Optimierte Zustandsaktualisierungen durch modulare Struktur
+   - Verbesserte Trennung von Logik und Darstellung durch Factory-Pattern
 
 2. **Speichernutzung**
    - Effiziente Undo/Redo-Stacks
    - Lazy Loading von Komponenten
+   - Intelligente Caching-Strategien für Visibility-Bedingungen
+   - Optimierte Komponentenstruktur mit spezialisierten Editoren
 
 3. **UI-Reaktivität**
    - Optimierte Drag & Drop-Operationen
    - Effiziente JSON-Vorschau-Aktualisierung
+   - Reduzierte Re-Renders durch Component Factory Pattern
+   - Optimierte Auswertung von Visibility-Bedingungen mit Abhängigkeitsverfolgung
+   - Verbesserte Benutzeroberfläche mit HybridEditor für komplexe Strukturen
+   - Hierarchische Strukturnavigation für bessere Übersicht
 
 ## Sicherheitsaspekte
 
@@ -199,20 +282,44 @@ Die Architektur ermöglicht einfache Erweiterungen durch:
 1. **Neue UI-Elemente**
    - Implementierung neuer Element-Interfaces
    - Erweiterung des ElementPalette
+   - Einfache Integration in ElementEditorFactory und EnhancedElementEditorFactory
+   - Standardisierte Implementierung spezialisierter Editor-Komponenten
 
 2. **Custom Components**
    - Integration benutzerdefinierter Komponenten
    - Erweiterbare Renderer-Struktur
+   - Modulare Editor-Komponenten für neue Elementtypen
+   - Unterstützung für komplexe Komponenten wie Scanner, Adresse, Standort, etc.
 
 3. **Zusätzliche Features**
    - Modularer Aufbau für neue Funktionen
    - Erweiterbare Context-Struktur
+   - Wiederverwendbare Utilities für gemeinsame Funktionalitäten
+   - Einfache Integration neuer Editoren durch Factory-Pattern
 
 4. **Icon-Bibliothek**
    - Erweiterbare Material Design Icon-Sammlung
    - Anpassbare Kategorisierung für domänenspezifische Icons
    - Einfache Integration neuer Icon-Pakete
+   - Verbesserte Kategorisierung für domänenspezifische Anwendungsfälle
+
+5. **Visibility-Bedingungen**
+   - Erweiterbare Bedingungstypen
+   - Unterstützung für komplexe logische Verknüpfungen
+   - Einfache Integration neuer Operatoren
+   - Typspezifische Werteeingabe für verschiedene Feldtypen
 
 5. **Mehrsprachigkeit**
    - Erweiterbare Sprachunterstützung für Seitentitel und UI-Elemente
    - Konsistente Verwendung von TranslatableString für alle Texte
+   - Wiederverwendbare TranslatableField-Komponente
+
+6. **Visibility-Bedingungen**
+   - Erweiterbare Bedingungstypen
+   - Optimierte Auswertungsstrategien
+   - Modulare VisibilityConditionEditor-Komponente
+
+7. **Subflow-Management**
+   - Flexible Verwaltung von Subflows durch SubflowManager
+   - Erweiterbare Subflow-Typen
+   - Wiederverwendbare Funktionen für Subflow-Operationen

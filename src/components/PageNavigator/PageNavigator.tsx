@@ -38,16 +38,17 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
   const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
 
-  // Filtere Seiten basierend auf Visibility-Bedingungen
-  const visiblePages = pages.filter(page => {
-    // Wenn keine Visibility-Bedingung vorhanden ist, ist die Seite immer sichtbar
-    if (!page.visibility_condition) {
-      return true;
-    }
+  // HINWEIS: Wir zeigen alle Seiten an, unabhängig von ihrer Visibility-Bedingung
+  // Wir verwenden die Visibility-Bedingung nur noch für das Augensymbol, nicht zum Filtern
+  const visiblePages = pages;
 
-    // Evaluiere die Visibility-Bedingung
+  // Hilfsfunktion, um zu prüfen, ob eine Seite gemäß Visibility-Bedingung sichtbar wäre
+  const isPageVisible = (page: Page) => {
+    if (!page.visibility_condition) {
+      return true; // Wenn keine Bedingung, immer sichtbar
+    }
     return evaluateVisibilityCondition(page.visibility_condition, fieldValues);
-  });
+  };
 
   const handlePageChange = (_: React.SyntheticEvent, newPageId: string) => {
     dispatch({ type: 'SELECT_PAGE', pageId: newPageId });
@@ -67,9 +68,9 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     const newPage: Page = {
       pattern_type: 'CustomUIElement',
       id: pageId,
-      layout: '2_COL_RIGHT_FILL', // Standard-Layout für Edit-Seiten
+      layout: '2_COL_RIGHT_FILL', // Default-Layout für Edit-Seiten
       title: { de: newPageTitle || 'Neue Seite', en: newPageTitle || 'New Page' },
-      short_title: { de: '', en: '' }, // Leere Kurztitel
+      short_title: { de: '', en: '' }, // Leere Kurztitel (ausgeblendet in der UI)
       elements: []
     };
 
@@ -158,13 +159,25 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: '#F0F2F4' }}>
       <Tabs
         value={selectedPageId || (visiblePages.length > 0 ? visiblePages[0].id : false)}
         onChange={handlePageChange}
         variant="scrollable"
         scrollButtons="auto"
-        sx={{ flex: 1 }}
+        sx={{
+          flex: 1,
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#009F64',
+          },
+          '& .MuiTab-root': {
+            color: '#000000 !important',
+            fontWeight: 500,
+            '&.Mui-selected': {
+              color: '#009F64 !important',
+            }
+          }
+        }}
       >
         {visiblePages.map((page, index) => (
           <PageTab
@@ -172,17 +185,29 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
             page={page}
             index={index}
             selectedPageId={selectedPageId}
-            isLastPage={visiblePages.length <= 1}
+            isLastPage={false}
             onDelete={handleDeletePage}
             onEdit={handleEditPage}
             onMove={handleMovePage}
             onClick={() => handleTabClick(page.id)}
+            isVisible={isPageVisible(page)}
           />
         ))}
       </Tabs>
 
       <Tooltip title="Neue Seite hinzufügen">
-        <IconButton onClick={handleAddPage} color="primary" sx={{ mx: 1 }}>
+        <IconButton
+          onClick={handleAddPage}
+          sx={{
+            mx: 1,
+            color: '#000000',
+            bgcolor: '#43E77F',
+            border: '1px solid #000000',
+            '&:hover': {
+              bgcolor: '#35D870',
+            }
+          }}
+        >
           <AddIcon />
         </IconButton>
       </Tooltip>

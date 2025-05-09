@@ -21,10 +21,11 @@ import {
 const PaletteContainer = styled(Paper)`
   width: 250px;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #F0F2F4;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-right: 1px solid #E0E0E0;
 `;
 
 const ScrollableSection = styled.div`
@@ -38,22 +39,35 @@ const ElementsSection = styled.div`
 
 const ComplexElementsSection = styled.div`
   margin-bottom: 16px;
-  background-color: #edf7ff;
+  background-color: rgba(0, 159, 100, 0.05);
   padding-bottom: 8px;
-  border: 1px solid #c0d8f0;
+  border: 1px solid rgba(0, 159, 100, 0.2);
   margin: 8px;
-  border-radius: 4px;
+  border-radius: 8px;
 `;
 
 const PaletteHeader = styled(Typography)`
   padding: 16px;
-  background-color: #2c2c2c;
-  color: white;
+  background-color: #F0F2F4;
+  color: #2A2E3F;
+  font-weight: 500;
 `;
 
 const StyledListItemButton = styled(ListItemButton)`
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 159, 100, 0.08);
+  }
+  border-radius: 4px;
+  margin: 2px 8px;
+  padding: 8px 16px;
+  color: #2A2E3F;
+
+  .MuiListItemIcon-root {
+    color: #2A2E3F;
+  }
+
+  &[draggable="true"] {
+    cursor: grab;
   }
 `;
 
@@ -85,10 +99,19 @@ const elements: ElementType[] = [
   { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <AdminBoundaryIcon />, category: 'complex' }
 ];
 
-// Vereinfachte Version ohne Drag-and-Drop für die erste Implementation
+// Implementierung mit Drag-and-Drop
 const ElementItem: React.FC<{ element: ElementType, onClick: () => void }> = ({ element, onClick }) => {
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('element_type', element.type);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
   return (
-    <StyledListItemButton onClick={onClick}>
+    <StyledListItemButton
+      onClick={onClick}
+      draggable={true}
+      onDragStart={handleDragStart}
+    >
       <ListItemIcon>{element.icon}</ListItemIcon>
       <ListItemText primary={element.label} />
     </StyledListItemButton>
@@ -113,9 +136,12 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
             flex: 1,
             py: 1,
             borderRadius: 0,
-            backgroundColor: activeTab === 'basic' ? '#e3f2fd' : 'transparent',
+            backgroundColor: activeTab === 'basic' ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
             fontWeight: activeTab === 'basic' ? 'bold' : 'normal',
-            color: 'black'
+            color: activeTab === 'basic' ? '#009F64' : '#2A2E3F',
+            '&:hover': {
+              backgroundColor: activeTab === 'basic' ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
+            }
           }}
           onClick={() => setActiveTab('basic')}
         >
@@ -126,9 +152,12 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
             flex: 1,
             py: 1,
             borderRadius: 0,
-            backgroundColor: activeTab === 'complex' ? '#e3f2fd' : 'transparent',
+            backgroundColor: activeTab === 'complex' ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
             fontWeight: activeTab === 'complex' ? 'bold' : 'normal',
-            color: 'black'
+            color: activeTab === 'complex' ? '#009F64' : '#2A2E3F',
+            '&:hover': {
+              backgroundColor: activeTab === 'complex' ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
+            }
           }}
           onClick={() => setActiveTab('complex')}
         >

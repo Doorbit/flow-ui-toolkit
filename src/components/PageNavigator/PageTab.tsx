@@ -1,8 +1,9 @@
-import React, { useRef, forwardRef } from 'react';
+import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Tab, IconButton, Tooltip, TabProps, Box } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import * as Icons from '@mui/icons-material';
+import { Tab, IconButton, Tooltip, Box } from '@mui/material';
+import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon } from '@mui/icons-material';
+import Icon from '@mdi/react';
+import { getIconPath } from '../../utils/mdiIcons';
 import { Page } from '../../models/listingFlow';
 
 // Konstanten für DnD
@@ -19,6 +20,7 @@ interface PageTabProps {
   onEdit: (page: Page) => void;
   onMove: (dragIndex: number, hoverIndex: number) => void;
   onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  isVisible?: boolean; // Ob die Seite basierend auf ihrer Visibility-Bedingung sichtbar wäre
 }
 
 interface DragItem {
@@ -30,12 +32,13 @@ interface DragItem {
 const PageTab: React.FC<PageTabProps> = ({
   page,
   index,
-  selectedPageId,
+  selectedPageId: _selectedPageId,
   isLastPage,
   onDelete,
   onEdit,
   onMove,
-  onClick
+  onClick,
+  isVisible = true
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -113,8 +116,16 @@ const PageTab: React.FC<PageTabProps> = ({
   // Render icon if it exists
   const renderIcon = () => {
     if (!page.icon) return null;
-    const IconComponent = (Icons as any)[page.icon];
-    return IconComponent ? <IconComponent fontSize="small" /> : null;
+
+    // Prüfen, ob es sich um ein MDI-Icon handelt
+    if (page.icon.startsWith('mdi')) {
+      const iconPath = getIconPath(page.icon);
+      return iconPath ? <Icon path={iconPath} size={0.8} color="#000000" /> : null;
+    }
+
+    // Fallback für alte Material UI Icons (sollte nicht mehr vorkommen)
+    console.warn(`Non-MDI icon found: ${page.icon}. Please use MDI icons instead.`);
+    return null;
   };
 
   return (
@@ -134,13 +145,33 @@ const PageTab: React.FC<PageTabProps> = ({
       <Tab
         value={page.id}
         label={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#000000' }}>
             {renderIcon()}
-            <span>{page.title?.de || page.id}</span>
+            <span style={{ color: '#000000', fontWeight: 500 }}>{page.title?.de || page.id}</span>
+            {/* Zeige Sichtbarkeitssymbol nur wenn tatsächlich eine Bedingung vorliegt */}
+            {page.visibility_condition && (
+              <Tooltip title="Diese Seite hat eine bedingte Sichtbarkeitsregel, die bestimmt, wann sie angezeigt wird">
+                <VisibilityIcon
+                  fontSize="small"
+                  color={isVisible ? "primary" : "disabled"}
+                  sx={{ ml: 0.5, opacity: 0.7 }}
+                />
+              </Tooltip>
+            )}
+            {page.elements && page.elements.length > 0 && (
+              <Tooltip title="Diese Seite hat Unterelemente in der Hierarchie">
+                <AccountTreeIcon
+                  fontSize="small"
+                  color="success"
+                  sx={{ ml: 0.5, opacity: 0.7 }}
+                />
+              </Tooltip>
+            )}
           </Box>
         }
         sx={{
           cursor: 'move',
+          color: '#000000',
           '&:hover .delete-icon, &:hover .edit-icon': {
             opacity: 1,
           },
@@ -158,12 +189,13 @@ const PageTab: React.FC<PageTabProps> = ({
                     onEdit(page);
                   }}
                   sx={{
-                    opacity: 0.5,
+                    opacity: 1,
                     transition: 'opacity 0.2s',
                     mr: 0.5,
+                    color: '#000000',
                     '&:hover': {
                       opacity: 1,
-                      color: 'primary.main'
+                      color: '#009F64'
                     }
                   }}
                 >
@@ -179,11 +211,12 @@ const PageTab: React.FC<PageTabProps> = ({
                     onDelete(page.id);
                   }}
                   sx={{
-                    opacity: 0.5,
+                    opacity: 1,
                     transition: 'opacity 0.2s',
+                    color: '#000000',
                     '&:hover': {
                       opacity: 1,
-                      color: 'error.main'
+                      color: '#F05B29'
                     }
                   }}
                 >

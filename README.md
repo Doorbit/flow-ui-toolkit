@@ -49,6 +49,17 @@ Detaillierte Dokumentation finden Sie in:
   - Technische Features
   - API-Referenz
 
+- [EnhancedPropertyEditor Dokumentation](docs/enhanced_property_editor.md)
+  - Architektur des verbesserten Property Editors
+  - Integration der PropertyEditor-Businesslogik
+  - Spezialisierte Editor-Komponenten
+  - Factory-Pattern für Elementtypen
+
+- [Refactoring-Dokumentation](docs/refactoring_documentation.md)
+  - Überblick über durchgeführte Refactoring-Maßnahmen
+  - Verbesserungen der Codestruktur
+  - Performance-Optimierungen
+
 - [Benutzerhandbuch](docs/user_documentation.md)
   - Einführung
   - Funktionsübersicht

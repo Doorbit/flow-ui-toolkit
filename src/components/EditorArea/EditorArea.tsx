@@ -9,7 +9,11 @@ import {
   Card,
   CardContent,
   Collapse,
-  Tooltip
+  Tooltip,
+  Switch,
+  Checkbox,
+  Radio,
+  FormControlLabel
 } from '@mui/material';
 import ElementTypeDialog from './ElementTypeDialog';
 import {
@@ -19,10 +23,11 @@ import {
   ExpandLess as ExpandLessIcon,
   Add as AddIcon,
   DragIndicator as DragHandleIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
 import { PatternLibraryElement } from '../../models/listingFlow';
-import { UIElement } from '../../models/uiElements';
+import { UIElement, GroupUIElement } from '../../models/uiElements';
 import { getElementByPath } from '../../context/EditorContext';
 import { useFieldValues } from '../../context/FieldValuesContext';
 import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
@@ -33,11 +38,12 @@ import { useDrop } from 'react-dnd';
 const EditorContainer = styled(Paper)`
   flex: 1;
   padding: 1rem;
-  background-color: #f9f9f9;
+  background-color: #F8FAFC;
   min-height: 70vh;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  border-radius: 0;
 `;
 
 const ElementContainer = styled(Card)<{
@@ -51,19 +57,20 @@ const ElementContainer = styled(Card)<{
     props.depth === 0
       ? 'white'
       : props.depth === 1
-        ? '#f8f8f8'
+        ? 'rgba(0, 159, 100, 0.02)'
         : props.depth === 2
-          ? '#f0f0f0'
-          : '#e8e8e8'};
-  border: 1px solid ${props => props.selected ? '#1976d2' : '#e0e0e0'};
+          ? 'rgba(0, 159, 100, 0.05)'
+          : 'rgba(0, 159, 100, 0.08)'};
+  border: 1px solid ${props => props.selected ? '#009F64' : '#e0e0e0'};
   box-shadow: ${props =>
     props.isDragging
       ? '0 5px 10px rgba(0, 0, 0, 0.2)'
       : props.selected
-        ? '0 0 0 2px #1976d2'
+        ? '0 0 0 2px #009F64'
         : 'none'};
   opacity: ${props => props.isDragging ? 0.6 : 1};
   cursor: ${props => props.isDragging ? 'grabbing' : 'default'};
+  border-radius: 8px;
 `;
 
 const ElementActions = styled(Box)`
@@ -77,29 +84,33 @@ const ElementActions = styled(Box)`
 const ChildrenContainer = styled(Box)<{ depth: number }>`
   margin-left: ${props => props.depth === 0 ? '0' : '1rem'};
   padding-left: 1rem;
-  border-left: ${props => props.depth === 0 ? 'none' : '1px dashed #ccc'};
+  border-left: ${props => props.depth === 0 ? 'none' : '1px dashed rgba(0, 159, 100, 0.3)'};
   margin-top: 1rem;
 `;
 
-const EmptyState = styled(Box)`
+const EmptyState = styled(Box)<{ isOver?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: #757575;
+  color: #343951;
   padding: 2rem;
+  background-color: ${props => props.isOver ? 'rgba(0, 159, 100, 0.05)' : 'rgba(0, 159, 100, 0.02)'};
+  border-radius: 8px;
+  border: 2px dashed ${props => props.isOver ? '#009F64' : 'rgba(0, 159, 100, 0.2)'};
+  transition: all 0.2s ease;
 `;
 
 const DropZone = styled(Box)<{ isOver?: boolean }>`
-  border: 2px dashed ${props => props.isOver ? '#1976d2' : '#ccc'};
-  border-radius: 4px;
+  border: 2px dashed ${props => props.isOver ? '#009F64' : 'rgba(0, 159, 100, 0.3)'};
+  border-radius: 8px;
   padding: 1rem;
   margin: 0.5rem 0;
   text-align: center;
-  color: #757575;
-  background-color: ${props => props.isOver ? 'rgba(25, 118, 210, 0.05)' : 'transparent'};
+  color: #343951;
+  background-color: ${props => props.isOver ? 'rgba(0, 159, 100, 0.05)' : 'transparent'};
   transition: all 0.2s ease;
 `;
 
@@ -110,7 +121,7 @@ const ElementDropZoneWrapper = styled(Box)`
 
 const ElementDropZoneLine = styled(Box)<{ canDrop: boolean }>`
   height: 2px;
-  background-color: ${props => props.canDrop ? '#1976d2' : '#ff3d00'};
+  background-color: ${props => props.canDrop ? '#009F64' : '#F05B29'};
   width: 100%;
   transition: all 0.2s ease;
 `;
@@ -118,6 +129,11 @@ const ElementDropZoneLine = styled(Box)<{ canDrop: boolean }>`
 const AddElementButton = styled(Button)`
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  background-color: rgba(0, 159, 100, 0.1);
+  color: #009F64;
+  &:hover {
+    background-color: rgba(0, 159, 100, 0.2);
+  }
 `;
 
 // Drag-Item-Typen für react-dnd
@@ -162,6 +178,52 @@ const ElementPreview: React.FC<{ element: UIElement }> = ({ element }) => {
         </Box>
       );
       break;
+    case 'BooleanUIElement': {
+      const boolElement = element as any;
+      const displayType = boolElement.type || 'SWITCH';
+      const trueLabel = boolElement.options?.true_label?.de || 'Wahr';
+      const falseLabel = boolElement.options?.false_label?.de || 'Falsch';
+
+      let displayComponent;
+      switch (displayType) {
+        case 'SWITCH':
+          displayComponent = <Switch size="small" disabled />;
+          break;
+        case 'CHECKBOX':
+          displayComponent = <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <FormControlLabel control={<Checkbox size="small" disabled />} label={trueLabel} />
+          </Box>;
+          break;
+        case 'DROPDOWN':
+          displayComponent = <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2">Dropdown: </Typography>
+            <Button variant="outlined" size="small">{trueLabel} / {falseLabel}</Button>
+          </Box>;
+          break;
+        case 'RADIO':
+          displayComponent = <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FormControlLabel control={<Radio size="small" disabled />} label={trueLabel} />
+            <FormControlLabel control={<Radio size="small" disabled />} label={falseLabel} />
+          </Box>;
+          break;
+        case 'BUTTONGROUP':
+          displayComponent = <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button variant="outlined" size="small">{trueLabel}</Button>
+            <Button variant="outlined" size="small">{falseLabel}</Button>
+          </Box>;
+          break;
+      }
+
+      content = (
+        <Box>
+          <Typography variant="subtitle1">
+            {element.title?.de || element.title?.en || 'Boolean'}
+          </Typography>
+          {displayComponent}
+        </Box>
+      );
+      break;
+    }
     case 'SingleSelectionUIElement':
       content = (
         <Box>
@@ -407,6 +469,12 @@ const ElementRenderer: React.FC<{
     element.element.pattern_type === 'ArrayUIElement' ||
     element.element.pattern_type === 'ChipGroupUIElement';
 
+  // Bestimmen, ob das Element einklappbar ist
+  const isCollapsible =
+    element.element.pattern_type === 'GroupUIElement'
+      ? !!(element.element as GroupUIElement).isCollapsible
+      : hasContainerType;
+
   const addButtonLabel =
     element.element.pattern_type === 'GroupUIElement'
       ? "Element zur Gruppe hinzufügen"
@@ -438,7 +506,7 @@ const ElementRenderer: React.FC<{
               <DragHandleIcon fontSize="small" />
             </IconButton>
 
-            {hasContainerType && (
+            {isCollapsible && (
               <IconButton
                 onClick={(e) => {
                   e.stopPropagation();
@@ -457,9 +525,16 @@ const ElementRenderer: React.FC<{
 
             <ElementActions>
               {element.element.visibility_condition && (
-                <Tooltip title="Element hat Sichtbarkeitsregeln">
+                <Tooltip title="Dieses Element hat eine bedingte Sichtbarkeitsregel, die bestimmt, wann es angezeigt wird">
                   <IconButton size="small" disabled>
                     <VisibilityIcon fontSize="small" color="primary" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {hasContainerType && (
+                <Tooltip title="Dieses Element hat Unterelemente in der Hierarchie">
+                  <IconButton size="small" disabled>
+                    <AccountTreeIcon fontSize="small" color="success" />
                   </IconButton>
                 </Tooltip>
               )}
@@ -491,7 +566,73 @@ const ElementRenderer: React.FC<{
           {/* Render Kinder für GroupUIElement, ArrayUIElement und ChipGroupUIElement */}
           {hasContainerType && (
             <>
-              <Collapse in={isExpanded}>
+              {isCollapsible ? (
+                <Collapse in={isExpanded}>
+                  <ChildrenContainer depth={depth}>
+                    {/* Für Group/Array: elements, für ChipGroup: chips */}
+                    {(() => {
+                      // Extrahiere die Unterelemente basierend auf dem Elementtyp
+                      let childElements: PatternLibraryElement[] = [];
+
+                      if (element.element.pattern_type === 'ChipGroupUIElement') {
+                        // Für ChipGroups: Konvertiere BooleanUIElements zu PatternLibraryElements
+                        childElements = ((element.element as any).chips || []).map((chipElement: any) => ({
+                          element: chipElement // Wrappen von BooleanUIElement in PatternLibraryElement-Struktur
+                        }));
+                      } else {
+                        // Für Group/Array: Verwende elements-Array
+                        childElements = (element.element as any).elements || [];
+                      }
+
+                      return childElements.map((childElement: PatternLibraryElement, index: number) => (
+                        <React.Fragment key={`fragment-${index}`}>
+                          {onMoveElement && (
+                            <ElementDropZone
+                              key={`drop-${index}`}
+                              index={index}
+                              parentPath={path}
+                              elements={elements}
+                              onMoveElement={onMoveElement}
+                            />
+                          )}
+                          <ElementRenderer
+                            key={`element-${index}`}
+                            element={childElement}
+                            path={[...path, index]}
+                            depth={depth + 1}
+                            selectedPath={selectedPath}
+                            elements={elements}
+                            onSelectElement={onSelectElement}
+                            onRemoveElement={onRemoveElement}
+                            onDuplicateElement={onDuplicateElement}
+                            onAddSubElement={onAddSubElement}
+                            onMoveElement={onMoveElement}
+                            setShowElementTypeModal={setShowElementTypeModal}
+                            setTargetParentPath={setTargetParentPath}
+                          />
+                        </React.Fragment>
+                      ));
+                    })()
+                    }
+
+                    {/* Button zum Hinzufügen von Unterelementen */}
+                    {onAddSubElement && (
+                      <AddElementButton
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={() => {
+                          // Dialog öffnen und Elternpfad speichern
+                          setTargetParentPath(path);
+                          setShowElementTypeModal(true);
+                        }}
+                      >
+                        {addButtonLabel}
+                      </AddElementButton>
+                    )}
+                  </ChildrenContainer>
+                </Collapse>
+              ) : (
                 <ChildrenContainer depth={depth}>
                   {/* Für Group/Array: elements, für ChipGroup: chips */}
                   {(() => {
@@ -555,7 +696,7 @@ const ElementRenderer: React.FC<{
                     </AddElementButton>
                   )}
                 </ChildrenContainer>
-              </Collapse>
+              )}
             </>
           )}
         </CardContent>
@@ -585,8 +726,15 @@ const EditorArea: React.FC<EditorAreaProps> = ({
     }
   };
 
+  const [isDropZoneActive, setIsDropZoneActive] = useState(false);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDropZoneActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDropZoneActive(false);
   };
 
   // Handler für die Auswahl eines Elementtyps aus dem Dialog
@@ -614,7 +762,15 @@ const EditorArea: React.FC<EditorAreaProps> = ({
       />
 
       {elements.length === 0 ? (
-        <EmptyState onDrop={handleDrop} onDragOver={handleDragOver}>
+        <EmptyState
+          onDrop={(e) => {
+            handleDrop(e);
+            setIsDropZoneActive(false);
+          }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          isOver={isDropZoneActive}
+        >
           <Typography variant="body1" gutterBottom>
             Ziehen Sie Elemente aus der Palette hierher
           </Typography>
@@ -662,7 +818,15 @@ const EditorArea: React.FC<EditorAreaProps> = ({
             />
           )}
 
-          <DropZone onDrop={handleDrop} onDragOver={handleDragOver}>
+          <DropZone
+            onDrop={(e) => {
+              handleDrop(e);
+              setIsDropZoneActive(false);
+            }}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            isOver={isDropZoneActive}
+          >
             <Typography>
               Element hier ablegen
             </Typography>

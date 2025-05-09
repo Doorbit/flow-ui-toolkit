@@ -76,6 +76,24 @@ Die Hauptnavigation bietet folgende Funktionen:
 - Elementspezifische Einstellungen
 - Sichtbarkeitsregeln
 
+#### Verbesserte Bearbeitungsoberfläche
+Der HybridEditor bietet eine verbesserte Benutzeroberfläche für die Bearbeitung komplexer Strukturen:
+
+1. **Strukturnavigator**: Zeigt die hierarchische Struktur aller Elemente
+   - Einfache Navigation durch verschachtelte Elemente
+   - Direkte Auswahl von Unterelementen
+   - Übersichtliche Darstellung der Elementhierarchie
+
+2. **EnhancedPropertyEditor**: Verbesserte Eigenschaftsbearbeitung
+   - Tabs für verschiedene Kategorien (Allgemein, Sichtbarkeit, Unterelemente, JSON)
+   - Spezialisierte Editoren für jeden Elementtyp
+   - Umfassende Bearbeitung aller Elementeigenschaften
+
+3. **ElementContextView**: Kontextinformationen zum ausgewählten Element
+   - Anzeige des Elementpfads
+   - Schnellzugriff auf übergeordnete Elemente
+   - Kontextbezogene Aktionen
+
 ### 5. Verschachtelung
 
 Elemente können verschachtelt werden:
@@ -100,6 +118,12 @@ Elemente können verschachtelt werden:
 - Nutzen Sie aussagekräftige Titel
 - Halten Sie die Verschachtelungstiefe überschaubar
 
+### Sichtbarkeitsregeln
+- Nutzen Sie den verbesserten VisibilityConditionEditor für komplexe Bedingungen
+- Kombinieren Sie Bedingungen mit logischen Operatoren (UND, ODER, NICHT)
+- Verwenden Sie feldbasierte Bedingungen für dynamische Anzeige
+- Nutzen Sie kontextbasierte Bedingungen für verschiedene Anwendungsfälle (Erstellen, Bearbeiten, Ansicht)
+
 ## Best Practices
 
 ### Struktur
@@ -110,7 +134,7 @@ Elemente können verschachtelt werden:
 ### Benutzerfreundlichkeit
 - Eindeutige Beschriftungen
 - Hilfreiche Beschreibungstexte
-- Sinnvolle Standardwerte
+- Sinnvolle Default-Werte
 
 ### Wartbarkeit
 - Dokumentation wichtiger Entscheidungen

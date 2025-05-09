@@ -1,6 +1,7 @@
 import React, { Suspense, useMemo } from 'react';
 import styled from 'styled-components';
 import { ListingFlow } from '../../models/listingFlow';
+import { transformElementForExport } from '../../utils/uuidUtils';
 
 // Lazy loading für react-json-view
 const ReactJson = React.lazy(() => import('react-json-view'));
@@ -26,13 +27,57 @@ const LoadingContainer = styled.div`
 `;
 
 const JsonPreview: React.FC<JsonPreviewProps> = ({ data, onEdit }) => {
+  // Transformiere die Daten für den Export
+  const transformedData = useMemo(() => {
+    // Deep copy der Daten
+    const dataCopy = JSON.parse(JSON.stringify(data));
+
+    // Transformiere alle Elemente in allen Seiten
+    if (dataCopy.pages_edit) {
+      dataCopy.pages_edit = dataCopy.pages_edit.map((page: any) => {
+        if (page.elements) {
+          page.elements = page.elements.map((element: any) => {
+            return { element: transformElementForExport(element.element) };
+          });
+        }
+
+        // Auch SubFlows transformieren, falls vorhanden
+        if (page.sub_flows) {
+          page.sub_flows = page.sub_flows.map((subFlow: any) => {
+            if (subFlow.elements) {
+              subFlow.elements = subFlow.elements.map((element: any) => {
+                return { element: transformElementForExport(element.element) };
+              });
+            }
+            return subFlow;
+          });
+        }
+
+        return page;
+      });
+    }
+
+    if (dataCopy.pages_view) {
+      dataCopy.pages_view = dataCopy.pages_view.map((page: any) => {
+        if (page.elements) {
+          page.elements = page.elements.map((element: any) => {
+            return { element: transformElementForExport(element.element) };
+          });
+        }
+        return page;
+      });
+    }
+
+    return dataCopy;
+  }, [data]);
+
   return (
     <PreviewContainer>
       <Suspense fallback={<LoadingContainer>Lade JSON-Vorschau...</LoadingContainer>}>
         <ReactJson
-          src={data}
+          src={transformedData}
           theme="monokai"
-          style={{ 
+          style={{
             backgroundColor: 'transparent',
             fontFamily: "'Source Code Pro', monospace"
           }}

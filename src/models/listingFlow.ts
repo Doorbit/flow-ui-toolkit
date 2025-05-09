@@ -47,6 +47,7 @@ export interface PatternLibraryElement {
 
 export interface UIElementBase {
   pattern_type: string;
+  uuid?: string; // Eindeutige ID für jedes UI-Element
   visibility_condition?: VisibilityCondition;
   tree_level?: number;
   display_position?: 'LEFT' | 'RIGHT';
