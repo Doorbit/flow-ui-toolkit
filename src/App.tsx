@@ -11,7 +11,6 @@ import Navigation from './components/Navigation/Navigation';
 // import EditorArea from './components/EditorArea/EditorArea';
 // import PropertyEditor from './components/PropertyEditor/PropertyEditor';
 import HybridEditor from './components/HybridEditor';
-import JsonPreview from './components/JsonPreview/JsonPreview';
 import PageNavigator from './components/PageNavigator/PageNavigator';
 // DndProvider wird jetzt in index.tsx importiert
 // import { DndProvider } from './components/DndProvider';
@@ -33,8 +32,7 @@ import {
   CustomUIElement,
   ChipGroupUIElement,
   StringUIElement,
-  KeyValueListUIElement,
-  KeyValueListItem
+  KeyValueListUIElement
 } from './models/uiElements';
 
 const theme = createTheme({
@@ -1558,6 +1556,11 @@ const AppContent: React.FC = () => {
     dispatch({ type: 'SET_FLOW', flow: emptyFlow });
   }, [dispatch]);
 
+  // Handler für das Öffnen der Dokumentation in einem neuen Tab
+  const handleOpenDocumentation = () => {
+    window.open('/documentation.html', '_blank');
+  };
+
 
 
   // Finde aktuelle Seite anhand der selectedPageId im EditorContext
@@ -1909,6 +1912,7 @@ const AppContent: React.FC = () => {
           onUndo={() => dispatch({ type: 'UNDO' })}
           onRedo={() => dispatch({ type: 'REDO' })}
           onEditWorkflowName={handleEditWorkflowName}
+          onOpenDocumentation={handleOpenDocumentation}
           workflowName={state.currentFlow?.name || "Workflow"}
         />
 

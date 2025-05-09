@@ -7,7 +7,8 @@ import {
   Save as SaveIcon,
   Undo as UndoIcon,
   Redo as RedoIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  HelpOutline as HelpIcon
 } from '@mui/icons-material';
 
 interface NavigationProps {
@@ -19,6 +20,7 @@ interface NavigationProps {
   onUndo: () => void;
   onRedo: () => void;
   onEditWorkflowName: () => void;
+  onOpenDocumentation?: () => void;
   workflowName: string;
 }
 
@@ -54,6 +56,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onUndo,
   onRedo,
   onEditWorkflowName,
+  onOpenDocumentation,
   workflowName
 }) => {
   return (
@@ -122,6 +125,23 @@ const Navigation: React.FC<NavigationProps> = ({
         </Box>
 
         <RightActions>
+          {onOpenDocumentation && (
+            <Tooltip title="Dokumentation öffnen">
+              <span>
+                <IconButton
+                  onClick={onOpenDocumentation}
+                  size="large"
+                  sx={{
+                    bgcolor: '#009F64',
+                    color: 'white',
+                    '&:hover': { bgcolor: '#008D58' }
+                  }}
+                >
+                  <HelpIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           <Tooltip title="Rückgängig">
             <span>
               <IconButton

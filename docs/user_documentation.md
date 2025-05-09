@@ -2,7 +2,7 @@
 
 ## Übersicht
 
-Das Flow UI Toolkit ermöglicht die visuelle Erstellung und Bearbeitung von Benutzeroberflächen durch einen intuitiven Editor. Sie können verschiedene UI-Elemente per Drag & Drop platzieren, deren Eigenschaften anpassen und mehrsprachige Inhalte verwalten.
+Das Flow UI Toolkit ermöglicht die visuelle Erstellung und Bearbeitung von individuellem Workflow in der doorbit App und in doorbit Web. Sie können verschiedene UI-Elemente per Drag & Drop platzieren, deren Eigenschaften anpassen und mehrsprachige Inhalte verwalten.
 
 ## Hauptfunktionen
 
@@ -58,11 +58,10 @@ Die Hauptnavigation bietet folgende Funktionen:
 - **Gruppe**: Fasst mehrere Elemente zusammen
 - **Array**: Ermöglicht wiederholbare Elementgruppen
 - **Benutzerdefiniert**: Spezielle Komponenten für spezifische Anwendungsfälle:
-  - **Scanner**: Barcode- und QR-Code-Scanner Integration
+  - **Scanner**: Scan- und doorbit Studio Integration. Hier können die Screens während des Scans bearbeitet und individualisiert werden
   - **Adresse**: Strukturierte Adresseingabe mit Validierung
   - **Standort**: GPS-Koordinaten und Kartenintegration
-  - **Verwaltungsgrenzen**: Administrative Gebietszuordnung
-
+  - **Umgebung**: Statistiken für den Standort, wie Altersverteilung und das Bildungsniveau der Bevölkerung
 ### 4. Element-Bearbeitung
 
 #### Platzierung
@@ -76,8 +75,7 @@ Die Hauptnavigation bietet folgende Funktionen:
 - Elementspezifische Einstellungen
 - Sichtbarkeitsregeln
 
-#### Verbesserte Bearbeitungsoberfläche
-Der HybridEditor bietet eine verbesserte Benutzeroberfläche für die Bearbeitung komplexer Strukturen:
+#### Bearbeitungsoberfläche
 
 1. **Strukturnavigator**: Zeigt die hierarchische Struktur aller Elemente
    - Einfache Navigation durch verschachtelte Elemente
@@ -104,9 +102,11 @@ Elemente können verschachtelt werden:
 ## Tipps & Tricks
 
 ### Effiziente Bearbeitung
-- Nutzen Sie Tastaturkürzel für häufige Aktionen
+- Nutzen Sie Gruppeneleente als Container für zusammengehörige Elemente, die dann in der App und im Web auch eine optische Gruppierung bilden
 - Duplizieren Sie ähnliche Elemente statt sie neu zu erstellen
 - Verwenden Sie die JSON-Vorschau für technische Überprüfungen
+- Verschieben Sie mit Pfeilelementen die Elemente bei Bedarf, um die Reihenfolge jederzeit zu ändern
+- Seiten können Sie einfach mit Drag & Drop neu anordnen
 
 ### Mehrsprachigkeit
 - Füllen Sie alle Sprachversionen direkt aus
@@ -136,11 +136,6 @@ Elemente können verschachtelt werden:
 - Hilfreiche Beschreibungstexte
 - Sinnvolle Default-Werte
 
-### Wartbarkeit
-- Dokumentation wichtiger Entscheidungen
-- Wiederverwendung von Strukturen
-- Klare Namenskonventionen
-
 ## Häufige Fragen
 
 ### Allgemein
@@ -154,27 +149,8 @@ Elemente können verschachtelt werden:
 ### Technisch
 1. **Welche Dateiformate werden unterstützt?**
    - Import/Export erfolgt im JSON-Format
-   - Bilder können in gängigen Formaten hochgeladen werden
+   - Falls Bilder gezeigt werden sollen in dem Workflow, dann müssen diese aktuell noch separat an uns übermittelt werden
 
 2. **Wie funktioniert die Mehrsprachigkeit?**
    - Texte werden in allen konfigurierten Sprachen gespeichert
    - Sprachen können flexibel erweitert werden
-
-## Fehlerbehebung
-
-### Häufige Probleme
-
-1. **Element lässt sich nicht platzieren**
-   - Prüfen Sie die Ziel-Position
-   - Stellen Sie sicher, dass die Verschachtelung erlaubt ist
-
-2. **Änderungen werden nicht gespeichert**
-   - Speichern Sie explizit über die Werkzeugleiste
-   - Prüfen Sie die JSON-Vorschau auf Fehler
-
-### Support
-
-Bei technischen Problemen:
-1. Prüfen Sie die Dokumentation
-2. Exportieren Sie den problematischen Flow
-3. Dokumentieren Sie die Schritte zur Reproduktion
