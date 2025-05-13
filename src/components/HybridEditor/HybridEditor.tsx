@@ -98,15 +98,33 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [] }]);
 
-  // useEffect(() => {
-  //   if (selectedElementPath.length > 0) {
-  //     // Hole den Elternpfad (alle Elemente außer dem letzten)
-  //     const parentPath = selectedElementPath.slice(0, -1);
-  //     setCurrentPath(parentPath);
-  //   }
-  // }, [selectedElementPath]);
-  // Dieser useEffect wurde entfernt, da er den currentPath nach einem Drilldown überschrieben hat.
-  // currentPath wird nun direkt durch handleDrillDown, handleGoBack und Breadcrumb-Navigation gesteuert.
+  useEffect(() => {
+    if (selectedElementPath) { // selectedElementPath kann initial undefined sein, wenn es als optionale Prop kommt
+      const parentOfSelected = selectedElementPath.slice(0, -1);
+
+      // Prüfen, ob selectedElementPath ein Kind des aktuellen currentPath ist oder gleich currentPath.
+      // Dies deutet darauf hin, dass die Auswahl/Navigation innerhalb des aktuellen Kontexts stattgefunden hat
+      // (z.B. durch Drilldown im ElementContextView oder Auswahl eines Elements in der aktuellen Liste).
+      // In diesem Fall soll der currentPath nicht durch diesen Hook geändert werden, da er bereits korrekt ist
+      // oder durch handleDrillDown/handleNavigateTo gesetzt wurde.
+      const isSelectionWithinCurrentContextOrDeeper =
+        selectedElementPath.length >= currentPath.length &&
+        currentPath.every((val, idx) => val === selectedElementPath[idx]);
+
+      if (!isSelectionWithinCurrentContextOrDeeper) {
+        // Die Auswahl kam von "außerhalb" des aktuellen Kontexts des ElementContextView
+        // (z.B. Klick im ElementHierarchyTree auf einen anderen Zweig oder eine andere Ebene).
+        // In diesem Fall soll der ElementContextView den Kontext des neu ausgewählten Elements anzeigen.
+        // Der Kontext ist die Elternebene des ausgewählten Elements.
+        if (JSON.stringify(parentOfSelected) !== JSON.stringify(currentPath)) {
+          setCurrentPath(parentOfSelected);
+        }
+      }
+      // Wenn die Auswahl innerhalb des aktuellen Kontexts oder tiefer ist (isSelectionWithinCurrentContextOrDeeper === true),
+      // wird currentPath nicht geändert, da angenommen wird, dass er bereits korrekt ist oder
+      // durch eine andere Aktion (z.B. handleDrillDown) gesetzt wurde.
+    }
+  }, [selectedElementPath, currentPath]); // currentPath ist hier als Dependency wichtig für den Vergleich
 
   /**
    * Konvertiert ein Element in ein PatternLibraryElement wenn nötig
