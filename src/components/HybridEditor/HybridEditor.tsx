@@ -99,32 +99,44 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [] }]);
 
   useEffect(() => {
-    if (selectedElementPath) { // selectedElementPath kann initial undefined sein, wenn es als optionale Prop kommt
-      const parentOfSelected = selectedElementPath.slice(0, -1);
+    console.log('[HybridEditor useEffect] Triggered. selectedElementPath:', selectedElementPath, 'currentPath:', currentPath);
 
-      // Prüfen, ob selectedElementPath ein Kind des aktuellen currentPath ist oder gleich currentPath.
-      // Dies deutet darauf hin, dass die Auswahl/Navigation innerhalb des aktuellen Kontexts stattgefunden hat
-      // (z.B. durch Drilldown im ElementContextView oder Auswahl eines Elements in der aktuellen Liste).
-      // In diesem Fall soll der currentPath nicht durch diesen Hook geändert werden, da er bereits korrekt ist
-      // oder durch handleDrillDown/handleNavigateTo gesetzt wurde.
-      const isSelectionWithinCurrentContextOrDeeper =
-        selectedElementPath.length >= currentPath.length &&
-        currentPath.every((val, idx) => val === selectedElementPath[idx]);
-
-      if (!isSelectionWithinCurrentContextOrDeeper) {
-        // Die Auswahl kam von "außerhalb" des aktuellen Kontexts des ElementContextView
-        // (z.B. Klick im ElementHierarchyTree auf einen anderen Zweig oder eine andere Ebene).
-        // In diesem Fall soll der ElementContextView den Kontext des neu ausgewählten Elements anzeigen.
-        // Der Kontext ist die Elternebene des ausgewählten Elements.
-        if (JSON.stringify(parentOfSelected) !== JSON.stringify(currentPath)) {
-          setCurrentPath(parentOfSelected);
-        }
+    // Da selectedElementPath einen Default-Wert von [] hat, sollte es immer ein Array sein.
+    // Wir prüfen die Länge, um zwischen Hauptebenen-Auswahl und spezifischer Element-Auswahl zu unterscheiden.
+    if (selectedElementPath.length === 0) {
+      // Fall: Hauptebene ist ausgewählt (oder keine spezifische Auswahl)
+      if (JSON.stringify([]) !== JSON.stringify(currentPath)) {
+        console.log('[HybridEditor useEffect] Hauptebene ausgewählt: Setze currentPath auf [].');
+        setCurrentPath([]);
       }
-      // Wenn die Auswahl innerhalb des aktuellen Kontexts oder tiefer ist (isSelectionWithinCurrentContextOrDeeper === true),
-      // wird currentPath nicht geändert, da angenommen wird, dass er bereits korrekt ist oder
-      // durch eine andere Aktion (z.B. handleDrillDown) gesetzt wurde.
+    } else {
+      // Fall: Ein spezifisches Element ist ausgewählt (selectedElementPath hat Länge > 0)
+      const parentOfSelected = selectedElementPath.slice(0, -1);
+      console.log('[HybridEditor useEffect] Spezifisches Element ausgewählt. parentOfSelected:', parentOfSelected);
+
+      // Wenn currentPath NICHT identisch zu selectedElementPath ist:
+      // Dies bedeutet, dass die Auswahl (selectedElementPath) nicht das Ergebnis eines direkten Drilldowns
+      // auf dieses Element war (wobei currentPath auf selectedElementPath gesetzt worden wäre).
+      // Typischerweise ist dies ein Klick im linken Baum.
+      // In diesem Fall soll der ElementContextView den Elternkontext des ausgewählten Elements anzeigen.
+      if (JSON.stringify(currentPath) !== JSON.stringify(selectedElementPath)) {
+        if (JSON.stringify(parentOfSelected) !== JSON.stringify(currentPath)) {
+          console.log('[HybridEditor useEffect] Auswahl extern/anderer Zweig: Setze currentPath auf parentOfSelected:', parentOfSelected);
+          setCurrentPath(parentOfSelected);
+        } else {
+          // currentPath ist bereits der parentOfSelected.
+          // z.B. currentPath = [0], selectedElementPath = [0,1]. parentOfSelected ist [0].
+          // Keine Änderung an currentPath nötig.
+          console.log('[HybridEditor useEffect] Auswahl Kind im aktuellen Kontext: currentPath bleibt (ist parentOfSelected). currentPath:', currentPath);
+        }
+      } else {
+        // currentPath IST identisch zu selectedElementPath.
+        // Dies geschieht direkt nach einem handleDrillDown, wo beide auf denselben Pfad gesetzt wurden.
+        // currentPath soll so bleiben, damit die Kinder des gedrillten Elements angezeigt werden.
+        console.log('[HybridEditor useEffect] Nach Drilldown: currentPath ist selectedElementPath. currentPath bleibt. currentPath:', currentPath);
+      }
     }
-  }, [selectedElementPath, currentPath]); // currentPath ist hier als Dependency wichtig für den Vergleich
+  }, [selectedElementPath, currentPath]);
 
   /**
    * Konvertiert ein Element in ein PatternLibraryElement wenn nötig
@@ -274,6 +286,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   // Handler für "Tiefer gehen" in ein Element
   const handleDrillDown = (path: number[]) => {
+    console.log('[HybridEditor handleDrillDown] path:', path);
     setCurrentPath(path);
 
     // Aktualisiere auch das ausgewählte Element
@@ -282,6 +295,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   // Handler für die Navigation zu einem Element (für StructureNavigator)
   const handleNavigateToElement = (path: number[]) => {
+    console.log('[HybridEditor handleNavigateToElement] path:', path);
     // Aktualisiere den aktuellen Pfad
     setCurrentPath(path);
     // Aktualisiere auch das ausgewählte Element
@@ -291,10 +305,12 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   // Handler für "Zurück" zur übergeordneten Ebene
   const handleGoBack = () => {
     if (currentPath.length > 0) {
-      setCurrentPath(currentPath.slice(0, -1));
+      const newPath = currentPath.slice(0, -1);
+      console.log('[HybridEditor handleGoBack] newPath:', newPath);
+      setCurrentPath(newPath);
     }
   };
-
+  console.log('[HybridEditor Render] selectedElementPath (prop):', selectedElementPath, 'currentPath (state):', currentPath);
   return (
     <EditorContainer>
       {/* Linke Spalte: Hierarchische Baumansicht */}
