@@ -35,10 +35,53 @@ import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
 import { getSubElements } from '../../context/EditorContext'; // Importiere getSubElements
 
-const TreeItem = styled(ListItem)<{ depth: number; isSelected: boolean }>`
-  padding-left: ${props => props.depth * 16 + 8}px;
+const LINE_COLOR = 'rgba(0, 0, 0, 0.23)'; // Farbe für die Verbindungslinien, ähnlich wie Divider
+
+const TreeItem = styled(ListItem)<{ depth: number; isSelected: boolean; isLastChild?: boolean; hasChildren?: boolean }>`
+  padding-left: ${props => props.depth * 20 + 8}px; // Erhöhte Einrückung
   background-color: ${props => props.isSelected ? 'rgba(0, 159, 100, 0.1)' : 'transparent'};
   border-left: ${props => props.isSelected ? '3px solid #009F64' : '3px solid transparent'};
+  position: relative; // Für Pseudoelemente
+
+  // Vertikale Linie von oben zum aktuellen Element
+  &::before {
+    content: '';
+    position: absolute;
+    left: ${props => props.depth * 20 - 10}px; // Positioniert auf der Höhe des Einzugs-Icons
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: ${LINE_COLOR};
+    // Verstecke die Linie für das erste Element auf jeder Ebene, wenn es keine Geschwister darüber hat
+    // oder wenn depth === 0 (oberste Ebene)
+    display: ${props => props.depth === 0 ? 'none' : 'block'};
+    height: ${props => props.isLastChild ? 'calc(50% - 0px)' : '100%'}; // Linie bis zur Mitte, wenn letztes Kind
+  }
+
+  // Horizontale Linie vom vertikalen Strich zum Inhalt (oder zum Aufklapp-Icon)
+  // Diese Linie wird vor dem Aufklapp-Icon platziert
+  .MuiIconButton-root:first-of-type::before {
+    content: '';
+    position: absolute;
+    left: -10px; // Von der Mitte des Icons nach links
+    top: 50%;
+    width: 10px;
+    height: 1px;
+    background-color: ${LINE_COLOR};
+    display: ${props => props.depth === 0 ? 'none' : 'block'};
+  }
+  
+  // Spezielle Anpassung für den Platzhalter-Box, wenn keine Kinder da sind, um die Linie zu zeichnen
+  .placeholder-for-line::before {
+    content: '';
+    position: absolute;
+    left: -10px; 
+    top: 50%;
+    width: 10px;
+    height: 1px;
+    background-color: ${LINE_COLOR};
+    display: ${props => props.depth === 0 ? 'none' : 'block'};
+  }
 
   &:hover {
     background-color: ${props => props.isSelected ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'};
@@ -118,6 +161,7 @@ const TreeNode: React.FC<{
   onSelectElement: (path: number[]) => void;
   onDrillDown: (path: number[]) => void;
   currentPath: number[];
+  isLastChildInLevel: boolean; // Neue Prop
 }> = ({
   element,
   path,
@@ -125,7 +169,8 @@ const TreeNode: React.FC<{
   selectedPath,
   onSelectElement,
   onDrillDown,
-  currentPath
+  currentPath,
+  isLastChildInLevel
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isSelected = arePathsEqual(path, selectedPath);
@@ -194,12 +239,15 @@ const TreeNode: React.FC<{
       <TreeItem
         depth={depth}
         isSelected={isSelected}
+        isLastChild={isLastChildInLevel} // Prop für Styling der Linie
+        hasChildren={hasActualChildren} // Prop für Styling der Linie
         onClick={() => onSelectElement(path)}
       >
         <TreeItemContent>
           {hasActualChildren ? (
             <IconButton
               size="small"
+              sx={{ position: 'relative' }} // Für ::before Pseudoelement
               onClick={(e) => {
                 e.stopPropagation();
                 setExpanded(!expanded);
@@ -208,7 +256,8 @@ const TreeNode: React.FC<{
               {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
             </IconButton>
           ) : (
-            <Box sx={{ width: 28 }} /> // Platzhalter für konsistenten Einzug
+            // Platzhalter-Box, wenn keine Kinder, aber Linie benötigt wird
+            <Box className="placeholder-for-line" sx={{ width: 28, position: 'relative' }} /> 
           )}
 
           <ListItemIcon sx={{ minWidth: 36 }}>
@@ -271,7 +320,7 @@ const TreeNode: React.FC<{
           <List component="div" disablePadding>
             {children.map((child: PatternLibraryElement, index: number) => ( // Verwende children
               <TreeNode
-                key={child.element.uuid || index} // Verwende UUID falls vorhanden, sonst Index
+                key={child.element.uuid || index} 
                 element={child}
                 path={[...path, index]}
                 depth={depth + 1}
@@ -279,6 +328,7 @@ const TreeNode: React.FC<{
                 onSelectElement={onSelectElement}
                 onDrillDown={onDrillDown}
                 currentPath={currentPath}
+                isLastChildInLevel={index === children.length - 1} // Übergebe isLastChild
               />
             ))}
           </List>
@@ -299,7 +349,7 @@ const ElementHierarchyTree: React.FC<ElementHierarchyTreeProps> = ({
     <List component="nav" aria-label="element hierarchy" dense sx={{ p: 0 }}>
       {elements.map((element, index) => (
         <TreeNode
-          key={index}
+          key={element.element.uuid || index}
           element={element}
           path={[index]}
           depth={0}
@@ -307,6 +357,7 @@ const ElementHierarchyTree: React.FC<ElementHierarchyTreeProps> = ({
           onSelectElement={onSelectElement}
           onDrillDown={onDrillDown}
           currentPath={currentPath}
+          isLastChildInLevel={index === elements.length - 1} // Übergebe isLastChild für Top-Level
         />
       ))}
     </List>
