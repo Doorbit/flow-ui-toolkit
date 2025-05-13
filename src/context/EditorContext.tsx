@@ -66,53 +66,60 @@ const ensurePatternLibraryElement = (element: any): PatternLibraryElement => {
 /**
  * Holt Unterelemente eines Elements basierend auf seinem Typ
  */
-const getSubElements = (element: PatternLibraryElement): PatternLibraryElement[] => {
+export const getSubElements = (element: PatternLibraryElement): PatternLibraryElement[] => {
   if (!element || !element.element) return [];
 
-  // Für Subflow-Elemente
+  // Für Subflow-Objekte (die als parentElement übergeben werden, wenn currentPath auf sie zeigt)
+  // Ein Subflow-Objekt selbst hat keinen pattern_type, aber einen 'type' (z.B. 'POI')
+  // und enthält 'elements'.
   if (!element.element.pattern_type && (element.element as any).type) {
-    const elements = (element.element as any).elements || [];
-    const subElements = (element.element as any).sub_elements || [];
-    return [...elements, ...subElements].map(ensurePatternLibraryElement);
+    // Die Kinder eines Subflow-Objekts sind dessen 'elements'-Array.
+    const elementsInSubFlow = (element.element as any).elements || [];
+    // Anmerkung: sub_elements wird hier nicht berücksichtigt, um konsistent mit getChildElements zu sein
+    return elementsInSubFlow.map(ensurePatternLibraryElement);
   }
 
-  // Für verschiedene Element-Typen
+  // Für reguläre UIElemente mit pattern_type
   switch (element.element.pattern_type) {
     case 'GroupUIElement':
     case 'ArrayUIElement':
       return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
-      
     case 'ChipGroupUIElement':
-      return ((element.element as any).chips || []).map(ensurePatternLibraryElement);
-      
+      // Chips sind BooleanUIElements, müssen aber als PatternLibraryElement behandelt werden
+      return ((element.element as any).chips || []).map((chip: any) => ensurePatternLibraryElement(chip));
     case 'CustomUIElement':
+      // Wenn ein CustomUIElement das parentElement ist, sind seine "Kinder" im Kontext des Drilldowns
+      // zunächst seine sub_flows. Das Navigieren IN einen Subflow (um dessen Elemente anzuzeigen)
+      // wird dadurch gehandhabt, dass getElementByPath das Subflow-Objekt als neues parentElement liefert.
       if ((element.element as any).sub_flows) {
         return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
       }
-      break;
+      // Hat ein CustomUIElement keine sub_flows, könnte es direkte 'elements' haben.
+      if (Array.isArray((element.element as any).elements)) {
+        return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
+      }
+      return []; // CustomUIElement ohne sub_flows und ohne elements hat keine Kinder in diesem Kontext
   }
 
-  // Prüfe alle möglichen Array-Eigenschaften
-  const potentialArrays = [
-    (element.element as any).elements,
-    (element.element as any).sub_elements,
-    (element.element as any).items,
-    (element.element as any).options,
-    (element.element as any).chips,
-    ...(element.element.pattern_type === 'CustomUIElement' ? [(element.element as any).sub_flows] : [])
-  ];
-
-  for (const array of potentialArrays) {
-    if (Array.isArray(array) && array.length > 0) {
-      return array.map(ensurePatternLibraryElement);
+  // Generische Fallbacks für andere Typen, die möglicherweise Kinder haben könnten
+  // (z.B. SingleSelectionUIElement mit 'options', KeyValueListUIElement mit 'items')
+  const potentialChildArrays = ['elements', 'items', 'options'];
+  for (const key of potentialChildArrays) {
+    const childArray = (element.element as any)[key];
+    if (Array.isArray(childArray) && childArray.length > 0) {
+      // Prüfen, ob die Elemente der Arrays bereits PatternLibraryElement sind oder rohe Objekte
+      return childArray.map((item: any) => ensurePatternLibraryElement(item));
     }
   }
 
-  // Durchsuche alle Eigenschaften nach Arrays
+  // Fallback: Wenn kein spezifischer Kind-Array-Typ gefunden wurde, aber eine beliebige Array-Eigenschaft existiert,
+  // die Objekte enthält (weniger wahrscheinlich für Drilldown, aber zur Sicherheit)
   for (const key in element.element) {
     const value = (element.element as any)[key];
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
-      return value.map(ensurePatternLibraryElement);
+      // Hier ist Vorsicht geboten, da nicht jedes Array von Objekten navigierbare Kinder darstellt.
+      // Für den Drilldown sind primär 'elements' in Group/Array/SubFlow und 'sub_flows' in CustomUIElement relevant.
+      return value.map((item: any) => ensurePatternLibraryElement(item));
     }
   }
 
@@ -138,18 +145,20 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
     if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
       const subFlowIndex = restPath[0];
       const subFlows = (element.element as any).sub_flows || [];
-      
+
       if (subFlowIndex < subFlows.length) {
         if (restPath.length === 1) {
           return ensurePatternLibraryElement(subFlows[subFlowIndex]);
         } else {
           const subFlowElement = ensurePatternLibraryElement(subFlows[subFlowIndex]);
-          const subElements = getSubElements(subFlowElement);
-          return getElementByPath(subElements, restPath.slice(1));
+          // Hier verwenden wir getSubElements für das SubFlow-Element, um seine Unterelemente zu finden
+          const subFlowChildElements = getSubElements(subFlowElement);
+          // Dann navigieren wir weiter mit dem Rest des Pfades
+          return getElementByPath(subFlowChildElements, restPath.slice(1));
         }
       }
     }
-    
+
     return getElementByPath(subElements, restPath);
   }
 

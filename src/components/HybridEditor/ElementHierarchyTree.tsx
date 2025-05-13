@@ -33,6 +33,7 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
+import { getSubElements } from '../../context/EditorContext'; // Importiere getSubElements
 
 const TreeItem = styled(ListItem)<{ depth: number; isSelected: boolean }>`
   padding-left: ${props => props.depth * 16 + 8}px;
@@ -131,124 +132,9 @@ const TreeNode: React.FC<{
   const isInCurrentPath = path.length <= currentPath.length &&
                           path.every((value, index) => value === currentPath[index]);
 
-  // Bestimme, ob das Element Kinder hat
-  const hasChildren = () => {
-    // Sicherer Zugriff auf element.element und pattern_type
-    if (!element || !element.element) {
-      return false;
-    }
-
-    const elementType = element.element.pattern_type;
-
-    if (!elementType) {
-      // Für Subflow-Elemente ohne pattern_type, aber mit type
-      if ((element.element as any).type) {
-        const hasElements = (element.element as any).elements?.length > 0;
-        const hasSubElements = (element.element as any).sub_elements?.length > 0;
-        return hasElements || hasSubElements;
-      }
-      return false;
-    }
-
-    if (elementType === 'GroupUIElement') {
-      return (element.element as any).elements?.length > 0;
-    } else if (elementType === 'ArrayUIElement') {
-      return (element.element as any).elements?.length > 0;
-    } else if (elementType === 'ChipGroupUIElement') {
-      return (element.element as any).chips?.length > 0;
-    } else if (elementType === 'CustomUIElement' && (element.element as any).sub_flows) {
-      return (element.element as any).sub_flows?.length > 0;
-    }
-
-    // Prüfe auf andere Arten von Unterelementen
-    if ((element.element as any).elements && (element.element as any).elements.length > 0) {
-      return true;
-    } else if ((element.element as any).items && (element.element as any).items.length > 0) {
-      return true;
-    } else if ((element.element as any).options && (element.element as any).options.length > 0) {
-      return true;
-    }
-
-    // Prüfe auf beliebige Array-Eigenschaften, die Unterelemente sein könnten
-    for (const key in element.element) {
-      if (Array.isArray((element.element as any)[key]) &&
-          (element.element as any)[key].length > 0 &&
-          typeof (element.element as any)[key][0] === 'object') {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  // Hole die Kinder des Elements
-  const getChildren = () => {
-    // Sicherer Zugriff auf element.element und pattern_type
-    if (!element || !element.element) {
-      return [];
-    }
-
-    const elementType = element.element.pattern_type;
-
-    if (!elementType) {
-      // Für Subflow-Elemente ohne pattern_type, aber mit type
-      if ((element.element as any).type) {
-        if ((element.element as any).elements) {
-          return (element.element as any).elements.map((subElement: any) => ({
-            element: subElement
-          }));
-        } else if ((element.element as any).sub_elements) {
-          return (element.element as any).sub_elements.map((subElement: any) => ({
-            element: subElement
-          }));
-        }
-      }
-      return [];
-    }
-
-    if (elementType === 'GroupUIElement') {
-      return (element.element as any).elements || [];
-    } else if (elementType === 'ArrayUIElement') {
-      return (element.element as any).elements || [];
-    } else if (elementType === 'ChipGroupUIElement') {
-      return (element.element as any).chips || [];
-    } else if (elementType === 'CustomUIElement' && (element.element as any).sub_flows) {
-      return (element.element as any).sub_flows.map((subflow: any) => ({
-        element: subflow
-      }));
-    }
-
-    // Prüfe auf andere Arten von Unterelementen
-    if ((element.element as any).elements) {
-      return (element.element as any).elements.map((subElement: any) => ({
-        element: subElement
-      }));
-    } else if ((element.element as any).items) {
-      // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
-      return (element.element as any).items.map((item: any) => ({
-        element: item
-      }));
-    } else if ((element.element as any).options) {
-      // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
-      return (element.element as any).options.map((option: any) => ({
-        element: option
-      }));
-    }
-
-    // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
-    for (const key in element.element) {
-      if (Array.isArray((element.element as any)[key]) &&
-          (element.element as any)[key].length > 0 &&
-          typeof (element.element as any)[key][0] === 'object') {
-        // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
-        return (element.element as any)[key].map((item: any) => ({
-          element: item
-        }));
-      }
-    }
-
-    return [];
-  };
+  // Verwende die importierte getSubElements Funktion
+  const children = React.useMemo(() => getSubElements(element), [element]);
+  const hasActualChildren = children.length > 0;
 
   // Bestimme, ob das Element eine Visibility Condition hat
   const hasVisibilityCondition = () => {
@@ -284,10 +170,24 @@ const TreeNode: React.FC<{
 
   // Automatisch expandieren, wenn das Element im aktuellen Pfad ist
   React.useEffect(() => {
-    if (isInCurrentPath) {
+    if (isInCurrentPath && hasActualChildren) { // Nur expandieren, wenn Kinder vorhanden sind
       setExpanded(true);
     }
-  }, [isInCurrentPath]);
+  }, [isInCurrentPath, hasActualChildren]);
+
+  // Automatisch expandieren, wenn der Knoten Teil des selectedPath ist oder ein Vorfahre davon
+  React.useEffect(() => {
+    if (selectedPath && selectedPath.length > 0 && hasActualChildren && !expanded) {
+      const isNodeOrAncestorOfSelected =
+        selectedPath.length >= path.length &&
+        path.every((val, idx) => val === selectedPath[idx]);
+
+      if (isNodeOrAncestorOfSelected) {
+        setExpanded(true);
+      }
+    }
+  }, [selectedPath, path, expanded, hasActualChildren]);
+
 
   return (
     <>
@@ -297,7 +197,7 @@ const TreeNode: React.FC<{
         onClick={() => onSelectElement(path)}
       >
         <TreeItemContent>
-          {hasChildren() ? (
+          {hasActualChildren ? (
             <IconButton
               size="small"
               onClick={(e) => {
@@ -338,7 +238,7 @@ const TreeNode: React.FC<{
             }}
           />
 
-          {hasChildren() && (
+          {hasActualChildren && ( // Verwende hasActualChildren
             <Tooltip title="Zeigt die Unterelemente dieses Elements in der Hierarchie an">
               <IconButton
                 size="small"
@@ -359,19 +259,19 @@ const TreeNode: React.FC<{
               <VisibilityIcon
                 fontSize="small"
                 color="primary"
-                sx={{ ml: hasChildren() ? 0 : 'auto', opacity: 0.7 }}
+                sx={{ ml: hasActualChildren ? 0 : 'auto', opacity: 0.7 }} // Verwende hasActualChildren
               />
             </Tooltip>
           )}
         </TreeItemContent>
       </TreeItem>
 
-      {hasChildren() && (
+      {hasActualChildren && ( // Verwende hasActualChildren
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {getChildren().map((child: PatternLibraryElement, index: number) => (
+            {children.map((child: PatternLibraryElement, index: number) => ( // Verwende children
               <TreeNode
-                key={index}
+                key={child.element.uuid || index} // Verwende UUID falls vorhanden, sonst Index
                 element={child}
                 path={[...path, index]}
                 depth={depth + 1}
