@@ -167,7 +167,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
         return childArray.map((item: any) => ensurePatternLibraryElement(item));
       }
     }
-    
+
     // Fallback: Wenn kein spezifischer Kind-Array-Typ gefunden wurde, aber eine beliebige Array-Eigenschaft existiert,
     // die Objekte enthält (weniger wahrscheinlich für Drilldown, aber zur Sicherheit)
     for (const key in parentElement.element) {
@@ -182,61 +182,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     return [];
   }, [ensurePatternLibraryElement]);
 
-  /**
-   * Holt alle Unterelemente eines Elements // Diese Funktion ist jetzt redundant durch das neue getChildElements
-   */
-  const getSubElements = React.useCallback((element: PatternLibraryElement): PatternLibraryElement[] => {
-    if (!element || !element.element) return [];
-
-    // Für Subflow-Elemente
-    if (!element.element.pattern_type && (element.element as any).type) {
-      const elements = (element.element as any).elements || [];
-      const subElements = (element.element as any).sub_elements || [];
-      return [...elements, ...subElements].map(ensurePatternLibraryElement);
-    }
-
-    // Für verschiedene Element-Typen
-    switch (element.element.pattern_type) {
-      case 'GroupUIElement':
-      case 'ArrayUIElement':
-        return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
-        
-      case 'ChipGroupUIElement':
-        return ((element.element as any).chips || []).map(ensurePatternLibraryElement);
-        
-      case 'CustomUIElement':
-        if ((element.element as any).sub_flows) {
-          return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
-        }
-        break;
-    }
-
-    // Prüfe alle möglichen Array-Eigenschaften
-    const potentialArrays = [
-      (element.element as any).elements,
-      (element.element as any).sub_elements,
-      (element.element as any).items,
-      (element.element as any).options,
-      (element.element as any).chips,
-      ...(element.element.pattern_type === 'CustomUIElement' ? [(element.element as any).sub_flows] : [])
-    ];
-
-    for (const array of potentialArrays) {
-      if (Array.isArray(array) && array.length > 0) {
-        return array.map(ensurePatternLibraryElement);
-      }
-    }
-
-    // Durchsuche alle Eigenschaften nach Arrays
-    for (const key in element.element) {
-      const value = (element.element as any)[key];
-      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
-        return value.map(ensurePatternLibraryElement);
-      }
-    }
-
-    return [];
-  }, [ensurePatternLibraryElement]);
+  // Die getSubElements Funktion wurde entfernt, da sie redundant zum neuen getChildElements ist
 
   // Aktualisiere die aktuellen Elemente basierend auf dem Pfad
   useEffect(() => {
@@ -256,7 +202,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
         setCurrentElements([]);
       }
     }
-  }, [currentPath, elements, getChildElements, getElementByPath]); // getElementByPath als Abhängigkeit hinzugefügt
+  }, [currentPath, elements, getChildElements]); // getElementByPath ist eine importierte Funktion, keine lokale Abhängigkeit
 
   // Hilfsfunktion zum Generieren eines Labels für ein Element
   const getElementLabel = React.useCallback((element: PatternLibraryElement, index: number): string => {
@@ -300,7 +246,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     }
 
     setBreadcrumbItems(items);
-  }, [currentPath, elements, getElementLabel, getElementByPath]); // getElementByPath als Abhängigkeit hinzugefügt
+  }, [currentPath, elements, getElementLabel]); // getElementByPath ist eine importierte Funktion, keine lokale Abhängigkeit
 
   // Handler für die Navigation in der Hierarchie
   const handleNavigateTo = (path: number[]) => {
