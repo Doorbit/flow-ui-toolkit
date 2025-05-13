@@ -50,12 +50,13 @@ const mockTabComponent = ({ children, value, label, onClick, selected, disabled,
   }, label || children);
 };
 
-const mockBox = ({ children, sx, ...props }) => {
+const mockBox = React.forwardRef(({ children, sx, ...props }, ref) => {
   return React.createElement('div', {
+    ref,
     className: 'MuiBox-root',
     ...props
   }, children);
-};
+});
 
 const mockButton = ({ children, onClick, variant, color, startIcon, endIcon, disabled, ...props }) => {
   return React.createElement('button', {
@@ -153,12 +154,13 @@ const mockGrid = ({ children, container, item, xs, sm, md, lg, spacing, ...props
   }, children);
 };
 
-const mockPaper = ({ children, elevation, variant, ...props }) => {
+const mockPaper = React.forwardRef(({ children, elevation, variant, ...props }, ref) => {
   return React.createElement('div', {
+    ref,
     className: `MuiPaper-root MuiPaper-elevation${elevation || 1} MuiPaper-variant${variant || 'elevation'}`,
     ...props
   }, children);
-};
+});
 
 const mockMenuItem = ({ children, value, selected, onClick, ...props }) => {
   return React.createElement('li', {
@@ -238,8 +240,34 @@ module.exports = {
   // Grid System
   Grid: mockGrid,
 
-  // Surfaces
-  Paper: mockPaper,
+// Surfaces
+  Paper: ({ children, elevation, variant, gutterBottom, ...props }) => {
+    return React.createElement('div', {
+      className: `MuiPaper-root MuiPaper-elevation${elevation || 1} MuiPaper-variant${variant || 'elevation'}`,
+      ...props
+    }, children);
+  },
+  Card: React.forwardRef(({ children, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: 'MuiCard-root',
+      ...props
+    }, children);
+  }),
+  CardContent: React.forwardRef(({ children, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: 'MuiCardContent-root',
+      ...props
+    }, children);
+  }),
+  Typography: ({ children, variant, component, align, gutterBottom, ...props }) => {
+    const Component = component || 'p';
+    return React.createElement(Component, {
+      className: `MuiTypography-root MuiTypography-${variant || 'body1'} MuiTypography-align${align || 'inherit'}`,
+      ...props
+    }, children);
+  },
 
   // Data Display
   Typography: ({ children, variant, component, align, ...props }) =>
@@ -265,6 +293,47 @@ module.exports = {
 
   // Icons
   SvgIcon: ({ children, ...props }) => React.createElement('span', { className: 'MuiSvgIcon-root', ...props }, children || '□'),
+
+  // Form Controls
+  Switch: React.forwardRef(({ checked, onChange, disabled, size, ...props }, ref) => {
+    return React.createElement('span', {
+      ref,
+      className: `MuiSwitch-root ${disabled ? 'Mui-disabled' : ''}`,
+      role: 'switch',
+      'aria-checked': checked,
+      ...props
+    });
+  }),
+
+  FormControlLabel: React.forwardRef(({ control, label, checked, disabled, ...props }, ref) => {
+    return React.createElement('label', {
+      ref,
+      className: `MuiFormControlLabel-root ${disabled ? 'Mui-disabled' : ''}`,
+      ...props
+    }, [
+      React.cloneElement(control, { checked, disabled }),
+      React.createElement('span', { key: 'label', className: 'MuiFormControlLabel-label' }, label)
+    ]);
+  }),
+
+  Radio: React.forwardRef(({ checked, onChange, disabled, size, ...props }, ref) => {
+    return React.createElement('span', {
+      ref,
+      className: `MuiRadio-root ${checked ? 'Mui-checked' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      role: 'radio',
+      'aria-checked': checked,
+      ...props
+    });
+  }),
+
+  Collapse: React.forwardRef(({ in: inProp, children, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: `MuiCollapse-root ${inProp ? 'MuiCollapse-entered' : ''}`,
+      style: { display: inProp ? 'block' : 'none' },
+      ...props
+    }, children);
+  }),
 
   // Theme-Funktionen
   createTheme: (options) => ({

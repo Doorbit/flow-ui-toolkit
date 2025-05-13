@@ -240,9 +240,49 @@ export const findElementByPath = (
         const chipGroup = currentElement.element as ChipGroupUIElement;
         // Konvertiere chips zu PatternLibraryElement[]
         currentElements = chipGroup.chips.map((chip: any) => ({ element: chip }));
+      } else if (currentElement.element.pattern_type === 'CustomUIElement' && (currentElement.element as any).sub_flows) {
+        // CustomUIElement mit sub_flows
+        // Wir müssen die sub_flows als "Elemente" behandeln
+        const customElement = currentElement.element as CustomUIElement;
+        // Konvertiere sub_flows zu PatternLibraryElement[]
+        currentElements = (customElement.sub_flows || []).map((subflow: any) => ({
+          element: {
+            ...subflow,
+            pattern_type: subflow.type || 'SubFlow',
+            title: { de: subflow.type || 'SubFlow' }
+          }
+        }));
       } else {
-        // Das Element hat keine verschachtelten Elemente
-        return null;
+        // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+        // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+        if ((currentElement.element as any).elements) {
+          currentElements = (currentElement.element as any).elements;
+        } else if ((currentElement.element as any).items) {
+          // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+          currentElements = (currentElement.element as any).items.map((item: any) => ({ element: item }));
+        } else if ((currentElement.element as any).options) {
+          // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+          currentElements = (currentElement.element as any).options.map((option: any) => ({ element: option }));
+        } else {
+          // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+          let foundSubElements = false;
+
+          for (const key in currentElement.element) {
+            if (Array.isArray((currentElement.element as any)[key]) &&
+                (currentElement.element as any)[key].length > 0 &&
+                typeof (currentElement.element as any)[key][0] === 'object') {
+              // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+              currentElements = (currentElement.element as any)[key].map((item: any) => ({ element: item }));
+              foundSubElements = true;
+              break;
+            }
+          }
+
+          if (!foundSubElements) {
+            // Das Element hat keine erkennbaren verschachtelten Elemente
+            return null;
+          }
+        }
       }
     }
   }
@@ -284,8 +324,6 @@ export const updateElementByPath = (
 
     const currentElement = currentElements[index];
 
-
-
     // Gehe tiefer
     if (currentElement.element.pattern_type === 'GroupUIElement') {
       currentElements = (currentElement.element as GroupUIElement).elements;
@@ -296,9 +334,48 @@ export const updateElementByPath = (
       const chipGroup = currentElement.element as ChipGroupUIElement;
       // Konvertiere chips zu PatternLibraryElement[]
       currentElements = chipGroup.chips.map((chip: any) => ({ element: chip }));
+    } else if (currentElement.element.pattern_type === 'CustomUIElement' && (currentElement.element as any).sub_flows) {
+      // CustomUIElement mit sub_flows
+      const customElement = currentElement.element as CustomUIElement;
+      // Konvertiere sub_flows zu PatternLibraryElement[]
+      currentElements = (customElement.sub_flows || []).map((subflow: any) => ({
+        element: {
+          ...subflow,
+          pattern_type: subflow.type || 'SubFlow',
+          title: { de: subflow.type || 'SubFlow' }
+        }
+      }));
     } else {
-      // Das Element hat keine verschachtelten Elemente
-      return customElement;
+      // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+      // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+      if ((currentElement.element as any).elements) {
+        currentElements = (currentElement.element as any).elements;
+      } else if ((currentElement.element as any).items) {
+        // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+        currentElements = (currentElement.element as any).items.map((item: any) => ({ element: item }));
+      } else if ((currentElement.element as any).options) {
+        // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+        currentElements = (currentElement.element as any).options.map((option: any) => ({ element: option }));
+      } else {
+        // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+        let foundSubElements = false;
+
+        for (const key in currentElement.element) {
+          if (Array.isArray((currentElement.element as any)[key]) &&
+              (currentElement.element as any)[key].length > 0 &&
+              typeof (currentElement.element as any)[key][0] === 'object') {
+            // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+            currentElements = (currentElement.element as any)[key].map((item: any) => ({ element: item }));
+            foundSubElements = true;
+            break;
+          }
+        }
+
+        if (!foundSubElements) {
+          // Das Element hat keine erkennbaren verschachtelten Elemente
+          return customElement;
+        }
+      }
     }
 
     // Aktualisiere lastIndex für den nächsten Schritt
@@ -510,6 +587,94 @@ const findElementPathRecursive = (
           chip.field_id?.field_name === elementId
         ) {
           return [...currentPath, i, j];
+        }
+      }
+    } else if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
+      const customElement = element.element as CustomUIElement;
+
+      // Konvertiere sub_flows zu PatternLibraryElement[] für die Rekursion
+      const subflowElements = (customElement.sub_flows || []).map((subflow: any) => ({
+        element: {
+          ...subflow,
+          pattern_type: subflow.type || 'SubFlow',
+          title: { de: subflow.type || 'SubFlow' }
+        }
+      }));
+
+      const path = findElementPathRecursive(
+        subflowElements,
+        elementType,
+        elementId,
+        [...currentPath, i]
+      );
+
+      if (path) {
+        return path;
+      }
+    } else {
+      // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+
+      // Für Elemente mit elements-Array
+      if ((element.element as any).elements) {
+        const path = findElementPathRecursive(
+          (element.element as any).elements,
+          elementType,
+          elementId,
+          [...currentPath, i]
+        );
+
+        if (path) {
+          return path;
+        }
+      }
+
+      // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+      if ((element.element as any).items) {
+        const itemElements = (element.element as any).items.map((item: any) => ({ element: item }));
+        const path = findElementPathRecursive(
+          itemElements,
+          elementType,
+          elementId,
+          [...currentPath, i]
+        );
+
+        if (path) {
+          return path;
+        }
+      }
+
+      // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+      if ((element.element as any).options) {
+        const optionElements = (element.element as any).options.map((option: any) => ({ element: option }));
+        const path = findElementPathRecursive(
+          optionElements,
+          elementType,
+          elementId,
+          [...currentPath, i]
+        );
+
+        if (path) {
+          return path;
+        }
+      }
+
+      // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+      for (const key in element.element) {
+        if (Array.isArray((element.element as any)[key]) &&
+            (element.element as any)[key].length > 0 &&
+            typeof (element.element as any)[key][0] === 'object') {
+          // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+          const subElements = (element.element as any)[key].map((item: any) => ({ element: item }));
+          const path = findElementPathRecursive(
+            subElements,
+            elementType,
+            elementId,
+            [...currentPath, i]
+          );
+
+          if (path) {
+            return path;
+          }
         }
       }
     }

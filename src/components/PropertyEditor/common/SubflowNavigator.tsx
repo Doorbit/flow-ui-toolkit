@@ -181,13 +181,55 @@ const SubflowNavigator: React.FC = () => {
             currentElements = (chipGroup.chips || []).map((chip: any) => ({
               element: chip
             }));
+          } else if (currentElement.element.pattern_type === 'CustomUIElement' && (currentElement.element as any).sub_flows) {
+            // CustomUIElement mit sub_flows
+            // Wir müssen die sub_flows als "Elemente" behandeln
+            const customElement = currentElement.element;
+            currentElements = (customElement.sub_flows || []).map((subflow: any) => ({
+              element: {
+                ...subflow,
+                pattern_type: subflow.type || 'SubFlow',
+                title: { de: subflow.type || 'SubFlow' }
+              }
+            }));
           } else {
-            // Das Element hat keine untergeordneten Elemente
-            return (
-              <Typography variant="body2" color="text.secondary">
-                Dieses Element hat keine untergeordneten Elemente.
-              </Typography>
-            );
+            // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+            // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+            let foundSubElements = false;
+
+            if ((currentElement.element as any).elements) {
+              currentElements = (currentElement.element as any).elements;
+              foundSubElements = true;
+            } else if ((currentElement.element as any).items) {
+              // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+              currentElements = (currentElement.element as any).items.map((item: any) => ({ element: item }));
+              foundSubElements = true;
+            } else if ((currentElement.element as any).options) {
+              // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+              currentElements = (currentElement.element as any).options.map((option: any) => ({ element: option }));
+              foundSubElements = true;
+            } else {
+              // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+              for (const key in currentElement.element) {
+                if (Array.isArray((currentElement.element as any)[key]) &&
+                    (currentElement.element as any)[key].length > 0 &&
+                    typeof (currentElement.element as any)[key][0] === 'object') {
+                  // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+                  currentElements = (currentElement.element as any)[key].map((item: any) => ({ element: item }));
+                  foundSubElements = true;
+                  break;
+                }
+              }
+            }
+
+            if (!foundSubElements) {
+              // Das Element hat keine erkennbaren verschachtelten Elemente
+              return (
+                <Typography variant="body2" color="text.secondary">
+                  Dieses Element hat keine untergeordneten Elemente.
+                </Typography>
+              );
+            }
           }
         } else {
           // Gehe tiefer
@@ -201,13 +243,54 @@ const SubflowNavigator: React.FC = () => {
             currentElements = (chipGroup.chips || []).map((chip: any) => ({
               element: chip
             }));
+          } else if (currentElement.element.pattern_type === 'CustomUIElement' && (currentElement.element as any).sub_flows) {
+            // CustomUIElement mit sub_flows
+            const customElement = currentElement.element;
+            currentElements = (customElement.sub_flows || []).map((subflow: any) => ({
+              element: {
+                ...subflow,
+                pattern_type: subflow.type || 'SubFlow',
+                title: { de: subflow.type || 'SubFlow' }
+              }
+            }));
           } else {
-            // Das Element hat keine untergeordneten Elemente
-            return (
-              <Typography variant="body2" color="text.secondary">
-                Element nicht gefunden.
-              </Typography>
-            );
+            // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+            // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+            let foundSubElements = false;
+
+            if ((currentElement.element as any).elements) {
+              currentElements = (currentElement.element as any).elements;
+              foundSubElements = true;
+            } else if ((currentElement.element as any).items) {
+              // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+              currentElements = (currentElement.element as any).items.map((item: any) => ({ element: item }));
+              foundSubElements = true;
+            } else if ((currentElement.element as any).options) {
+              // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+              currentElements = (currentElement.element as any).options.map((option: any) => ({ element: option }));
+              foundSubElements = true;
+            } else {
+              // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+              for (const key in currentElement.element) {
+                if (Array.isArray((currentElement.element as any)[key]) &&
+                    (currentElement.element as any)[key].length > 0 &&
+                    typeof (currentElement.element as any)[key][0] === 'object') {
+                  // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+                  currentElements = (currentElement.element as any)[key].map((item: any) => ({ element: item }));
+                  foundSubElements = true;
+                  break;
+                }
+              }
+            }
+
+            if (!foundSubElements) {
+              // Das Element hat keine erkennbaren verschachtelten Elemente
+              return (
+                <Typography variant="body2" color="text.secondary">
+                  Element nicht gefunden.
+                </Typography>
+              );
+            }
           }
         }
       }
@@ -238,10 +321,32 @@ const SubflowNavigator: React.FC = () => {
           const hasVisibilityCondition = !!element.element.visibility_condition;
 
           // Prüfe, ob das Element untergeordnete Elemente hat
-          const hasChildren =
+          let hasChildren =
             elementType === 'GroupUIElement' ||
             elementType === 'ArrayUIElement' ||
-            (elementType === 'ChipGroupUIElement' && (element.element as any).chips?.length > 0);
+            (elementType === 'ChipGroupUIElement' && (element.element as any).chips?.length > 0) ||
+            (elementType === 'CustomUIElement' && (element.element as any).sub_flows?.length > 0);
+
+          // Prüfe auch auf andere Arten von Unterelementen
+          if (!hasChildren) {
+            if ((element.element as any).elements && (element.element as any).elements.length > 0) {
+              hasChildren = true;
+            } else if ((element.element as any).items && (element.element as any).items.length > 0) {
+              hasChildren = true;
+            } else if ((element.element as any).options && (element.element as any).options.length > 0) {
+              hasChildren = true;
+            } else {
+              // Prüfe auf beliebige Array-Eigenschaften, die Unterelemente sein könnten
+              for (const key in element.element) {
+                if (Array.isArray((element.element as any)[key]) &&
+                    (element.element as any)[key].length > 0 &&
+                    typeof (element.element as any)[key][0] === 'object') {
+                  hasChildren = true;
+                  break;
+                }
+              }
+            }
+          }
 
           return (
             <ListItem key={index} disablePadding>

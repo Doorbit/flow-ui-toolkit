@@ -107,127 +107,136 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     }
   }, [selectedElementPath]);
 
-  // Hilfsfunktion zum Extrahieren von Unterelementen basierend auf dem Elementtyp
-  const getChildElements = React.useCallback((parentElement: PatternLibraryElement, path: number[]): PatternLibraryElement[] => {
-    if (!parentElement) return [];
+  /**
+   * Konvertiert ein Element in ein PatternLibraryElement wenn nötig
+   */
+  const ensurePatternLibraryElement = React.useCallback((element: any): PatternLibraryElement => {
+    if (element && element.element) {
+      return element;
+    }
+    return { element };
+  }, []);
 
-    console.log('getChildElements - parentElement:', parentElement);
-    console.log('getChildElements - path:', path);
-    console.log('arg1:', parentElement);
-    console.log('arg1:', path);
+  /**
+   * Holt Unterelemente eines Elements basierend auf seinem Typ
+   */
+  const getChildElements = React.useCallback((parentElement: PatternLibraryElement): PatternLibraryElement[] => {
+    if (!parentElement || !parentElement.element) return [];
 
-    // Prüfen, ob es sich um ein Subflow-Element handelt (kein pattern_type, aber type vorhanden)
+    // Für Subflow-Objekte (die als parentElement übergeben werden, wenn currentPath auf sie zeigt)
+    // Ein Subflow-Objekt selbst hat keinen pattern_type, aber einen 'type' (z.B. 'POI')
+    // und enthält 'elements'.
     if (!parentElement.element.pattern_type && (parentElement.element as any).type) {
-      console.log('getChildElements - Subflow Element - type:', (parentElement.element as any).type);
-      // Für Subflow-Elemente
-      const elements = (parentElement.element as any).elements || [];
-      console.log('getChildElements - Subflow Element - elements:', elements);
-      return elements;
+      // Die Kinder eines Subflow-Objekts sind dessen 'elements'-Array.
+      const elementsInSubFlow = (parentElement.element as any).elements || [];
+      // Annahme: sub_elements ist hier nicht relevant, da SubFlow-Definition nur 'elements' hat.
+      return elementsInSubFlow.map(ensurePatternLibraryElement);
     }
 
-    const elementType = parentElement.element.pattern_type;
-    let childElements: PatternLibraryElement[] = [];
-
-    console.log('getChildElements - elementType:', elementType);
-
-    if (elementType === 'GroupUIElement') {
-      // Für GroupUIElement
-      childElements = (parentElement.element as any).elements || [];
-      console.log('getChildElements - GroupUIElement - childElements:', childElements);
-    } else if (elementType === 'ArrayUIElement') {
-      // Für ArrayUIElement
-      childElements = (parentElement.element as any).elements || [];
-      console.log('getChildElements - ArrayUIElement - childElements:', childElements);
-    } else if (elementType === 'ChipGroupUIElement') {
-      // Für ChipGroupUIElement
-      const chips = (parentElement.element as any).chips || [];
-      childElements = chips.map((chip: any) => ({
-        element: chip
-      }));
-      console.log('getChildElements - ChipGroupUIElement - childElements:', childElements);
-    } else if (elementType === 'CustomUIElement') {
-      // Für CustomUIElement mit Subflows
-      const subFlows = (parentElement.element as any).sub_flows || [];
-      console.log('getChildElements - CustomUIElement - subFlows:', subFlows);
-
-      if (path.length === 1) {
-        // Auf der ersten Ebene zeigen wir die Subflows an
-        childElements = subFlows.map((subflow: any) => ({
-          element: subflow
-        }));
-        console.log('getChildElements - CustomUIElement - path.length === 1 - childElements:', childElements);
-      } else if (path.length > 1 && subFlows[path[1]]) {
-        console.log('getChildElements - CustomUIElement - path.length > 1 - subFlows[path[1]]:', subFlows[path[1]]);
-        // Auf der zweiten Ebene zeigen wir die Elemente des ausgewählten Subflows an
-        if (path.length === 2) {
-          childElements = subFlows[path[1]].elements || [];
-          console.log('getChildElements - CustomUIElement - path.length === 2 - childElements:', childElements);
-
-          // Sicherstellen, dass die Elemente korrekt formatiert sind
-          if (childElements.length === 0) {
-            console.warn('getChildElements - CustomUIElement - path.length === 2 - Keine Elemente gefunden');
-          }
-        } else {
-          // Für tiefere Verschachtelungen innerhalb eines Subflows
-          const subflowElements = subFlows[path[1]].elements || [];
-          console.log('getChildElements - CustomUIElement - path.length > 2 - subflowElements:', subflowElements);
-          const subPath = path.slice(2); // Entferne die ersten beiden Pfadteile (CustomUIElement und Subflow)
-          console.log('getChildElements - CustomUIElement - path.length > 2 - subPath:', subPath);
-
-          // Navigiere durch die Unterelemente
-          let currentElements = subflowElements;
-          let currentElement = null;
-
-          for (let i = 0; i < subPath.length - 1; i++) {
-            if (currentElements.length <= subPath[i]) {
-              console.log('getChildElements - CustomUIElement - path.length > 2 - currentElements.length <= subPath[i]');
-              return [];
-            }
-
-            currentElement = currentElements[subPath[i]];
-            console.log('getChildElements - CustomUIElement - path.length > 2 - currentElement:', currentElement);
-
-            // Prüfen, ob es sich um ein Subflow-Element handelt (kein pattern_type, aber type vorhanden)
-            if (!currentElement.element.pattern_type && (currentElement.element as any).type) {
-              console.log('getChildElements - CustomUIElement - path.length > 2 - Subflow Element - type:', (currentElement.element as any).type);
-              currentElements = (currentElement.element as any).elements || [];
-              console.log('getChildElements - CustomUIElement - path.length > 2 - Subflow Element - currentElements:', currentElements);
-            } else if (currentElement.element.pattern_type === 'GroupUIElement') {
-              currentElements = (currentElement.element as any).elements || [];
-              console.log('getChildElements - CustomUIElement - path.length > 2 - GroupUIElement - currentElements:', currentElements);
-            } else if (currentElement.element.pattern_type === 'ArrayUIElement') {
-              currentElements = (currentElement.element as any).elements || [];
-              console.log('getChildElements - CustomUIElement - path.length > 2 - ArrayUIElement - currentElements:', currentElements);
-            } else if (currentElement.element.pattern_type === 'ChipGroupUIElement') {
-              // Für ChipGroupUIElement
-              const chips = (currentElement.element as any).chips || [];
-              currentElements = chips.map((chip: any) => ({
-                element: chip
-              }));
-              console.log('getChildElements - CustomUIElement - path.length > 2 - ChipGroupUIElement - currentElements:', currentElements);
-            } else if (currentElement.element.pattern_type === 'CustomUIElement' && (currentElement.element as any).sub_flows) {
-              // Für CustomUIElement mit Subflows
-              const subFlows = (currentElement.element as any).sub_flows || [];
-              currentElements = subFlows.map((subflow: any) => ({
-                element: subflow
-              }));
-              console.log('getChildElements - CustomUIElement - path.length > 2 - CustomUIElement - currentElements:', currentElements);
-            } else {
-              console.log('getChildElements - CustomUIElement - path.length > 2 - Unsupported element type');
-              return [];
-            }
-          }
-
-          childElements = currentElements;
-          console.log('getChildElements - CustomUIElement - path.length > 2 - childElements:', childElements);
+    // Für reguläre UIElemente mit pattern_type
+    switch (parentElement.element.pattern_type) {
+      case 'GroupUIElement':
+      case 'ArrayUIElement':
+        return ((parentElement.element as any).elements || []).map(ensurePatternLibraryElement);
+      case 'ChipGroupUIElement':
+        // Chips sind BooleanUIElements, müssen aber als PatternLibraryElement behandelt werden
+        return ((parentElement.element as any).chips || []).map((chip: any) => ensurePatternLibraryElement(chip));
+      case 'CustomUIElement':
+        // Wenn ein CustomUIElement das parentElement ist, sind seine "Kinder" im Kontext des Drilldowns
+        // zunächst seine sub_flows. Das Navigieren IN einen Subflow (um dessen Elemente anzuzeigen)
+        // wird dadurch gehandhabt, dass getElementByPath das Subflow-Objekt als neues parentElement liefert.
+        if ((parentElement.element as any).sub_flows) {
+          return ((parentElement.element as any).sub_flows || []).map(ensurePatternLibraryElement);
         }
+        // Hat ein CustomUIElement keine sub_flows, könnte es direkte 'elements' haben.
+        if (Array.isArray((parentElement.element as any).elements)) {
+          return ((parentElement.element as any).elements || []).map(ensurePatternLibraryElement);
+        }
+        return []; // CustomUIElement ohne sub_flows und ohne elements hat keine Kinder in diesem Kontext
+    }
+
+    // Generische Fallbacks für andere Typen, die möglicherweise Kinder haben könnten
+    // (z.B. SingleSelectionUIElement mit 'options', KeyValueListUIElement mit 'items')
+    // Diese werden typischerweise nicht als "drilldown-fähig" im ElementContextView betrachtet,
+    // aber die Logik kann hier zur Vollständigkeit stehen bleiben.
+    const potentialChildArrays = ['elements', 'items', 'options'];
+    for (const key of potentialChildArrays) {
+      const childArray = (parentElement.element as any)[key];
+      if (Array.isArray(childArray) && childArray.length > 0) {
+        // Prüfen, ob die Elemente der Arrays bereits PatternLibraryElement sind oder rohe Objekte
+        return childArray.map((item: any) => ensurePatternLibraryElement(item));
+      }
+    }
+    
+    // Fallback: Wenn kein spezifischer Kind-Array-Typ gefunden wurde, aber eine beliebige Array-Eigenschaft existiert,
+    // die Objekte enthält (weniger wahrscheinlich für Drilldown, aber zur Sicherheit)
+    for (const key in parentElement.element) {
+        const value = (parentElement.element as any)[key];
+        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+            // Hier ist Vorsicht geboten, da nicht jedes Array von Objekten navigierbare Kinder darstellt.
+            // Für den Drilldown sind primär 'elements' in Group/Array/SubFlow und 'sub_flows' in CustomUIElement relevant.
+            // Diese sollten von den obigen spezifischen Fällen abgedeckt sein.
+        }
+    }
+
+    return [];
+  }, [ensurePatternLibraryElement]);
+
+  /**
+   * Holt alle Unterelemente eines Elements // Diese Funktion ist jetzt redundant durch das neue getChildElements
+   */
+  const getSubElements = React.useCallback((element: PatternLibraryElement): PatternLibraryElement[] => {
+    if (!element || !element.element) return [];
+
+    // Für Subflow-Elemente
+    if (!element.element.pattern_type && (element.element as any).type) {
+      const elements = (element.element as any).elements || [];
+      const subElements = (element.element as any).sub_elements || [];
+      return [...elements, ...subElements].map(ensurePatternLibraryElement);
+    }
+
+    // Für verschiedene Element-Typen
+    switch (element.element.pattern_type) {
+      case 'GroupUIElement':
+      case 'ArrayUIElement':
+        return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
+        
+      case 'ChipGroupUIElement':
+        return ((element.element as any).chips || []).map(ensurePatternLibraryElement);
+        
+      case 'CustomUIElement':
+        if ((element.element as any).sub_flows) {
+          return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
+        }
+        break;
+    }
+
+    // Prüfe alle möglichen Array-Eigenschaften
+    const potentialArrays = [
+      (element.element as any).elements,
+      (element.element as any).sub_elements,
+      (element.element as any).items,
+      (element.element as any).options,
+      (element.element as any).chips,
+      ...(element.element.pattern_type === 'CustomUIElement' ? [(element.element as any).sub_flows] : [])
+    ];
+
+    for (const array of potentialArrays) {
+      if (Array.isArray(array) && array.length > 0) {
+        return array.map(ensurePatternLibraryElement);
       }
     }
 
-    console.log('getChildElements - returning childElements:', childElements);
-    console.log('arg1:', childElements);
-    return childElements;
-  }, []);
+    // Durchsuche alle Eigenschaften nach Arrays
+    for (const key in element.element) {
+      const value = (element.element as any)[key];
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+        return value.map(ensurePatternLibraryElement);
+      }
+    }
+
+    return [];
+  }, [ensurePatternLibraryElement]);
 
   // Aktualisiere die aktuellen Elemente basierend auf dem Pfad
   useEffect(() => {
@@ -238,11 +247,16 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
       // Wir sind in einem Unterelement
       const parentElement = getElementByPath(elements, currentPath);
       if (parentElement) {
-        const childElements = getChildElements(parentElement, currentPath);
+        // Das neue getChildElements benötigt den Pfad nicht mehr direkt,
+        // da getElementByPath bereits das korrekte Elternelement liefert.
+        const childElements = getChildElements(parentElement);
         setCurrentElements(childElements);
+      } else {
+        // Wenn kein parentElement für den currentPath gefunden wird, leere Liste anzeigen
+        setCurrentElements([]);
       }
     }
-  }, [currentPath, elements, getChildElements]);
+  }, [currentPath, elements, getChildElements, getElementByPath]); // getElementByPath als Abhängigkeit hinzugefügt
 
   // Hilfsfunktion zum Generieren eines Labels für ein Element
   const getElementLabel = React.useCallback((element: PatternLibraryElement, index: number): string => {
@@ -286,7 +300,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     }
 
     setBreadcrumbItems(items);
-  }, [currentPath, elements, getElementLabel]);
+  }, [currentPath, elements, getElementLabel, getElementByPath]); // getElementByPath als Abhängigkeit hinzugefügt
 
   // Handler für die Navigation in der Hierarchie
   const handleNavigateTo = (path: number[]) => {
@@ -508,17 +522,77 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                         subFlows[subFlowIndex] = updatedElement.element;
                       } else {
                         // Aktualisiere ein Element innerhalb des Subflows
-                        const subflowElements = [...(subFlows[subFlowIndex].elements || [])];
-                        const updatedSubflowElements = updateElementAtPath(
-                          subflowElements,
-                          restPath.slice(1),
-                          updatedElement
-                        );
+                        if (subFlows[subFlowIndex].elements) {
+                          // Wenn das Subflow-Element elements enthält
+                          const subflowElements = [...(subFlows[subFlowIndex].elements || [])];
 
-                        subFlows[subFlowIndex] = {
-                          ...subFlows[subFlowIndex],
-                          elements: updatedSubflowElements
-                        };
+                          // Stelle sicher, dass alle Elemente im korrekten Format sind
+                          const normalizedSubflowElements = subflowElements.map((element: any) => {
+                            // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                            if (element.element) {
+                              return element;
+                            }
+                            // Ansonsten konvertiere es zu einem PatternLibraryElement
+                            return {
+                              element: element
+                            };
+                          });
+
+                          const updatedSubflowElements = updateElementAtPath(
+                            normalizedSubflowElements,
+                            restPath.slice(1),
+                            updatedElement
+                          );
+
+                          // Konvertiere zurück zum ursprünglichen Format, falls nötig
+                          const finalSubflowElements = updatedSubflowElements.map((element: any) => {
+                            // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                            if (subflowElements[0] && !subflowElements[0].element) {
+                              return element.element;
+                            }
+                            return element;
+                          });
+
+                          subFlows[subFlowIndex] = {
+                            ...subFlows[subFlowIndex],
+                            elements: finalSubflowElements
+                          };
+                        } else if (subFlows[subFlowIndex].sub_elements) {
+                          // Wenn das Subflow-Element sub_elements enthält
+                          // Konvertiere sub_elements zu PatternLibraryElements für updateElementAtPath
+                          const subElements = (subFlows[subFlowIndex].sub_elements || []).map((subElement: any) => {
+                            // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                            if (subElement.element) {
+                              return subElement;
+                            }
+                            // Ansonsten konvertiere es zu einem PatternLibraryElement
+                            return {
+                              element: subElement
+                            };
+                          });
+
+                          const updatedSubElements = updateElementAtPath(
+                            subElements,
+                            restPath.slice(1),
+                            updatedElement
+                          );
+
+                          // Konvertiere zurück zum ursprünglichen Format
+                          const updatedSubElementsArray = updatedSubElements.map((subElement: any) => {
+                            // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                            if (subFlows[subFlowIndex].sub_elements[0] && !subFlows[subFlowIndex].sub_elements[0].element) {
+                              return subElement.element;
+                            }
+                            return subElement;
+                          });
+
+                          subFlows[subFlowIndex] = {
+                            ...subFlows[subFlowIndex],
+                            sub_elements: updatedSubElementsArray
+                          };
+                        } else {
+                          console.warn('Subflow hat weder elements noch sub_elements:', subFlows[subFlowIndex]);
+                        }
                       }
                     }
                   }
@@ -530,6 +604,167 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                       sub_flows: subFlows
                     }
                   };
+                } else {
+                  // Prüfe auf andere Arten von Unterelementen
+                  if ((element.element as any).elements) {
+                    const subElements = [...((element.element as any).elements || [])];
+
+                    // Stelle sicher, dass alle Elemente im korrekten Format sind
+                    const normalizedSubElements = subElements.map((subElement: any) => {
+                      // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                      if (subElement.element) {
+                        return subElement;
+                      }
+                      // Ansonsten konvertiere es zu einem PatternLibraryElement
+                      return {
+                        element: subElement
+                      };
+                    });
+
+                    const updatedSubElements = updateElementAtPath(
+                      normalizedSubElements,
+                      restPath,
+                      updatedElement
+                    );
+
+                    // Konvertiere zurück zum ursprünglichen Format, falls nötig
+                    const finalSubElements = updatedSubElements.map((subElement: any) => {
+                      // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                      if (subElements[0] && !subElements[0].element) {
+                        return subElement.element;
+                      }
+                      return subElement;
+                    });
+
+                    return {
+                      ...element,
+                      element: {
+                        ...(element.element as any),
+                        elements: finalSubElements
+                      }
+                    };
+                  } else if ((element.element as any).items) {
+                    // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+                    const items = [...((element.element as any).items || [])];
+
+                    // Konvertiere items zu PatternLibraryElements für updateElementAtPath
+                    const itemElements = items.map((item: any) => {
+                      // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                      if (item.element) {
+                        return item;
+                      }
+                      // Ansonsten konvertiere es zu einem PatternLibraryElement
+                      return {
+                        element: item
+                      };
+                    });
+
+                    const updatedItemElements = updateElementAtPath(
+                      itemElements,
+                      restPath,
+                      updatedElement
+                    );
+
+                    // Konvertiere zurück zum ursprünglichen Format
+                    const updatedItems = updatedItemElements.map((itemElement: any) => {
+                      // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                      if (items[0] && !items[0].element) {
+                        return itemElement.element;
+                      }
+                      return itemElement;
+                    });
+
+                    return {
+                      ...element,
+                      element: {
+                        ...(element.element as any),
+                        items: updatedItems
+                      }
+                    };
+                  } else if ((element.element as any).options) {
+                    // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+                    const options = [...((element.element as any).options || [])];
+
+                    // Konvertiere options zu PatternLibraryElements für updateElementAtPath
+                    const optionElements = options.map((option: any) => {
+                      // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                      if (option.element) {
+                        return option;
+                      }
+                      // Ansonsten konvertiere es zu einem PatternLibraryElement
+                      return {
+                        element: option
+                      };
+                    });
+
+                    const updatedOptionElements = updateElementAtPath(
+                      optionElements,
+                      restPath,
+                      updatedElement
+                    );
+
+                    // Konvertiere zurück zum ursprünglichen Format
+                    const updatedOptions = updatedOptionElements.map((optionElement: any) => {
+                      // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                      if (options[0] && !options[0].element) {
+                        return optionElement.element;
+                      }
+                      return optionElement;
+                    });
+
+                    return {
+                      ...element,
+                      element: {
+                        ...(element.element as any),
+                        options: updatedOptions
+                      }
+                    };
+                  }
+
+                  // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+                  for (const key in element.element) {
+                    if (Array.isArray((element.element as any)[key]) &&
+                        (element.element as any)[key].length > 0 &&
+                        typeof (element.element as any)[key][0] === 'object') {
+                      // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+                      const arrayItems = [...((element.element as any)[key] || [])];
+
+                      // Konvertiere Array-Items zu PatternLibraryElements für updateElementAtPath
+                      const arrayItemElements = arrayItems.map((item: any) => {
+                        // Wenn das Element bereits ein PatternLibraryElement ist, verwende es direkt
+                        if (item.element) {
+                          return item;
+                        }
+                        // Ansonsten konvertiere es zu einem PatternLibraryElement
+                        return {
+                          element: item
+                        };
+                      });
+
+                      const updatedArrayItemElements = updateElementAtPath(
+                        arrayItemElements,
+                        restPath,
+                        updatedElement
+                      );
+
+                      // Konvertiere zurück zum ursprünglichen Format
+                      const updatedArrayItems = updatedArrayItemElements.map((itemElement: any) => {
+                        // Wenn das ursprüngliche Format kein PatternLibraryElement war, extrahiere das element
+                        if (arrayItems[0] && !arrayItems[0].element) {
+                          return itemElement.element;
+                        }
+                        return itemElement;
+                      });
+
+                      return {
+                        ...element,
+                        element: {
+                          ...(element.element as any),
+                          [key]: updatedArrayItems
+                        }
+                      };
+                    }
+                  }
                 }
 
                 return element;

@@ -67,6 +67,26 @@ const StructureNavigator: React.FC<StructureNavigatorProps> = ({
     } else if (!elementType && (element.element as any).elements) {
       // Handle SubFlow objects
       subElements = (element.element as any).elements || [];
+    } else if ((element.element as any).elements) {
+      // Für andere Elemente mit elements-Array
+      subElements = (element.element as any).elements || [];
+    } else if ((element.element as any).items) {
+      // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+      subElements = (element.element as any).items || [];
+    } else if ((element.element as any).options) {
+      // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+      subElements = (element.element as any).options || [];
+    } else {
+      // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+      for (const key in element.element) {
+        if (Array.isArray((element.element as any)[key]) &&
+            (element.element as any)[key].length > 0 &&
+            typeof (element.element as any)[key][0] === 'object') {
+          // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+          subElements = (element.element as any)[key] || [];
+          break;
+        }
+      }
     }
 
     if (subElements.length === 0) {

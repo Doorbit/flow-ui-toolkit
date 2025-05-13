@@ -28,7 +28,7 @@ import {
 } from '@mui/icons-material';
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { UIElement, GroupUIElement } from '../../models/uiElements';
-import { getElementByPath } from '../../context/EditorContext';
+import { useEditor, getElementByPath } from '../../context/EditorContext'; // useEditor importieren
 import { useFieldValues } from '../../context/FieldValuesContext';
 import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 // Import der react-dnd Hooks
@@ -88,7 +88,8 @@ const ChildrenContainer = styled(Box)<{ depth: number }>`
   margin-top: 1rem;
 `;
 
-const EmptyState = styled(Box)<{ isOver?: boolean }>`
+// Filter transient props for EmptyState
+const EmptyState = styled(({ $isOver, ...props }) => <Box {...props} />)<{ $isOver?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -97,20 +98,21 @@ const EmptyState = styled(Box)<{ isOver?: boolean }>`
   text-align: center;
   color: #343951;
   padding: 2rem;
-  background-color: ${props => props.isOver ? 'rgba(0, 159, 100, 0.05)' : 'rgba(0, 159, 100, 0.02)'};
+  background-color: ${props => props.$isOver ? 'rgba(0, 159, 100, 0.05)' : 'rgba(0, 159, 100, 0.02)'};
   border-radius: 8px;
-  border: 2px dashed ${props => props.isOver ? '#009F64' : 'rgba(0, 159, 100, 0.2)'};
+  border: 2px dashed ${props => props.$isOver ? '#009F64' : 'rgba(0, 159, 100, 0.2)'};
   transition: all 0.2s ease;
 `;
 
-const DropZone = styled(Box)<{ isOver?: boolean }>`
-  border: 2px dashed ${props => props.isOver ? '#009F64' : 'rgba(0, 159, 100, 0.3)'};
+// Filter transient props for DropZone
+const DropZone = styled(({ $isOver, ...props }) => <Box {...props} />)<{ $isOver?: boolean }>`
+  border: 2px dashed ${props => props.$isOver ? '#009F64' : 'rgba(0, 159, 100, 0.3)'};
   border-radius: 8px;
   padding: 1rem;
   margin: 0.5rem 0;
   text-align: center;
   color: #343951;
-  background-color: ${props => props.isOver ? 'rgba(0, 159, 100, 0.05)' : 'transparent'};
+  background-color: ${props => props.$isOver ? 'rgba(0, 159, 100, 0.05)' : 'transparent'};
   transition: all 0.2s ease;
 `;
 
@@ -417,7 +419,7 @@ const ElementRenderer: React.FC<{
   onDuplicateElement: (path: number[]) => void;
   onAddSubElement?: (parentPath: number[], type: string) => void;
   onMoveElement?: (sourceIndex: number, targetIndex: number, parentPath?: number[], sourcePath?: number[]) => void;
-  setShowElementTypeModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowElementTypeModal: (open: boolean) => void; // Typ angepasst
   setTargetParentPath: React.Dispatch<React.SetStateAction<number[] | undefined>>;
 }> = ({
   element,
@@ -508,7 +510,7 @@ const ElementRenderer: React.FC<{
 
             {isCollapsible && (
               <IconButton
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => { // Typ hinzugefügt
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
@@ -541,7 +543,7 @@ const ElementRenderer: React.FC<{
               <Tooltip title="Duplizieren">
                 <IconButton
                   size="small"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => { // Typ hinzugefügt
                     e.stopPropagation();
                     onDuplicateElement(path);
                   }}
@@ -552,7 +554,7 @@ const ElementRenderer: React.FC<{
               <Tooltip title="Löschen">
                 <IconButton
                   size="small"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => { // Typ hinzugefügt
                     e.stopPropagation();
                     onRemoveElement(path);
                   }}
@@ -715,10 +717,15 @@ const EditorArea: React.FC<EditorAreaProps> = ({
   onDropElement,
   onMoveElement
 }) => {
-  const [showElementTypeModal, setShowElementTypeModal] = useState(false);
+  const { state: editorState, dispatch: editorDispatch } = useEditor(); // EditorContext verwenden
   const [targetParentPath, setTargetParentPath] = useState<number[] | undefined>(undefined);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const showElementTypeModal = editorState.dialogs?.elementType || false;
+  const setShowElementTypeModal = (open: boolean) => {
+    editorDispatch({ type: 'TOGGLE_DIALOG', payload: { dialog: 'elementType', open } });
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const elementType = e.dataTransfer.getData('element_type');
     if (elementType && onDropElement) {
@@ -728,7 +735,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
 
   const [isDropZoneActive, setIsDropZoneActive] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDropZoneActive(true);
   };
@@ -741,6 +748,8 @@ const EditorArea: React.FC<EditorAreaProps> = ({
   const handleSelectElementType = (type: string) => {
     if (targetParentPath && onAddSubElement) {
       onAddSubElement(targetParentPath, type);
+    } else if (!targetParentPath && onAddSubElement) { // Hinzufügen auf Root-Ebene
+      onAddSubElement([], type);
     }
     // Dialog schließen
     setShowElementTypeModal(false);
@@ -757,26 +766,41 @@ const EditorArea: React.FC<EditorAreaProps> = ({
         open={showElementTypeModal}
         onClose={() => setShowElementTypeModal(false)}
         onSelectElementType={handleSelectElementType}
-        parentElementType={targetParentPath ?
-          elements[targetParentPath[0]]?.element.pattern_type : undefined}
+        parentElementType={
+          targetParentPath && targetParentPath.length > 0 && elements[targetParentPath[0]]
+            ? elements[targetParentPath[0]].element.pattern_type
+            : undefined
+        }
       />
 
       {elements.length === 0 ? (
         <EmptyState
-          onDrop={(e) => {
+          onDrop={(e: React.DragEvent<HTMLDivElement>) => { // Typ hinzugefügt
             handleDrop(e);
             setIsDropZoneActive(false);
           }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          isOver={isDropZoneActive}
+          $isOver={isDropZoneActive}
         >
           <Typography variant="body1" gutterBottom>
             Ziehen Sie Elemente aus der Palette hierher
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mb: 1 }}>
             Oder klicken Sie, um ein Element hinzuzufügen
           </Typography>
+          {/* Add IconButton to trigger dialog */}
+          <IconButton
+            data-testid="icon-add-circle"
+            color="primary"
+            onClick={() => {
+              setTargetParentPath(undefined); // Set parent path for root level
+              setShowElementTypeModal(true);
+            }}
+            sx={{ mt: 1 }}
+          >
+            <AddIcon fontSize="large" />
+          </IconButton>
         </EmptyState>
       ) : (
         <Box>
@@ -819,13 +843,13 @@ const EditorArea: React.FC<EditorAreaProps> = ({
           )}
 
           <DropZone
-            onDrop={(e) => {
+            onDrop={(e: React.DragEvent<HTMLDivElement>) => { // Typ hinzugefügt
               handleDrop(e);
               setIsDropZoneActive(false);
             }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            isOver={isDropZoneActive}
+            $isOver={isDropZoneActive}
           >
             <Typography>
               Element hier ablegen
@@ -837,4 +861,5 @@ const EditorArea: React.FC<EditorAreaProps> = ({
   );
 };
 
-export default EditorArea;
+const ExportedEditorArea: React.FC<EditorAreaProps> = EditorArea;
+export default ExportedEditorArea;

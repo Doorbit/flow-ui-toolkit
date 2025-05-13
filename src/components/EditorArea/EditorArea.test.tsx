@@ -3,42 +3,34 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import EditorArea from './EditorArea';
 
 // Mocks für die abhängigen Komponenten und Kontexte
-jest.mock('../../context/EditorContext', () => ({
-  useEditorContext: jest.fn().mockImplementation(() => ({
-    state: {
-      selectedPageId: 'test-page-1',
-      selectedElementId: null,
-      currentFlow: {
-        pages_edit: [
-          {
-            id: 'test-page-1',
-            pattern_type: 'Page',
-            title: { de: 'Testseite 1' },
-            elements: []
-          }
-        ]
-      }
+jest.mock('../../context/EditorContext', () => {
+  const mockDispatch = jest.fn();
+  const mockState = {
+    selectedPageId: 'test-page-1',
+    selectedElementId: null,
+    currentFlow: {
+      pages_edit: [
+        {
+          id: 'test-page-1',
+          pattern_type: 'Page',
+          title: { de: 'Testseite 1' },
+          elements: []
+        }
+      ]
     },
-    dispatch: jest.fn()
-  })),
-  useEditor: jest.fn().mockImplementation(() => ({
-    state: {
-      selectedPageId: 'test-page-1',
-      selectedElementId: null,
-      currentFlow: {
-        pages_edit: [
-          {
-            id: 'test-page-1',
-            pattern_type: 'Page',
-            title: { de: 'Testseite 1' },
-            elements: []
-          }
-        ]
-      }
-    },
-    dispatch: jest.fn()
-  }))
-}));
+    dialogs: { elementType: false } // Standardmäßig geschlossen
+  };
+  return {
+    useEditorContext: jest.fn().mockImplementation(() => ({
+      state: mockState,
+      dispatch: mockDispatch
+    })),
+    useEditor: jest.fn().mockImplementation(() => ({
+      state: mockState,
+      dispatch: mockDispatch
+    }))
+  };
+});
 
 // Mock für DnD
 jest.mock('react-dnd', () => ({
@@ -118,11 +110,13 @@ jest.mock('@mui/icons-material', () => ({
 describe('EditorArea', () => {
   it('sollte eine leere Area rendern, wenn keine Seite ausgewählt ist', () => {
     // Überschreibe den Mock für diesen speziellen Test
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    const { useEditor } = require('../../context/EditorContext');
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: null,
         selectedElementId: null,
-        currentFlow: null
+        currentFlow: null,
+        dialogs: { elementType: false }
       },
       dispatch: jest.fn()
     }));
@@ -142,7 +136,8 @@ describe('EditorArea', () => {
 
   it('sollte eine leere Seite mit "Element hinzufügen" Button rendern', () => {
     // Setze den Standard-Mock wieder her
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    const { useEditor } = require('../../context/EditorContext');
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: 'test-page-1',
         selectedElementId: null,
@@ -155,7 +150,8 @@ describe('EditorArea', () => {
               elements: []
             }
           ]
-        }
+        },
+        dialogs: { elementType: false }
       },
       dispatch: jest.fn()
     }));
@@ -173,8 +169,9 @@ describe('EditorArea', () => {
   });
 
   it('sollte den ElementTypeDialog öffnen, wenn auf "Element hinzufügen" geklickt wird', () => {
+    const { useEditor } = require('../../context/EditorContext');
     const mockDispatch = jest.fn();
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: 'test-page-1',
         selectedElementId: null,
@@ -188,7 +185,7 @@ describe('EditorArea', () => {
             }
           ]
         },
-        dialogOpen: { elementType: false }
+        dialogs: { elementType: false }
       },
       dispatch: mockDispatch
     }));
@@ -214,7 +211,8 @@ describe('EditorArea', () => {
 
   it('sollte ElementTypeDialog mit korrekten Props rendern', () => {
     // Mock mit geöffnetem Dialog
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    const { useEditor } = require('../../context/EditorContext');
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: 'test-page-1',
         selectedElementId: null,
@@ -228,7 +226,7 @@ describe('EditorArea', () => {
             }
           ]
         },
-        dialogOpen: { elementType: true }
+        dialogs: { elementType: true } // Dialog ist geöffnet
       },
       dispatch: jest.fn()
     }));
@@ -248,8 +246,9 @@ describe('EditorArea', () => {
   });
 
   it('sollte den Dialog schließen, wenn auf "Schließen" geklickt wird', () => {
+    const { useEditor } = require('../../context/EditorContext');
     const mockDispatch = jest.fn();
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: 'test-page-1',
         selectedElementId: null,
@@ -263,7 +262,7 @@ describe('EditorArea', () => {
             }
           ]
         },
-        dialogOpen: { elementType: true }
+        dialogs: { elementType: true } // Dialog ist geöffnet
       },
       dispatch: mockDispatch
     }));
@@ -288,8 +287,9 @@ describe('EditorArea', () => {
   });
 
   it('sollte ein Element hinzufügen, wenn es im Dialog ausgewählt wird', () => {
+    const { useEditor } = require('../../context/EditorContext');
     const mockDispatch = jest.fn();
-    require('../../context/EditorContext').useEditorContext.mockImplementation(() => ({
+    useEditor.mockImplementation(() => ({
       state: {
         selectedPageId: 'test-page-1',
         selectedElementId: null,
@@ -303,7 +303,7 @@ describe('EditorArea', () => {
             }
           ]
         },
-        dialogOpen: { elementType: true }
+        dialogs: { elementType: true } // Dialog ist geöffnet
       },
       dispatch: mockDispatch
     }));

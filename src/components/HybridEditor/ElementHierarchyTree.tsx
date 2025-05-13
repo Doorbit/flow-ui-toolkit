@@ -141,6 +141,12 @@ const TreeNode: React.FC<{
     const elementType = element.element.pattern_type;
 
     if (!elementType) {
+      // Für Subflow-Elemente ohne pattern_type, aber mit type
+      if ((element.element as any).type) {
+        const hasElements = (element.element as any).elements?.length > 0;
+        const hasSubElements = (element.element as any).sub_elements?.length > 0;
+        return hasElements || hasSubElements;
+      }
       return false;
     }
 
@@ -152,6 +158,24 @@ const TreeNode: React.FC<{
       return (element.element as any).chips?.length > 0;
     } else if (elementType === 'CustomUIElement' && (element.element as any).sub_flows) {
       return (element.element as any).sub_flows?.length > 0;
+    }
+
+    // Prüfe auf andere Arten von Unterelementen
+    if ((element.element as any).elements && (element.element as any).elements.length > 0) {
+      return true;
+    } else if ((element.element as any).items && (element.element as any).items.length > 0) {
+      return true;
+    } else if ((element.element as any).options && (element.element as any).options.length > 0) {
+      return true;
+    }
+
+    // Prüfe auf beliebige Array-Eigenschaften, die Unterelemente sein könnten
+    for (const key in element.element) {
+      if (Array.isArray((element.element as any)[key]) &&
+          (element.element as any)[key].length > 0 &&
+          typeof (element.element as any)[key][0] === 'object') {
+        return true;
+      }
     }
 
     return false;
@@ -167,6 +191,18 @@ const TreeNode: React.FC<{
     const elementType = element.element.pattern_type;
 
     if (!elementType) {
+      // Für Subflow-Elemente ohne pattern_type, aber mit type
+      if ((element.element as any).type) {
+        if ((element.element as any).elements) {
+          return (element.element as any).elements.map((subElement: any) => ({
+            element: subElement
+          }));
+        } else if ((element.element as any).sub_elements) {
+          return (element.element as any).sub_elements.map((subElement: any) => ({
+            element: subElement
+          }));
+        }
+      }
       return [];
     }
 
@@ -180,6 +216,35 @@ const TreeNode: React.FC<{
       return (element.element as any).sub_flows.map((subflow: any) => ({
         element: subflow
       }));
+    }
+
+    // Prüfe auf andere Arten von Unterelementen
+    if ((element.element as any).elements) {
+      return (element.element as any).elements.map((subElement: any) => ({
+        element: subElement
+      }));
+    } else if ((element.element as any).items) {
+      // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+      return (element.element as any).items.map((item: any) => ({
+        element: item
+      }));
+    } else if ((element.element as any).options) {
+      // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+      return (element.element as any).options.map((option: any) => ({
+        element: option
+      }));
+    }
+
+    // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+    for (const key in element.element) {
+      if (Array.isArray((element.element as any)[key]) &&
+          (element.element as any)[key].length > 0 &&
+          typeof (element.element as any)[key][0] === 'object') {
+        // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+        return (element.element as any)[key].map((item: any) => ({
+          element: item
+        }));
+      }
     }
 
     return [];
@@ -202,6 +267,14 @@ const TreeNode: React.FC<{
   const getDisplayName = () => {
     if (!element || !element.element) {
       return `Element ${path[path.length - 1]}`;
+    }
+
+    // Für Subflow-Elemente ohne pattern_type, aber mit type
+    if (!element.element.pattern_type && (element.element as any).type) {
+      return (element.element as any).title?.de ||
+             (element.element as any).title?.en ||
+             (element.element as any).type ||
+             `SubFlow ${path[path.length - 1]}`;
     }
 
     return element.element.title?.de ||

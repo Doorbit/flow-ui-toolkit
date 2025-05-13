@@ -353,10 +353,11 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
 
     // Handle SubFlow objects
     if (!elementType && (element.element as any).type) {
-      console.log('hasChildren - SubFlow - checking elements');
+      console.log('hasChildren - SubFlow - checking elements and sub_elements');
       const hasElements = (element.element as any).elements?.length > 0;
-      console.log('hasChildren - SubFlow - hasElements:', hasElements);
-      return hasElements;
+      const hasSubElements = (element.element as any).sub_elements?.length > 0;
+      console.log('hasChildren - SubFlow - hasElements:', hasElements, 'hasSubElements:', hasSubElements);
+      return hasElements || hasSubElements;
     }
 
     if (elementType === 'GroupUIElement') {

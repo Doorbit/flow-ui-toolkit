@@ -262,6 +262,26 @@ function subflowReducer(state: SubflowState, action: SubflowAction): SubflowStat
               if (action.element.element.pattern_type === 'BooleanUIElement') {
                 element.element.chips.push(action.element.element);
               }
+            } else {
+              // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+              if ((element.element as any).elements) {
+                (element.element as any).elements.push(action.element);
+              } else if ((element.element as any).items) {
+                // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+                (element.element as any).items.push(action.element.element);
+              } else if ((element.element as any).options) {
+                // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+                (element.element as any).options.push(action.element.element);
+              } else {
+                // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+                for (const key in element.element) {
+                  if (Array.isArray((element.element as any)[key])) {
+                    // Wir haben ein Array gefunden, das Unterelemente sein könnten
+                    (element.element as any)[key].push(action.element.element);
+                    break;
+                  }
+                }
+              }
             }
           } else {
             // Zwischenschritt, navigiere tiefer
@@ -275,6 +295,37 @@ function subflowReducer(state: SubflowState, action: SubflowAction): SubflowStat
               // ChipGroupUIElement hat keine elements, sondern chips
               // Wir müssen die chips als "Elemente" behandeln
               currentElements = element.element.chips.map((chip: any) => ({ element: chip }));
+            } else {
+              // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+              // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+              if ((element.element as any).elements) {
+                currentElements = (element.element as any).elements;
+              } else if ((element.element as any).items) {
+                // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+                currentElements = (element.element as any).items.map((item: any) => ({ element: item }));
+              } else if ((element.element as any).options) {
+                // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+                currentElements = (element.element as any).options.map((option: any) => ({ element: option }));
+              } else {
+                // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+                let foundSubElements = false;
+
+                for (const key in element.element) {
+                  if (Array.isArray((element.element as any)[key]) &&
+                      (element.element as any)[key].length > 0 &&
+                      typeof (element.element as any)[key][0] === 'object') {
+                    // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+                    currentElements = (element.element as any)[key].map((item: any) => ({ element: item }));
+                    foundSubElements = true;
+                    break;
+                  }
+                }
+
+                if (!foundSubElements) {
+                  // Das Element hat keine erkennbaren verschachtelten Elemente
+                  return state;
+                }
+              }
             }
           }
         }
@@ -331,8 +382,36 @@ function subflowReducer(state: SubflowState, action: SubflowAction): SubflowStat
           // Wir müssen die chips als "Elemente" behandeln
           currentElements = element.element.chips.map((chip: any) => ({ element: chip }));
         } else {
-          // Das Element hat keine verschachtelten Elemente
-          return state;
+          // Prüfe, ob das Element Unterelemente hat, auch wenn es kein spezieller Container-Typ ist
+          // Dies ist wichtig für Elemente wie POI mit Heizkörper-Unterelementen
+          if ((element.element as any).elements) {
+            currentElements = (element.element as any).elements;
+          } else if ((element.element as any).items) {
+            // Für Elemente mit items-Array (z.B. KeyValueListUIElement)
+            currentElements = (element.element as any).items.map((item: any) => ({ element: item }));
+          } else if ((element.element as any).options) {
+            // Für Elemente mit options-Array (z.B. SingleSelectionUIElement)
+            currentElements = (element.element as any).options.map((option: any) => ({ element: option }));
+          } else {
+            // Versuche, alle Eigenschaften zu durchsuchen, die Arrays sein könnten und Unterelemente enthalten könnten
+            let foundSubElements = false;
+
+            for (const key in element.element) {
+              if (Array.isArray((element.element as any)[key]) &&
+                  (element.element as any)[key].length > 0 &&
+                  typeof (element.element as any)[key][0] === 'object') {
+                // Wir haben ein Array von Objekten gefunden, das Unterelemente sein könnten
+                currentElements = (element.element as any)[key].map((item: any) => ({ element: item }));
+                foundSubElements = true;
+                break;
+              }
+            }
+
+            if (!foundSubElements) {
+              // Das Element hat keine erkennbaren verschachtelten Elemente
+              return state;
+            }
+          }
         }
 
         // Aktualisiere lastIndex für den nächsten Schritt

@@ -11,6 +11,7 @@ interface EditorState {
   selectedElementPath: number[]; // Pfad zum ausgewählten Element
   isDirty: boolean;
   selectedPageId: string | null; // ID der ausgewählten Seite
+  dialogs: { [key: string]: boolean }; // Zustand für verschiedene Dialoge
 }
 
 type Action =
@@ -29,6 +30,7 @@ type Action =
   | { type: 'REMOVE_PAGE'; pageId: string }
   | { type: 'SELECT_PAGE'; pageId: string }
   | { type: 'MOVE_PAGE'; sourceIndex: number; targetIndex: number }
+  | { type: 'TOGGLE_DIALOG'; payload: { dialog: string; open: boolean } } // Neue Action
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
@@ -40,6 +42,7 @@ const initialState: EditorState = {
   selectedElementPath: [],
   isDirty: false,
   selectedPageId: null,
+  dialogs: {}, // Initial leer
 };
 
 export interface EditorContextType {
@@ -50,6 +53,75 @@ export interface EditorContextType {
 export const EditorContext = createContext<EditorContextType | null>(null);
 
 // Hilfsfunktion, um ein Element anhand eines Pfades zu finden
+/**
+ * Konvertiert ein Element in ein PatternLibraryElement wenn nötig
+ */
+const ensurePatternLibraryElement = (element: any): PatternLibraryElement => {
+  if (element && element.element) {
+    return element;
+  }
+  return { element };
+};
+
+/**
+ * Holt Unterelemente eines Elements basierend auf seinem Typ
+ */
+const getSubElements = (element: PatternLibraryElement): PatternLibraryElement[] => {
+  if (!element || !element.element) return [];
+
+  // Für Subflow-Elemente
+  if (!element.element.pattern_type && (element.element as any).type) {
+    const elements = (element.element as any).elements || [];
+    const subElements = (element.element as any).sub_elements || [];
+    return [...elements, ...subElements].map(ensurePatternLibraryElement);
+  }
+
+  // Für verschiedene Element-Typen
+  switch (element.element.pattern_type) {
+    case 'GroupUIElement':
+    case 'ArrayUIElement':
+      return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
+      
+    case 'ChipGroupUIElement':
+      return ((element.element as any).chips || []).map(ensurePatternLibraryElement);
+      
+    case 'CustomUIElement':
+      if ((element.element as any).sub_flows) {
+        return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
+      }
+      break;
+  }
+
+  // Prüfe alle möglichen Array-Eigenschaften
+  const potentialArrays = [
+    (element.element as any).elements,
+    (element.element as any).sub_elements,
+    (element.element as any).items,
+    (element.element as any).options,
+    (element.element as any).chips,
+    ...(element.element.pattern_type === 'CustomUIElement' ? [(element.element as any).sub_flows] : [])
+  ];
+
+  for (const array of potentialArrays) {
+    if (Array.isArray(array) && array.length > 0) {
+      return array.map(ensurePatternLibraryElement);
+    }
+  }
+
+  // Durchsuche alle Eigenschaften nach Arrays
+  for (const key in element.element) {
+    const value = (element.element as any)[key];
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      return value.map(ensurePatternLibraryElement);
+    }
+  }
+
+  return [];
+};
+
+/**
+ * Findet ein Element anhand eines Pfades in der Element-Hierarchie
+ */
 export const getElementByPath = (elements: PatternLibraryElement[], path: number[]): PatternLibraryElement | null => {
   if (path.length === 0 || !elements || elements.length === 0) return null;
 
@@ -59,39 +131,26 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
   const element = elements[index];
   if (restPath.length === 0) return element;
 
-  if (element.element.pattern_type === 'GroupUIElement' ||
-      element.element.pattern_type === 'ArrayUIElement') {
-    return getElementByPath((element.element as any).elements || [], restPath);
-  }
-
-  // Für ChipGroupUIElement mit chips-Array
-  if (element.element.pattern_type === 'ChipGroupUIElement') {
-    // Konvertiere jedes BooleanUIElement in chips zu PatternLibraryElement für die weitere Navigation
-    const chipElements = ((element.element as any).chips || []).map((chip: any) => ({
-      element: chip
-    }));
-    console.log('ChipGroup gefunden, navigiere zu Unterelementen', chipElements);
-    return getElementByPath(chipElements, restPath);
-  }
-
-  // Für CustomUIElement mit sub_flows
-  if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
-    const subFlows = (element.element as any).sub_flows || [];
-
-    if (restPath.length > 0) {
+  // Rekursiv durch die Unterelemente navigieren
+  const subElements = getSubElements(element);
+  if (subElements.length > 0) {
+    // Wenn wir in einem CustomUIElement mit sub_flows sind, müssen wir speziell behandeln
+    if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
       const subFlowIndex = restPath[0];
-
+      const subFlows = (element.element as any).sub_flows || [];
+      
       if (subFlowIndex < subFlows.length) {
         if (restPath.length === 1) {
-          // Gib den Subflow selbst zurück
-          return { element: subFlows[subFlowIndex] };
+          return ensurePatternLibraryElement(subFlows[subFlowIndex]);
         } else {
-          // Navigiere zu einem Element innerhalb des Subflows
-          const subflowElements = subFlows[subFlowIndex].elements || [];
-          return getElementByPath(subflowElements, restPath.slice(1));
+          const subFlowElement = ensurePatternLibraryElement(subFlows[subFlowIndex]);
+          const subElements = getSubElements(subFlowElement);
+          return getElementByPath(subElements, restPath.slice(1));
         }
       }
     }
+    
+    return getElementByPath(subElements, restPath);
   }
 
   return null;
@@ -697,6 +756,16 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         currentFlow: newFlow,
         redoStack: [],
         isDirty: true
+      };
+    }
+
+    case 'TOGGLE_DIALOG': {
+      return {
+        ...state,
+        dialogs: {
+          ...state.dialogs,
+          [action.payload.dialog]: action.payload.open,
+        },
       };
     }
 
