@@ -98,14 +98,15 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [] }]);
 
-  // Aktualisiere currentPath wenn selectedElementPath sich ändert
-  useEffect(() => {
-    if (selectedElementPath.length > 0) {
-      // Hole den Elternpfad (alle Elemente außer dem letzten)
-      const parentPath = selectedElementPath.slice(0, -1);
-      setCurrentPath(parentPath);
-    }
-  }, [selectedElementPath]);
+  // useEffect(() => {
+  //   if (selectedElementPath.length > 0) {
+  //     // Hole den Elternpfad (alle Elemente außer dem letzten)
+  //     const parentPath = selectedElementPath.slice(0, -1);
+  //     setCurrentPath(parentPath);
+  //   }
+  // }, [selectedElementPath]);
+  // Dieser useEffect wurde entfernt, da er den currentPath nach einem Drilldown überschrieben hat.
+  // currentPath wird nun direkt durch handleDrillDown, handleGoBack und Breadcrumb-Navigation gesteuert.
 
   /**
    * Konvertiert ein Element in ein PatternLibraryElement wenn nötig
