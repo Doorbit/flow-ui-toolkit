@@ -261,25 +261,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
            `${element.element.pattern_type} ${index}`;
   }, []);
 
-  // Hilfsfunktion zum Generieren eines Icons für einen Containertyp
-  const getContainerIcon = React.useCallback((element: PatternLibraryElement) => {
-    const containerType = getContainerType(element);
-
-    switch (containerType) {
-      case 'group':
-        return <FolderIcon fontSize="small" />;
-      case 'array':
-        return <ViewArrayIcon fontSize="small" />;
-      case 'chipgroup':
-        return <ToggleOnIcon fontSize="small" />;
-      case 'custom':
-        return <ViewModuleIcon fontSize="small" />;
-      case 'subflow':
-        return <CodeIcon fontSize="small" />;
-      default:
-        return null;
-    }
-  }, []);
+  // Hilfsfunktion zum Generieren eines Icons für einen Containertyp wurde entfernt, da sie nicht verwendet wird
 
   // Aktualisiere die Breadcrumb-Items basierend auf dem Pfad
   useEffect(() => {

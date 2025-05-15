@@ -4,7 +4,7 @@ import {
   GroupUIElement,
   ArrayUIElement,
   ChipGroupUIElement,
-  BooleanUIElement,
+  // BooleanUIElement wird nicht verwendet und wurde daher entfernt
   SingleSelectionUIElement,
   SingleSelectionUIElementItem,
   SingleSelectionUIElementItemOther,
