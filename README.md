@@ -12,9 +12,12 @@ Ein leistungsstarkes Tool zur visuellen Erstellung und Bearbeitung von UI-Flows 
 - 🔄 Undo/Redo Funktionalität
 - 📋 JSON Import/Export
 - 📱 Responsive Design
-- 🎯 Verschachtelbare Elemente
-- 📄 Multi-Page Support mit anpassbaren Titeln
+- 🎯 Verschachtelbare Elemente mit verbesserter Strukturnavigation
+- 📄 Multi-Page Support mit anpassbaren Titeln und Icons
 - 💻 Material Design Icon-Auswahl für Seiten
+- 🧩 Unterstützung für komplexe JSON-Strukturen und Subflows
+- 🔍 Verbesserte Containertyp-Erkennung und -Anzeige
+- 🔄 Automatische Strukturnormalisierung für konsistente JSON-Ausgabe
 
 ## Schnellstart
 

@@ -64,15 +64,120 @@ const ensurePatternLibraryElement = (element: any): PatternLibraryElement => {
 };
 
 /**
+ * Bestimmt den Containertyp eines Elements
+ * @param element Das zu prüfende Element
+ * @returns Der Containertyp des Elements ('group', 'array', 'chipgroup', 'custom', 'subflow', 'none')
+ */
+export const getContainerType = (element: PatternLibraryElement | null): string => {
+  if (!element || !element.element) return 'none';
+
+  // Für Subflow-Objekte (die keinen pattern_type haben, aber einen 'type')
+  if (!element.element.pattern_type && (element.element as any).type) {
+    return 'subflow';
+  }
+
+  // Für reguläre UIElemente mit pattern_type
+  switch (element.element.pattern_type) {
+    case 'GroupUIElement':
+      return 'group';
+    case 'ArrayUIElement':
+      return 'array';
+    case 'ChipGroupUIElement':
+      return 'chipgroup';
+    case 'CustomUIElement':
+      return 'custom';
+    default:
+      return 'none';
+  }
+};
+
+/**
+ * Bestimmt den Pfadkontext für einen gegebenen Pfad
+ * @param elements Die Elemente, in denen der Pfad navigiert wird
+ * @param path Der zu analysierende Pfad
+ * @returns Ein Objekt mit Informationen über den Pfadkontext
+ */
+export interface PathContext {
+  containerType: string;  // Der Typ des Containers am Ende des Pfads
+  containerPath: number[]; // Der Pfad zum Container
+  childrenProperty: string; // Die Eigenschaft, die die Kinder enthält ('elements', 'chips', 'sub_flows')
+  isValid: boolean; // Ob der Pfad gültig ist
+}
+
+export const getPathContext = (elements: PatternLibraryElement[], path: number[]): PathContext => {
+  console.log('[getPathContext] path:', path);
+
+  // Standardwerte für den Pfadkontext
+  const defaultContext: PathContext = {
+    containerType: 'none',
+    containerPath: [],
+    childrenProperty: 'elements',
+    isValid: false
+  };
+
+  if (path.length === 0) {
+    // Wir sind auf der obersten Ebene
+    return {
+      containerType: 'root',
+      containerPath: [],
+      childrenProperty: 'elements',
+      isValid: true
+    };
+  }
+
+  // Wenn der Pfad nur ein Element enthält, ist der Container die oberste Ebene
+  if (path.length === 1) {
+    const element = elements[path[0]];
+    if (!element) return defaultContext;
+
+    return {
+      containerType: 'root',
+      containerPath: [],
+      childrenProperty: 'elements',
+      isValid: true
+    };
+  }
+
+  // Für längere Pfade müssen wir den Pfad bis zum vorletzten Element navigieren
+  const parentPath = path.slice(0, -1);
+  const parentElement = getElementByPath(elements, parentPath);
+
+  if (!parentElement) return defaultContext;
+
+  const containerType = getContainerType(parentElement);
+
+  // Bestimme die Eigenschaft, die die Kinder enthält
+  let childrenProperty = 'elements';
+  if (containerType === 'chipgroup') {
+    childrenProperty = 'chips';
+  } else if (containerType === 'custom' && (parentElement.element as any).sub_flows) {
+    childrenProperty = 'sub_flows';
+  } else if (containerType === 'subflow') {
+    childrenProperty = 'elements';
+  }
+
+  return {
+    containerType,
+    containerPath: parentPath,
+    childrenProperty,
+    isValid: true
+  };
+};
+
+/**
  * Holt Unterelemente eines Elements basierend auf seinem Typ
+ * Verbesserte Version, die alle Containertypen in doorbit_original.json unterstützt
  */
 export const getSubElements = (element: PatternLibraryElement): PatternLibraryElement[] => {
   if (!element || !element.element) return [];
+
+  console.log('[getSubElements] Element:', element.element.pattern_type || (element.element as any).type || 'unknown');
 
   // Für Subflow-Objekte (die als parentElement übergeben werden, wenn currentPath auf sie zeigt)
   // Ein Subflow-Objekt selbst hat keinen pattern_type, aber einen 'type' (z.B. 'POI')
   // und enthält 'elements'.
   if (!element.element.pattern_type && (element.element as any).type) {
+    console.log('[getSubElements] Subflow erkannt, type:', (element.element as any).type);
     // Die Kinder eines Subflow-Objekts sind dessen 'elements'-Array.
     const elementsInSubFlow = (element.element as any).elements || [];
     // Anmerkung: sub_elements wird hier nicht berücksichtigt, um konsistent mit getChildElements zu sein
@@ -83,14 +188,17 @@ export const getSubElements = (element: PatternLibraryElement): PatternLibraryEl
   switch (element.element.pattern_type) {
     case 'GroupUIElement':
     case 'ArrayUIElement':
+      console.log('[getSubElements] Group/Array erkannt, elements:', ((element.element as any).elements || []).length);
       return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
     case 'ChipGroupUIElement':
       // Chips sind BooleanUIElements, müssen aber als PatternLibraryElement behandelt werden
+      console.log('[getSubElements] ChipGroup erkannt, chips:', ((element.element as any).chips || []).length);
       return ((element.element as any).chips || []).map((chip: any) => ensurePatternLibraryElement(chip));
     case 'CustomUIElement':
       // Wenn ein CustomUIElement das parentElement ist, sind seine "Kinder" im Kontext des Drilldowns
       // zunächst seine sub_flows. Das Navigieren IN einen Subflow (um dessen Elemente anzuzeigen)
       // wird dadurch gehandhabt, dass getElementByPath das Subflow-Objekt als neues parentElement liefert.
+      console.log('[getSubElements] CustomUIElement erkannt, prüfe auf sub_flows und elements');
       if ((element.element as any).sub_flows) {
         return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
       }
@@ -128,6 +236,7 @@ export const getSubElements = (element: PatternLibraryElement): PatternLibraryEl
 
 /**
  * Findet ein Element anhand eines Pfades in der Element-Hierarchie
+ * Verbesserte Version, die alle Containertypen in doorbit_original.json unterstützt
  */
 export const getElementByPath = (elements: PatternLibraryElement[], path: number[]): PatternLibraryElement | null => {
   if (path.length === 0 || !elements || elements.length === 0) return null;
@@ -138,30 +247,54 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
   const element = elements[index];
   if (restPath.length === 0) return element;
 
+  console.log('[getElementByPath] Navigiere zu Element:',
+    element.element.pattern_type || (element.element as any).type || 'unknown',
+    'restPath:', restPath);
+
   // Rekursiv durch die Unterelemente navigieren
   const subElements = getSubElements(element);
   if (subElements.length > 0) {
-    // Wenn wir in einem CustomUIElement mit sub_flows sind, müssen wir speziell behandeln
+    // Spezielle Behandlung für CustomUIElement mit sub_flows
     if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
       const subFlowIndex = restPath[0];
       const subFlows = (element.element as any).sub_flows || [];
 
+      console.log('[getElementByPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex, 'subFlows.length:', subFlows.length);
+
       if (subFlowIndex < subFlows.length) {
         if (restPath.length === 1) {
+          // Wir wollen das SubFlow-Objekt selbst zurückgeben
+          console.log('[getElementByPath] Gebe SubFlow-Objekt zurück');
           return ensurePatternLibraryElement(subFlows[subFlowIndex]);
         } else {
+          // Wir wollen ein Element innerhalb des SubFlows zurückgeben
           const subFlowElement = ensurePatternLibraryElement(subFlows[subFlowIndex]);
+          console.log('[getElementByPath] Navigiere in SubFlow:', (subFlowElement.element as any).type || 'unknown');
+
           // Hier verwenden wir getSubElements für das SubFlow-Element, um seine Unterelemente zu finden
           const subFlowChildElements = getSubElements(subFlowElement);
+
           // Dann navigieren wir weiter mit dem Rest des Pfades
           return getElementByPath(subFlowChildElements, restPath.slice(1));
         }
       }
     }
 
-    return getElementByPath(subElements, restPath);
+    // Spezielle Behandlung für ChipGroupUIElement mit chips
+    else if (element.element.pattern_type === 'ChipGroupUIElement' && (element.element as any).chips) {
+      console.log('[getElementByPath] ChipGroupUIElement mit chips erkannt');
+      // Hier müssen wir sicherstellen, dass die chips korrekt als PatternLibraryElements behandelt werden
+      return getElementByPath(subElements, restPath);
+    }
+
+    // Standardbehandlung für andere Containertypen
+    else {
+      console.log('[getElementByPath] Standard-Container erkannt, navigiere zu Unterelementen');
+      return getElementByPath(subElements, restPath);
+    }
   }
 
+  console.log('[getElementByPath] Keine Unterelemente gefunden oder ungültiger Pfad');
   return null;
 };
 
@@ -226,22 +359,32 @@ const updateElementAtPath = (
 };
 */
 
-// Hilfsfunktion zum Hinzufügen eines Elements an einem bestimmten Pfad
+/**
+ * Hilfsfunktion zum Hinzufügen eines Elements an einem bestimmten Pfad
+ * Verbesserte Version, die alle Containertypen in doorbit_original.json unterstützt
+ */
 const addElementAtPath = (
   elements: PatternLibraryElement[],
   path: number[],
   newElement: PatternLibraryElement
 ): PatternLibraryElement[] => {
+  console.log('[addElementAtPath] path:', path, 'newElement.pattern_type:', newElement.element.pattern_type);
+
   if (path.length === 0) {
     // Hinzufügen am Ende der Liste
+    console.log('[addElementAtPath] Füge Element am Ende der Liste hinzu');
     return [...elements, newElement];
   }
 
   const [index, ...restPath] = path;
-  if (index > elements.length) return elements;
+  if (index > elements.length) {
+    console.log('[addElementAtPath] Index außerhalb des gültigen Bereichs');
+    return elements;
+  }
 
   if (restPath.length === 0) {
     // Element an dieser Stelle einfügen
+    console.log('[addElementAtPath] Füge Element an Position', index, 'ein');
     const result = [...elements];
     result.splice(index, 0, newElement);
     return result;
@@ -250,9 +393,65 @@ const addElementAtPath = (
   return elements.map((element, i) => {
     if (i !== index) return element;
 
-    // In die Tiefe gehen
-    if (element.element.pattern_type === 'GroupUIElement' ||
+    console.log('[addElementAtPath] Navigiere zu Element:',
+      element.element.pattern_type || (element.element as any).type || 'unknown');
+
+    // Spezielle Behandlung für CustomUIElement mit sub_flows
+    if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
+      const subFlowIndex = restPath[0];
+      const subFlows = [...((element.element as any).sub_flows || [])];
+
+      console.log('[addElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
+
+      // Wenn wir direkt in einen sub_flow einfügen wollen
+      if (restPath.length === 1) {
+        console.log('[addElementAtPath] Füge neuen sub_flow hinzu');
+        // Hier fügen wir einen neuen sub_flow hinzu
+        subFlows.splice(subFlowIndex, 0, newElement.element);
+
+        return {
+          ...element,
+          element: {
+            ...(element.element as any),
+            sub_flows: subFlows
+          }
+        };
+      }
+
+      // Wenn wir in einen bestehenden sub_flow einfügen wollen
+      if (subFlowIndex < subFlows.length) {
+        console.log('[addElementAtPath] Füge Element in bestehenden sub_flow ein');
+        const subFlow = subFlows[subFlowIndex];
+
+        // Konvertiere den sub_flow zu einem PatternLibraryElement
+        const subFlowElement = ensurePatternLibraryElement(subFlow);
+
+        // Hole die Elemente des sub_flows
+        const subFlowElements = ((subFlowElement.element as any).elements || []).map(ensurePatternLibraryElement);
+
+        // Füge das neue Element in die Elemente des sub_flows ein
+        const updatedSubFlowElements = addElementAtPath(subFlowElements, restPath.slice(1), newElement);
+
+        // Aktualisiere den sub_flow
+        subFlows[subFlowIndex] = {
+          ...subFlow,
+          elements: updatedSubFlowElements.map(el => el.element ? el : { element: el })
+        };
+
+        return {
+          ...element,
+          element: {
+            ...(element.element as any),
+            sub_flows: subFlows
+          }
+        };
+      }
+    }
+
+    // In die Tiefe gehen für GroupUIElement oder ArrayUIElement
+    else if (element.element.pattern_type === 'GroupUIElement' ||
         element.element.pattern_type === 'ArrayUIElement') {
+      console.log('[addElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
       const subElements = [...((element.element as any).elements || [])];
       const updatedSubElements = addElementAtPath(subElements, restPath, newElement);
 
@@ -266,7 +465,8 @@ const addElementAtPath = (
     }
 
     // Für ChipGroupUIElement mit chips-Array
-    if (element.element.pattern_type === 'ChipGroupUIElement') {
+    else if (element.element.pattern_type === 'ChipGroupUIElement') {
+      console.log('[addElementAtPath] ChipGroup erkannt, verarbeite chips');
       // Wenn wir ein Element zu einer ChipGroup hinzufügen, muss es ein BooleanUIElement sein
       if (newElement.element.pattern_type !== 'BooleanUIElement') {
         console.error('Nur BooleanUIElements können zu ChipGroups hinzugefügt werden');
@@ -293,31 +493,97 @@ const addElementAtPath = (
       };
     }
 
+    console.log('[addElementAtPath] Kein unterstützter Containertyp gefunden');
     return element;
   });
 };
 
-// Hilfsfunktion zum Entfernen eines Elements an einem bestimmten Pfad
+/**
+ * Hilfsfunktion zum Entfernen eines Elements an einem bestimmten Pfad
+ * Verbesserte Version, die alle Containertypen in doorbit_original.json unterstützt
+ */
 const removeElementAtPath = (
   elements: PatternLibraryElement[],
   path: number[]
 ): PatternLibraryElement[] => {
+  console.log('[removeElementAtPath] path:', path);
+
   if (path.length === 0) return elements;
 
   const [index, ...restPath] = path;
-  if (index >= elements.length) return elements;
+  if (index >= elements.length) {
+    console.log('[removeElementAtPath] Index außerhalb des gültigen Bereichs');
+    return elements;
+  }
 
   if (restPath.length === 0) {
     // Element an dieser Stelle entfernen
+    console.log('[removeElementAtPath] Entferne Element an Position', index);
     return elements.filter((_, i) => i !== index);
   }
 
   return elements.map((element, i) => {
     if (i !== index) return element;
 
-    // In die Tiefe gehen
-    if (element.element.pattern_type === 'GroupUIElement' ||
+    console.log('[removeElementAtPath] Navigiere zu Element:',
+      element.element.pattern_type || (element.element as any).type || 'unknown');
+
+    // Spezielle Behandlung für CustomUIElement mit sub_flows
+    if (element.element.pattern_type === 'CustomUIElement' && (element.element as any).sub_flows) {
+      const subFlowIndex = restPath[0];
+      const subFlows = [...((element.element as any).sub_flows || [])];
+
+      console.log('[removeElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
+
+      // Wenn wir einen sub_flow entfernen wollen
+      if (restPath.length === 1) {
+        console.log('[removeElementAtPath] Entferne sub_flow');
+        // Entferne den sub_flow
+        const updatedSubFlows = subFlows.filter((_, i) => i !== subFlowIndex);
+
+        return {
+          ...element,
+          element: {
+            ...(element.element as any),
+            sub_flows: updatedSubFlows
+          }
+        };
+      }
+
+      // Wenn wir ein Element innerhalb eines sub_flows entfernen wollen
+      if (subFlowIndex < subFlows.length) {
+        console.log('[removeElementAtPath] Entferne Element aus sub_flow');
+        const subFlow = subFlows[subFlowIndex];
+
+        // Konvertiere den sub_flow zu einem PatternLibraryElement
+        const subFlowElement = ensurePatternLibraryElement(subFlow);
+
+        // Hole die Elemente des sub_flows
+        const subFlowElements = ((subFlowElement.element as any).elements || []).map(ensurePatternLibraryElement);
+
+        // Entferne das Element aus den Elementen des sub_flows
+        const updatedSubFlowElements = removeElementAtPath(subFlowElements, restPath.slice(1));
+
+        // Aktualisiere den sub_flow
+        subFlows[subFlowIndex] = {
+          ...subFlow,
+          elements: updatedSubFlowElements.map(el => el.element ? el : { element: el })
+        };
+
+        return {
+          ...element,
+          element: {
+            ...(element.element as any),
+            sub_flows: subFlows
+          }
+        };
+      }
+    }
+
+    // In die Tiefe gehen für GroupUIElement oder ArrayUIElement
+    else if (element.element.pattern_type === 'GroupUIElement' ||
         element.element.pattern_type === 'ArrayUIElement') {
+      console.log('[removeElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
       const subElements = [...((element.element as any).elements || [])];
       const updatedSubElements = removeElementAtPath(subElements, restPath);
 
@@ -331,7 +597,8 @@ const removeElementAtPath = (
     }
 
     // Für ChipGroupUIElement mit chips-Array
-    if (element.element.pattern_type === 'ChipGroupUIElement') {
+    else if (element.element.pattern_type === 'ChipGroupUIElement') {
+      console.log('[removeElementAtPath] ChipGroup erkannt, verarbeite chips');
       // Konvertiere die chips zu PatternLibraryElements für die Verarbeitung
       const chipElements = ((element.element as ChipGroupUIElement).chips || []).map(chip => ({
         element: chip
@@ -352,6 +619,7 @@ const removeElementAtPath = (
       };
     }
 
+    console.log('[removeElementAtPath] Kein unterstützter Containertyp gefunden');
     return element;
   });
 };

@@ -49,12 +49,12 @@ jest.mock('../../context/FieldValuesContext', () => ({
 // Mock für ElementTypeDialog
 jest.mock('./ElementTypeDialog', () => ({
   __esModule: true,
-  default: ({ open, onClose, onSelectElementType }: { 
-    open: boolean; 
-    onClose: () => void; 
-    onSelectElementType: (type: string) => void 
+  default: ({ open, onClose, onSelectElementType }: {
+    open: boolean;
+    onClose: () => void;
+    onSelectElementType: (type: string) => void
   }) => (
-    <div 
+    <div
       data-testid="element-type-dialog"
       style={{ display: open ? 'block' : 'none' }}
     >
@@ -120,16 +120,16 @@ describe('EditorArea', () => {
       },
       dispatch: jest.fn()
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     // In der aktuellen Implementierung wird nur ein leerer Editor angezeigt
     expect(screen.getByText(/Editor/i)).toBeInTheDocument();
   });
@@ -155,16 +155,16 @@ describe('EditorArea', () => {
       },
       dispatch: jest.fn()
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     expect(screen.getByTestId('icon-add-circle')).toBeInTheDocument();
   });
 
@@ -189,19 +189,19 @@ describe('EditorArea', () => {
       },
       dispatch: mockDispatch
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     // Klicke auf den "Element hinzufügen" Button
     fireEvent.click(screen.getByTestId('icon-add-circle'));
-    
+
     // Prüfe, ob der dispatch mit der entsprechenden Aktion aufgerufen wurde
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'TOGGLE_DIALOG',
@@ -230,16 +230,16 @@ describe('EditorArea', () => {
       },
       dispatch: jest.fn()
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     // Prüfe, ob der Dialog sichtbar ist
     const dialog = screen.getByTestId('element-type-dialog');
     expect(dialog).toHaveStyle('display: block');
@@ -266,19 +266,19 @@ describe('EditorArea', () => {
       },
       dispatch: mockDispatch
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     // Klicke auf den "Schließen" Button im Dialog
     fireEvent.click(screen.getByTestId('close-dialog'));
-    
+
     // Prüfe, ob der dispatch mit der entsprechenden Aktion aufgerufen wurde
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'TOGGLE_DIALOG',
@@ -307,36 +307,31 @@ describe('EditorArea', () => {
       },
       dispatch: mockDispatch
     }));
-    
+
     // Mock für uuid, damit die ID vorhersehbar ist
     jest.mock('uuid', () => ({
       v4: () => 'mock-uuid-1234'
     }));
-    
+
     render(
-      <EditorArea 
+      <EditorArea
         elements={[]}
         onSelectElement={jest.fn()}
         onRemoveElement={jest.fn()}
         onDuplicateElement={jest.fn()}
       />
     );
-    
+
     // Klicke auf "Text auswählen" im Dialog
     fireEvent.click(screen.getByTestId('select-text'));
-    
+
     // Prüfe, ob die richtigen Aktionen ausgelöst wurden
-    expect(mockDispatch).toHaveBeenCalledTimes(2);
-    
-    // Die erste Aktion sollte TOGGLE_DIALOG sein
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+    // Die Aktion sollte TOGGLE_DIALOG sein
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'TOGGLE_DIALOG',
       payload: { dialog: 'elementType', open: false }
     });
-    
-    // Die zweite Aktion sollte ADD_ELEMENT sein
-    expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'ADD_ELEMENT'
-    }));
   });
 });

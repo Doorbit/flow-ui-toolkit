@@ -47,6 +47,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
+import { getContainerType } from '../../context/EditorContext';
 
 const ContextViewContainer = styled(Box)`
   padding: 1rem;
@@ -132,6 +133,7 @@ interface ElementContextViewProps {
   onDropElement?: (type: string, parentPath?: number[]) => void;
   onMoveElement?: (sourceIndex: number, targetIndex: number, parentPath?: number[], sourcePath?: number[]) => void;
   onDrillDown: (path: number[]) => void;
+  onAddElement?: (type: string, elementPath?: number[]) => void; // Neue einheitliche Funktion für das Hinzufügen von Elementen
 }
 
 // Hilfsfunktion zum Ermitteln des Icons basierend auf dem Elementtyp
@@ -235,7 +237,7 @@ const ElementTypeDialog: React.FC<{
 }> = ({ open, onClose, onSelectElementType }) => {
   const [tabIndex, setTabIndex] = useState(0);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
@@ -311,10 +313,11 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
   onAddSubElement,
   onDropElement,
   onMoveElement,
-  onDrillDown
+  onDrillDown,
+  onAddElement
 }) => {
   const [elementTypeDialogOpen, setElementTypeDialogOpen] = useState(false);
-  const [selectedElementForDialog, setSelectedElementForDialog] = useState<number[]>([]);
+  const [selectedElementForDialog, setSelectedElementForDialog] = useState<number[] | null>([]);
   // Bestimme den vollständigen Pfad für ein Element in der aktuellen Ansicht
   const getFullPath = (index: number) => {
     return [...currentPath, index];
@@ -325,6 +328,12 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
     const fullPath = getFullPath(index);
     return arePathsEqual(fullPath, selectedElementPath);
   };
+
+  // Hilfsfunktion, um zu prüfen, ob wir uns in einer tieferen Ebene befinden
+  // Diese Funktion kann für zukünftige Erweiterungen verwendet werden
+  // const isInNestedLevel = () => {
+  //   return currentPath.length > 0;
+  // };
 
   // Bestimme, ob ein Element eine Visibility Condition hat
   const hasVisibilityCondition = (element: PatternLibraryElement) => {
@@ -351,8 +360,12 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
     console.log('hasChildren - element:', element);
     console.log('hasChildren - elementType:', elementType);
 
+    // Verwende getContainerType für eine einheitliche Erkennung
+    const containerType = getContainerType(element);
+    console.log('hasChildren - containerType:', containerType);
+
     // Handle SubFlow objects
-    if (!elementType && (element.element as any).type) {
+    if (containerType === 'subflow') {
       console.log('hasChildren - SubFlow - checking elements and sub_elements');
       const hasElements = (element.element as any).elements?.length > 0;
       const hasSubElements = (element.element as any).sub_elements?.length > 0;
@@ -360,22 +373,35 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
       return hasElements || hasSubElements;
     }
 
-    if (elementType === 'GroupUIElement') {
+    // Handle Group and Array
+    if (containerType === 'group' || containerType === 'array') {
       const hasElements = (element.element as any).elements?.length > 0;
-      console.log('hasChildren - GroupUIElement - hasElements:', hasElements);
+      console.log(`hasChildren - ${containerType} - hasElements:`, hasElements);
       return hasElements;
-    } else if (elementType === 'ArrayUIElement') {
-      const hasElements = (element.element as any).elements?.length > 0;
-      console.log('hasChildren - ArrayUIElement - hasElements:', hasElements);
-      return hasElements;
-    } else if (elementType === 'ChipGroupUIElement') {
+    }
+
+    // Handle ChipGroup
+    if (containerType === 'chipgroup') {
       const hasChips = (element.element as any).chips?.length > 0;
       console.log('hasChildren - ChipGroupUIElement - hasChips:', hasChips);
       return hasChips;
-    } else if (elementType === 'CustomUIElement' && (element.element as any).sub_flows) {
-      const hasSubFlows = (element.element as any).sub_flows?.length > 0;
-      console.log('hasChildren - CustomUIElement - hasSubFlows:', hasSubFlows);
-      return hasSubFlows;
+    }
+
+    // Handle CustomUIElement
+    if (containerType === 'custom') {
+      // Prüfe auf sub_flows
+      if ((element.element as any).sub_flows) {
+        const hasSubFlows = (element.element as any).sub_flows?.length > 0;
+        console.log('hasChildren - CustomUIElement - hasSubFlows:', hasSubFlows);
+        return hasSubFlows;
+      }
+
+      // Prüfe auf elements
+      if ((element.element as any).elements) {
+        const hasElements = (element.element as any).elements?.length > 0;
+        console.log('hasChildren - CustomUIElement - hasElements:', hasElements);
+        return hasElements;
+      }
     }
 
     console.log('hasChildren - no children found');
@@ -411,20 +437,41 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
           onClick={() => onSelectElement(fullPath)}
         >
           <ElementHeader color={getElementColor(elementType)}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, color: 'action.active' }}> {/* Standard Icon Farbe */}
               <DragIndicatorIcon sx={{ opacity: 0.5, mr: 1 }} />
-              {getElementIcon(elementType)}
+              {React.cloneElement(getElementIcon(elementType), { sx: { color: 'inherit' } })}
             </Box>
             <ElementTitle variant="subtitle2">
               {getDisplayName(element, index)}
             </ElementTitle>
 
+            {/* Container-Typ-Badge */}
+            {canHaveChildren(elementType) && (
+              <Tooltip title={`Container-Typ: ${getContainerType(element)}`}>
+                <Chip
+                  size="small"
+                  label={getContainerType(element)}
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.6rem',
+                    mr: 1,
+                    backgroundColor:
+                      getContainerType(element) === 'group' ? 'rgba(0, 159, 100, 0.1)' :
+                      getContainerType(element) === 'array' ? 'rgba(240, 91, 41, 0.1)' :
+                      getContainerType(element) === 'chipgroup' ? 'rgba(63, 81, 181, 0.1)' :
+                      getContainerType(element) === 'custom' ? 'rgba(0, 159, 100, 0.1)' :
+                      getContainerType(element) === 'subflow' ? 'rgba(0, 159, 100, 0.1)' :
+                      'rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+              </Tooltip>
+            )}
+
             {hasVisibilityCondition(element) && (
               <Tooltip title="Hat Sichtbarkeitsregel">
                 <VisibilityIcon
                   fontSize="small"
-                  color="primary"
-                  sx={{ mr: 1, opacity: 0.7 }}
+                  sx={{ mr: 1, opacity: 0.7, color: 'primary.main' }} // Spezifische Farbe für dieses Icon beibehalten oder anpassen
                 />
               </Tooltip>
             )}
@@ -445,6 +492,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                       onMoveElement(index, index - 1, currentPath, fullPath);
                     }
                   }}
+                  sx={{ color: 'action.active' }} // Standard Icon Farbe
                 >
                   <ArrowUpwardIcon fontSize="small" />
                 </IconButton>
@@ -467,6 +515,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                       onMoveElement(index, index + 1, currentPath, fullPath);
                     }
                   }}
+                  sx={{ color: 'action.active' }} // Standard Icon Farbe
                 >
                   <ArrowDownwardIcon fontSize="small" />
                 </IconButton>
@@ -480,6 +529,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                   e.stopPropagation();
                   onDuplicateElement(fullPath);
                 }}
+                sx={{ color: 'action.active' }} // Standard Icon Farbe
               >
                 <ContentCopyIcon fontSize="small" />
               </IconButton>
@@ -501,72 +551,121 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
 
           <ElementContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  Typ: {elementType}
-                </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+                <Chip
+                  size="small"
+                  label={elementType || (element.element as any).type || 'Unknown'}
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.6rem',
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)'
+                  }}
+                />
+
+                {/* Container-Typ anzeigen */}
+                {canHaveChildren(elementType) && (
+                  <Chip
+                    size="small"
+                    label={`Container: ${getContainerType(element)}`}
+                    sx={{
+                      height: '20px',
+                      fontSize: '0.6rem',
+                      backgroundColor:
+                        getContainerType(element) === 'group' ? 'rgba(0, 159, 100, 0.1)' :
+                        getContainerType(element) === 'array' ? 'rgba(240, 91, 41, 0.1)' :
+                        getContainerType(element) === 'chipgroup' ? 'rgba(63, 81, 181, 0.1)' :
+                        getContainerType(element) === 'custom' ? 'rgba(0, 159, 100, 0.1)' :
+                        getContainerType(element) === 'subflow' ? 'rgba(0, 159, 100, 0.1)' :
+                        'rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                )}
+
+                {/* Sichtbarkeitsregel anzeigen */}
+                {hasVisibilityCondition(element) && (
+                  <Chip
+                    size="small"
+                    icon={<VisibilityIcon sx={{ fontSize: '0.8rem' }} />}
+                    label="Sichtbarkeitsregel"
+                    sx={{
+                      height: '20px',
+                      fontSize: '0.6rem',
+                      backgroundColor: 'rgba(63, 81, 181, 0.1)'
+                    }}
+                  />
+                )}
               </Box>
 
               {/* Bedingte Anzeige von ID-Feldern basierend auf dem Elementtyp */}
-              {elementType === 'CustomUIElement' && (element.element as any).id && (
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Seiten-ID: {(element.element as any).id}
+              <Box>
+                {/* Für CustomUIElement die ID anzeigen */}
+                {elementType === 'CustomUIElement' && (element.element as any).id && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Seiten-ID:</strong> {(element.element as any).id}
                   </Typography>
-                </Box>
-              )}
+                )}
 
-              {/* Für Datenelemente die Feld-ID anzeigen */}
-              {(elementType === 'BooleanUIElement' ||
-                elementType === 'StringUIElement' ||
-                elementType === 'NumberUIElement' ||
-                elementType === 'SingleSelectionUIElement' ||
-                elementType === 'DateUIElement') &&
-                (element.element as any).field_id && (
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Feld-ID: {(element.element as any).field_id.field_name || (element.element as any).field_id}
+                {/* Für Subflow den Typ anzeigen */}
+                {!elementType && (element.element as any).type && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Subflow-Typ:</strong> {(element.element as any).type}
                   </Typography>
-                </Box>
-              )}
+                )}
 
-              {/* Für FileUIElement beide ID-Felder anzeigen */}
-              {elementType === 'FileUIElement' && (
-                <>
-                  {(element.element as any).id_field_id && (
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        ID-Feld-ID: {(element.element as any).id_field_id.field_name || (element.element as any).id_field_id}
-                      </Typography>
-                    </Box>
-                  )}
-                  {(element.element as any).caption_field_id && (
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Beschriftungs-Feld-ID: {(element.element as any).caption_field_id.field_name || (element.element as any).caption_field_id}
-                      </Typography>
-                    </Box>
-                  )}
-                </>
-              )}
+                {/* Für Datenelemente die Feld-ID anzeigen */}
+                {(elementType === 'BooleanUIElement' ||
+                  elementType === 'StringUIElement' ||
+                  elementType === 'NumberUIElement' ||
+                  elementType === 'SingleSelectionUIElement' ||
+                  elementType === 'DateUIElement') &&
+                  (element.element as any).field_id && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Feld-ID:</strong> {(element.element as any).field_id.field_name || (element.element as any).field_id}
+                  </Typography>
+                )}
 
+                {/* Für FileUIElement beide ID-Felder anzeigen */}
+                {elementType === 'FileUIElement' && (
+                  <>
+                    {(element.element as any).id_field_id && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        <strong>ID-Feld-ID:</strong> {(element.element as any).id_field_id.field_name || (element.element as any).id_field_id}
+                      </Typography>
+                    )}
+                    {(element.element as any).caption_field_id && (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        <strong>Beschriftungs-Feld-ID:</strong> {(element.element as any).caption_field_id.field_name || (element.element as any).caption_field_id}
+                      </Typography>
+                    )}
+                  </>
+                )}
+              </Box>
+
+              {/* Beschreibung anzeigen */}
               {element.element.description?.de && (
                 <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Beschreibung: {element.element.description.de}
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Beschreibung:</strong> {element.element.description.de}
                   </Typography>
                 </Box>
               )}
 
-              {hasVisibilityCondition(element) && (
+              {/* Anzahl der Unterelemente anzeigen */}
+              {hasChildren(element) && (
                 <Box>
-                  <Chip
-                    icon={<VisibilityIcon />}
-                    label="Sichtbarkeitsregel"
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Unterelemente:</strong> {
+                      getContainerType(element) === 'group' || getContainerType(element) === 'array' ?
+                        ((element.element as any).elements?.length || 0) :
+                      getContainerType(element) === 'chipgroup' ?
+                        ((element.element as any).chips?.length || 0) :
+                      getContainerType(element) === 'custom' && (element.element as any).sub_flows ?
+                        ((element.element as any).sub_flows?.length || 0) :
+                      getContainerType(element) === 'subflow' ?
+                        ((element.element as any).elements?.length || 0) :
+                        0
+                    }
+                  </Typography>
                 </Box>
               )}
             </Box>
@@ -580,6 +679,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onAddSubElement) {
+                    console.log('[ElementContextView] "Unterelement hinzufügen" Button geklickt, fullPath:', fullPath, 'currentPath:', currentPath);
                     // Bei ChipGroup automatisch ein BooleanUIElement hinzufügen, ohne Dialog anzuzeigen
                     if (elementType === 'ChipGroupUIElement') {
                       onAddSubElement(fullPath, 'BooleanUIElement');
@@ -608,9 +708,29 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                   }}
                   color="success"
                   variant="outlined"
-                  sx={{ borderColor: '#009F64', color: '#009F64' }}
+                  sx={{
+                    borderColor:
+                      getContainerType(element) === 'group' ? '#009F64' :
+                      getContainerType(element) === 'array' ? '#F05B29' :
+                      getContainerType(element) === 'chipgroup' ? '#3F51B5' :
+                      getContainerType(element) === 'custom' ? '#009F64' :
+                      getContainerType(element) === 'subflow' ? '#009F64' :
+                      '#009F64',
+                    color:
+                      getContainerType(element) === 'group' ? '#009F64' :
+                      getContainerType(element) === 'array' ? '#F05B29' :
+                      getContainerType(element) === 'chipgroup' ? '#3F51B5' :
+                      getContainerType(element) === 'custom' ? '#009F64' :
+                      getContainerType(element) === 'subflow' ? '#009F64' :
+                      '#009F64'
+                  }}
                 >
-                  Unterelemente anzeigen
+                  {getContainerType(element) === 'group' ? 'Gruppe öffnen' :
+                   getContainerType(element) === 'array' ? 'Array öffnen' :
+                   getContainerType(element) === 'chipgroup' ? 'Chips anzeigen' :
+                   getContainerType(element) === 'custom' ? 'Custom-Element öffnen' :
+                   getContainerType(element) === 'subflow' ? 'Subflow öffnen' :
+                   'Unterelemente anzeigen'}
                 </Button>
               </Tooltip>
             )}
@@ -622,16 +742,39 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
 
   // Handler für die Auswahl eines Elementtyps aus dem Dialog
   const handleSelectElementType = (type: string) => {
-    // Prüfe, ob auf aktueller Ebene oder als Unterelement hinzugefügt werden soll
-    if (selectedElementForDialog.length === 0) {
-      // Auf aktueller Navigationsebene hinzufügen (ausgelöst durch "Element hinzufügen"-Button)
-      if (onDropElement) {
-        onDropElement(type, currentPath);
+    console.log('[ElementContextView handleSelectElementType] type:', type, 'selectedElementForDialog:', selectedElementForDialog, 'currentPath:', currentPath);
+
+    // Wenn die neue einheitliche Funktion verfügbar ist, verwenden wir diese
+    if (onAddElement) {
+      console.log('[ElementContextView handleSelectElementType] Verwende onAddElement, selectedElementForDialog:', selectedElementForDialog);
+
+      // Wenn selectedElementForDialog null ist, bedeutet das, dass wir auf der aktuellen Ebene hinzufügen wollen
+      // In diesem Fall übergeben wir currentPath als elementPath
+      if (selectedElementForDialog === null) {
+        console.log('[ElementContextView handleSelectElementType] Füge Element auf aktueller Ebene hinzu, currentPath:', currentPath);
+        onAddElement(type, currentPath);
+      } else {
+        // Ansonsten übergeben wir selectedElementForDialog als elementPath
+        onAddElement(type, selectedElementForDialog);
       }
-    } else {
-      // Unterelement zu ausgewähltem Element hinzufügen (ausgelöst durch "Unterelement hinzufügen"-Button)
-      if (onAddSubElement) {
-        onAddSubElement(selectedElementForDialog, type);
+    }
+    // Fallback auf die alten Funktionen, wenn onAddElement nicht verfügbar ist
+    else {
+      // Prüfe, ob auf aktueller Ebene oder als Unterelement hinzugefügt werden soll
+      if (selectedElementForDialog === null || (selectedElementForDialog && selectedElementForDialog.length === 0)) {
+        // Auf aktueller Navigationsebene hinzufügen (ausgelöst durch "Element hinzufügen"-Button)
+        if (onDropElement) {
+          // Hier wird der currentPath direkt an onDropElement übergeben
+          console.log('[ElementContextView handleSelectElementType] Füge Element auf aktueller Ebene hinzu, currentPath:', currentPath);
+          onDropElement(type, currentPath);
+        }
+      } else if (selectedElementForDialog) {
+        // Unterelement zu ausgewähltem Element hinzufügen (ausgelöst durch "Unterelement hinzufügen"-Button)
+        if (onAddSubElement) {
+          // Hier wird der selectedElementForDialog an onAddSubElement übergeben
+          console.log('[ElementContextView handleSelectElementType] Füge Unterelement hinzu, selectedElementForDialog:', selectedElementForDialog);
+          onAddSubElement(selectedElementForDialog, type);
+        }
       }
     }
     setElementTypeDialogOpen(false);
@@ -657,8 +800,10 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => {
-                // Zurücksetzen des selectedElementForDialog, um anzuzeigen, dass auf aktueller Ebene hinzugefügt wird
-                setSelectedElementForDialog([]);
+                console.log('[ElementContextView] "Element hinzufügen" Button geklickt, currentPath:', currentPath);
+                // Wir setzen selectedElementForDialog auf null, um anzuzeigen, dass auf aktueller Ebene hinzugefügt wird
+                // Null ist ein spezieller Wert, der in handleSelectElementType erkannt wird
+                setSelectedElementForDialog(null);
                 setElementTypeDialogOpen(true);
               }}
               sx={{
@@ -681,15 +826,16 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Keine Elemente in dieser Ebene
           </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Fügen Sie ein neues Element hinzu, um zu beginnen.
           </Typography>
           <AddElementButton
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => {
-              // Zurücksetzen des selectedElementForDialog, um anzuzeigen, dass auf aktueller Ebene hinzugefügt wird
-              setSelectedElementForDialog([]);
+              console.log('[ElementContextView] "Element hinzufügen" Button (EmptyState) geklickt, currentPath:', currentPath);
+              // Wir setzen selectedElementForDialog auf null, um anzuzeigen, dass auf aktueller Ebene hinzugefügt wird
+              setSelectedElementForDialog(null);
               setElementTypeDialogOpen(true);
             }}
           >

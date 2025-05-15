@@ -14,11 +14,16 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import HomeIcon from '@mui/icons-material/Home';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
-import { useEditor, getElementByPath } from '../../context/EditorContext';
+import { useEditor, getElementByPath, getContainerType, getPathContext } from '../../context/EditorContext';
 import ElementHierarchyTree from './ElementHierarchyTree';
 import ElementContextView from './ElementContextView';
 import EnhancedPropertyEditor from './EnhancedPropertyEditor';
 import VisibilityLegend from './VisibilityLegend';
+import FolderIcon from '@mui/icons-material/Folder';
+import ViewArrayIcon from '@mui/icons-material/ViewArray';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import CodeIcon from '@mui/icons-material/Code';
 // import { arePathsEqual, getParentPath } from '../../utils/pathUtils';
 
 // Styled Components für das Layout
@@ -30,7 +35,7 @@ const EditorContainer = styled(Box)`
 `;
 
 const LeftColumn = styled.div`
-  width: 250px;
+  width: 260px; // Erhöht um 10px
   height: 100%;
   overflow-y: auto;
   background-color: #F0F2F4;
@@ -40,7 +45,7 @@ const LeftColumn = styled.div`
 `;
 
 const MiddleColumn = styled.div`
-  width: calc((100% - 250px) / 2);
+  width: calc((100% - 260px) / 2); // Anpassung an neue Breite der LeftColumn
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
@@ -50,7 +55,7 @@ const MiddleColumn = styled.div`
 `;
 
 const RightColumn = styled.div`
-  width: calc((100% - 250px) / 2);
+  width: calc((100% - 260px) / 2); // Anpassung an neue Breite der LeftColumn
   height: 100%;
   overflow-y: auto;
   background-color: #F8FAFC;
@@ -75,6 +80,7 @@ interface HybridEditorProps {
   onAddSubElement?: (parentPath: number[], type?: string) => void;
   onDropElement?: (type: string, parentPath?: number[]) => void;
   onMoveElement?: (sourceIndex: number, targetIndex: number, parentPath?: number[], sourcePath?: number[]) => void;
+  onAddElement?: (type: string, elementPath?: number[]) => void; // Neue einheitliche Funktion für das Hinzufügen von Elementen
 }
 
 const HybridEditor: React.FC<HybridEditorProps> = ({
@@ -85,7 +91,8 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   onDuplicateElement,
   onAddSubElement,
   onDropElement,
-  onMoveElement
+  onMoveElement,
+  onAddElement
 }) => {
   const { state, dispatch } = useEditor();
   const [currentPath, setCurrentPath] = useState<number[]>([]);
@@ -94,9 +101,10 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   interface BreadcrumbItem {
     label: string;
     path: number[];
+    containerType?: string; // Der Typ des Containers (group, array, chipgroup, custom, subflow)
   }
 
-  const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [] }]);
+  const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [], containerType: 'root' }]);
 
   useEffect(() => {
     console.log('[HybridEditor useEffect] Triggered. selectedElementPath:', selectedElementPath, 'currentPath:', currentPath);
@@ -253,9 +261,29 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
            `${element.element.pattern_type} ${index}`;
   }, []);
 
+  // Hilfsfunktion zum Generieren eines Icons für einen Containertyp
+  const getContainerIcon = React.useCallback((element: PatternLibraryElement) => {
+    const containerType = getContainerType(element);
+
+    switch (containerType) {
+      case 'group':
+        return <FolderIcon fontSize="small" />;
+      case 'array':
+        return <ViewArrayIcon fontSize="small" />;
+      case 'chipgroup':
+        return <ToggleOnIcon fontSize="small" />;
+      case 'custom':
+        return <ViewModuleIcon fontSize="small" />;
+      case 'subflow':
+        return <CodeIcon fontSize="small" />;
+      default:
+        return null;
+    }
+  }, []);
+
   // Aktualisiere die Breadcrumb-Items basierend auf dem Pfad
   useEffect(() => {
-    const items: BreadcrumbItem[] = [{ label: 'Hauptebene', path: [] }];
+    const items: BreadcrumbItem[] = [{ label: 'Hauptebene', path: [], containerType: 'root' }];
 
     if (currentPath.length > 0) {
       let currentPathSegment: number[] = [];
@@ -266,16 +294,19 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
         if (element) {
           const label = getElementLabel(element, currentPath[i]);
+          const containerType = getContainerType(element);
 
           const newItem: BreadcrumbItem = {
             label,
-            path: [...currentPathSegment]
+            path: [...currentPathSegment],
+            containerType
           };
           items.push(newItem);
         }
       }
     }
 
+    console.log('[HybridEditor updateBreadcrumbs] Neue Breadcrumb-Items:', items);
     setBreadcrumbItems(items);
   }, [currentPath, elements, getElementLabel]); // getElementByPath ist eine importierte Funktion, keine lokale Abhängigkeit
 
@@ -311,6 +342,126 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     }
   };
   console.log('[HybridEditor Render] selectedElementPath (prop):', selectedElementPath, 'currentPath (state):', currentPath);
+  // Einheitliche Funktion für das Hinzufügen von Elementen, die den currentPath und Pfadkontext korrekt berücksichtigt
+  const handleAddElement = React.useCallback((type: string, elementPath?: number[]) => {
+    console.log('[HybridEditor handleAddElement] type:', type, 'elementPath:', elementPath, 'currentPath:', currentPath);
+
+    // Wenn elementPath null ist, verwenden wir currentPath
+    const targetPath = elementPath || currentPath;
+
+    // Bestimme den Pfadkontext für den Zielpfad
+    const pathContext = elements.length > 0 ? getPathContext(elements, targetPath) : null;
+    console.log('[HybridEditor handleAddElement] pathContext:', pathContext);
+
+    // Wenn die externe onAddElement-Funktion verfügbar ist, verwenden wir diese
+    if (onAddElement) {
+      // Wichtig: Wenn elementPath gleich currentPath ist, bedeutet das, dass wir ein Element auf der aktuellen Ebene hinzufügen wollen
+      // In diesem Fall müssen wir sicherstellen, dass das Element auch wirklich auf der aktuellen Ebene hinzugefügt wird
+      if (elementPath && JSON.stringify(elementPath) === JSON.stringify(currentPath)) {
+        console.log('[HybridEditor handleAddElement] Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+        onAddElement(type, currentPath);
+      } else {
+        console.log('[HybridEditor handleAddElement] Verwende externe onAddElement-Funktion');
+
+        // Wenn wir einen Pfadkontext haben, berücksichtigen wir den Containertyp
+        if (pathContext && pathContext.isValid) {
+          console.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
+
+          // Spezielle Behandlung für verschiedene Containertypen
+          switch (pathContext.containerType) {
+            case 'chipgroup':
+              // Bei ChipGroup immer ein BooleanUIElement hinzufügen
+              if (type !== 'BooleanUIElement') {
+                console.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
+                onAddElement('BooleanUIElement', elementPath);
+                return;
+              }
+              break;
+
+            case 'custom':
+              // Bei CustomUIElement mit sub_flows spezielle Behandlung für CustomUIElement_*
+              if (type.startsWith('CustomUIElement_')) {
+                console.log('[HybridEditor handleAddElement] Spezielle Behandlung für CustomUIElement_* in CustomUIElement');
+                // Hier könnten wir weitere spezielle Logik hinzufügen
+              }
+              break;
+
+            case 'subflow':
+              // Bei Subflow spezielle Behandlung
+              console.log('[HybridEditor handleAddElement] Spezielle Behandlung für Subflow');
+              // Hier könnten wir weitere spezielle Logik hinzufügen
+              break;
+          }
+        }
+
+        onAddElement(type, elementPath);
+      }
+      return;
+    }
+
+    // Fallback auf die alten Funktionen, wenn onAddElement nicht verfügbar ist
+    // Fall 1: Kein elementPath angegeben - Element auf der aktuellen Navigationsebene hinzufügen
+    if (!elementPath || elementPath.length === 0) {
+      console.log('[HybridEditor handleAddElement] Fall 1: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+      if (onDropElement) {
+        onDropElement(type, currentPath);
+      }
+    }
+    // Fall 1b: elementPath ist gleich currentPath - Element auf der aktuellen Navigationsebene hinzufügen
+    else if (JSON.stringify(elementPath) === JSON.stringify(currentPath)) {
+      console.log('[HybridEditor handleAddElement] Fall 1b: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+      if (onDropElement) {
+        onDropElement(type, currentPath);
+      }
+    }
+    // Fall 2: elementPath ist ein Index innerhalb der aktuellen Ansicht - Unterelement hinzufügen
+    else if (elementPath.length === 1 && currentPath.length > 0) {
+      const fullPath = [...currentPath, elementPath[0]];
+      console.log('[HybridEditor handleAddElement] Fall 2: Unterelement hinzufügen, fullPath:', fullPath);
+      if (onAddSubElement) {
+        onAddSubElement(fullPath, type);
+      }
+    }
+    // Fall 3: elementPath ist ein vollständiger Pfad - direkt verwenden
+    else {
+      console.log('[HybridEditor handleAddElement] Fall 3: Vollständigen Pfad verwenden, elementPath:', elementPath);
+
+      // Wenn wir einen Pfadkontext haben, berücksichtigen wir den Containertyp
+      if (pathContext && pathContext.isValid && onAddSubElement) {
+        console.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
+
+        // Spezielle Behandlung für verschiedene Containertypen
+        switch (pathContext.containerType) {
+          case 'chipgroup':
+            // Bei ChipGroup immer ein BooleanUIElement hinzufügen
+            if (type !== 'BooleanUIElement') {
+              console.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
+              onAddSubElement(elementPath, 'BooleanUIElement');
+              return;
+            }
+            break;
+        }
+      }
+
+      if (onAddSubElement) {
+        onAddSubElement(elementPath, type);
+      }
+    }
+  }, [currentPath, onDropElement, onAddSubElement, onAddElement, elements]);
+
+  // Wrapper-Funktion für onAddSubElement, die den currentPath berücksichtigt
+  const handleAddSubElement = React.useCallback((parentPath: number[], type?: string) => {
+    console.log('[HybridEditor handleAddSubElement] parentPath:', parentPath, 'currentPath:', currentPath, 'type:', type);
+
+    // Wir verwenden jetzt die einheitliche handleAddElement-Funktion
+    if (type) {
+      handleAddElement(type, parentPath);
+    } else {
+      // Fallback für den Fall, dass kein Typ angegeben ist
+      handleAddElement('TextUIElement', parentPath);
+    }
+  }, [handleAddElement, currentPath]);
+
   return (
     <EditorContainer>
       {/* Linke Spalte: Hierarchische Baumansicht */}
@@ -371,9 +522,40 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
             {breadcrumbItems.map((item, index) => {
               const isLast = index === breadcrumbItems.length - 1;
 
+              // Icon basierend auf dem Containertyp
+              let icon = null;
+              switch (item.containerType) {
+                case 'group':
+                  icon = <FolderIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+                case 'array':
+                  icon = <ViewArrayIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+                case 'chipgroup':
+                  icon = <ToggleOnIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+                case 'custom':
+                  icon = <ViewModuleIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+                case 'subflow':
+                  icon = <CodeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+                case 'root':
+                  icon = <HomeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                  break;
+              }
+
               return isLast ? (
-                <Typography key={index} color="text.primary" sx={{ fontWeight: 'bold' }}>
+                <Typography key={index} color="text.primary" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                  {icon}
                   {item.label}
+                  {item.containerType && item.containerType !== 'root' && (
+                    <Tooltip title={`Container-Typ: ${item.containerType}`}>
+                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#f0f0f0', px: 0.5, borderRadius: 1 }}>
+                        {item.containerType}
+                      </Box>
+                    </Tooltip>
+                  )}
                 </Typography>
               ) : (
                 <Link
@@ -381,9 +563,17 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                   component="button"
                   variant="body2"
                   onClick={() => handleNavigateTo(item.path)}
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                 >
+                  {icon}
                   {item.label}
+                  {item.containerType && item.containerType !== 'root' && (
+                    <Tooltip title={`Container-Typ: ${item.containerType}`}>
+                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#f0f0f0', px: 0.5, borderRadius: 1 }}>
+                        {item.containerType}
+                      </Box>
+                    </Tooltip>
+                  )}
                 </Link>
               );
             })}
@@ -397,10 +587,11 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
           onSelectElement={onSelectElement}
           onRemoveElement={onRemoveElement}
           onDuplicateElement={onDuplicateElement}
-          onAddSubElement={onAddSubElement}
+          onAddSubElement={handleAddSubElement}
           onDropElement={onDropElement}
           onMoveElement={onMoveElement}
           onDrillDown={handleDrillDown}
+          onAddElement={handleAddElement} // Neue einheitliche Funktion für das Hinzufügen von Elementen
         />
       </MiddleColumn>
 

@@ -33,7 +33,7 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
-import { getSubElements } from '../../context/EditorContext'; // Importiere getSubElements
+import { getSubElements, getContainerType } from '../../context/EditorContext'; // Importiere getSubElements und getContainerType
 
 const LINE_COLOR = 'rgba(0, 0, 0, 0.23)'; // Farbe für die Verbindungslinien, ähnlich wie Divider
 
@@ -70,12 +70,12 @@ const TreeItem = styled(ListItem)<{ depth: number; isSelected: boolean; isLastCh
     background-color: ${LINE_COLOR};
     display: ${props => props.depth === 0 ? 'none' : 'block'};
   }
-  
+
   // Spezielle Anpassung für den Platzhalter-Box, wenn keine Kinder da sind, um die Linie zu zeichnen
   .placeholder-for-line::before {
     content: '';
     position: absolute;
-    left: -10px; 
+    left: -10px;
     top: 50%;
     width: 10px;
     height: 1px;
@@ -181,6 +181,9 @@ const TreeNode: React.FC<{
   const children = React.useMemo(() => getSubElements(element), [element]);
   const hasActualChildren = children.length > 0;
 
+  // Bestimme den Container-Typ des Elements
+  const containerType = React.useMemo(() => getContainerType(element), [element]);
+
   // Bestimme, ob das Element eine Visibility Condition hat
   const hasVisibilityCondition = () => {
     // Sicherer Zugriff auf visibility_condition
@@ -257,7 +260,7 @@ const TreeNode: React.FC<{
             </IconButton>
           ) : (
             // Platzhalter-Box, wenn keine Kinder, aber Linie benötigt wird
-            <Box className="placeholder-for-line" sx={{ width: 28, position: 'relative' }} /> 
+            <Box className="placeholder-for-line" sx={{ width: 28, position: 'relative' }} />
           )}
 
           <ListItemIcon sx={{ minWidth: 36 }}>
@@ -278,25 +281,37 @@ const TreeNode: React.FC<{
           </ListItemIcon>
 
           <TreeItemText
-            primary={getDisplayName()}
+            primary={`${getDisplayName()}${hasActualChildren ? ` (${containerType})` : ''}`}
             slotProps={{
               primary: {
                 noWrap: true,
-                title: getDisplayName() // Tooltip bei Überlauf
+                title: `${getDisplayName()}${hasActualChildren ? ` (${containerType})` : ''}` // Tooltip bei Überlauf
               }
             }}
           />
 
           {hasActualChildren && ( // Verwende hasActualChildren
-            <Tooltip title="Zeigt die Unterelemente dieses Elements in der Hierarchie an">
+            <Tooltip title={`${containerType === 'group' ? 'Gruppe öffnen' :
+                             containerType === 'array' ? 'Array öffnen' :
+                             containerType === 'chipgroup' ? 'Chips anzeigen' :
+                             containerType === 'custom' ? 'Custom-Element öffnen' :
+                             containerType === 'subflow' ? 'Subflow öffnen' :
+                             'Unterelemente anzeigen'}`}>
               <IconButton
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDrillDown(path);
                 }}
-                sx={{ ml: 'auto' }}
-                color="success"
+                sx={{
+                  ml: 'auto',
+                  color: containerType === 'group' ? '#009F64' :
+                         containerType === 'array' ? '#F05B29' :
+                         containerType === 'chipgroup' ? '#3F51B5' :
+                         containerType === 'custom' ? '#009F64' :
+                         containerType === 'subflow' ? '#009F64' :
+                         '#009F64'
+                }}
               >
                 <AccountTreeIcon fontSize="small" />
               </IconButton>
@@ -320,7 +335,7 @@ const TreeNode: React.FC<{
           <List component="div" disablePadding>
             {children.map((child: PatternLibraryElement, index: number) => ( // Verwende children
               <TreeNode
-                key={child.element.uuid || index} 
+                key={child.element.uuid || index}
                 element={child}
                 path={[...path, index]}
                 depth={depth + 1}

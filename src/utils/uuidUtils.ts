@@ -41,10 +41,9 @@ export const ensureUUIDs = (flow: ListingFlow): ListingFlow => {
  * @returns Eine neue Seite mit korrekten Eigenschaften
  */
 const ensurePageUUIDs = (page: Page): Page => {
-  // Entferne die uuid-Eigenschaft, wenn sie existiert
-  if ((page as any).uuid) {
-    const { uuid, ...restPage } = page as any;
-    page = restPage;
+  // Füge eine UUID hinzu, wenn sie nicht existiert
+  if (!(page as any).uuid) {
+    (page as any).uuid = uuidv4();
   }
 
   // Wenn die Seite eine visibility_condition hat, diese verarbeiten
@@ -73,10 +72,9 @@ const ensurePageUUIDs = (page: Page): Page => {
 const ensureVisibilityConditionUUIDs = (condition: VisibilityCondition): VisibilityCondition => {
   if (!condition) return condition;
 
-  // Entferne die uuid-Eigenschaft, wenn sie existiert
-  if ((condition as any).uuid) {
-    const { uuid, ...restCondition } = condition as any;
-    condition = restCondition;
+  // Füge eine UUID hinzu, wenn sie nicht existiert
+  if (!(condition as any).uuid) {
+    (condition as any).uuid = uuidv4();
   }
 
   // Normalisiere field_id in RelationalFieldOperator
@@ -110,10 +108,9 @@ const ensureSingleSelectionOptionsUUIDs = (options: SingleSelectionUIElementItem
   if (!options) return options;
 
   return options.map(option => {
-    // Entferne die uuid-Eigenschaft, wenn sie existiert
-    if ((option as any).uuid) {
-      const { uuid, ...restOption } = option as any;
-      option = restOption;
+    // Füge eine UUID hinzu, wenn sie nicht existiert
+    if (!(option as any).uuid) {
+      (option as any).uuid = uuidv4();
     }
 
     // Für verschachtelte VisibilityConditions
@@ -133,18 +130,16 @@ const ensureSingleSelectionOptionsUUIDs = (options: SingleSelectionUIElementItem
 const ensureOtherUserValueUUIDs = (otherUserValue: SingleSelectionUIElementItemOther): SingleSelectionUIElementItemOther => {
   if (!otherUserValue) return otherUserValue;
 
-  // Entferne die uuid-Eigenschaft, wenn sie existiert
-  if ((otherUserValue as any).uuid) {
-    const { uuid, ...restOtherUserValue } = otherUserValue as any;
-    otherUserValue = restOtherUserValue;
+  // Füge eine UUID hinzu, wenn sie nicht existiert
+  if (!(otherUserValue as any).uuid) {
+    (otherUserValue as any).uuid = uuidv4();
   }
 
   // Eingebettete StringUIElement verarbeiten
   if (otherUserValue.text_ui_element) {
-    // Entferne die uuid-Eigenschaft, wenn sie existiert
-    if (otherUserValue.text_ui_element.uuid) {
-      const { uuid, ...restTextUIElement } = otherUserValue.text_ui_element;
-      otherUserValue.text_ui_element = restTextUIElement;
+    // Füge eine UUID hinzu, wenn sie nicht existiert
+    if (!otherUserValue.text_ui_element.uuid) {
+      otherUserValue.text_ui_element.uuid = uuidv4();
     }
 
     // Stelle sicher, dass die field_id eine UUID enthält
@@ -174,10 +169,9 @@ const ensureSubFlowsUUIDs = (subFlows: SubFlow[]): SubFlow[] => {
   if (!subFlows) return subFlows;
 
   return subFlows.map(subFlow => {
-    // Entferne die uuid-Eigenschaft, wenn sie existiert
-    if ((subFlow as any).uuid) {
-      const { uuid, ...restSubFlow } = subFlow as any;
-      subFlow = restSubFlow;
+    // Füge eine UUID hinzu, wenn sie nicht existiert
+    if (!(subFlow as any).uuid) {
+      (subFlow as any).uuid = uuidv4();
     }
 
     // Elemente im SubFlow verarbeiten
@@ -197,10 +191,9 @@ const ensureSubFlowsUUIDs = (subFlows: SubFlow[]): SubFlow[] => {
  * @returns Ein neues Element mit sichergestellten UUIDs
  */
 const ensureElementUUID = (element: PatternLibraryElement): PatternLibraryElement => {
-  // Entferne die uuid-Eigenschaft, wenn sie existiert
-  if (element.element.uuid) {
-    const { uuid, ...restElement } = element.element;
-    element.element = restElement;
+  // Füge eine UUID hinzu, wenn sie nicht existiert
+  if (!element.element.uuid) {
+    element.element.uuid = uuidv4();
   }
 
   // Normalisiere field_id, wenn es ein String ist
@@ -271,10 +264,9 @@ const ensureElementUUID = (element: PatternLibraryElement): PatternLibraryElemen
       const chipGroupElement = element.element as ChipGroupUIElement;
       if (chipGroupElement.chips) {
         chipGroupElement.chips = chipGroupElement.chips.map(chip => {
-          // Entferne die uuid-Eigenschaft, wenn sie existiert
-          if (chip.uuid) {
-            const { uuid, ...restChip } = chip;
-            chip = restChip as BooleanUIElement;
+          // Füge eine UUID hinzu, wenn sie nicht existiert
+          if (!chip.uuid) {
+            chip.uuid = uuidv4();
           }
 
           // Normalisiere field_id, wenn es ein String ist

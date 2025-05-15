@@ -14,7 +14,7 @@ import HybridEditor from './components/HybridEditor';
 import PageNavigator from './components/PageNavigator/PageNavigator';
 // DndProvider wird jetzt in index.tsx importiert
 // import { DndProvider } from './components/DndProvider';
-import { EditorProvider, useEditor, getElementByPath } from './context/EditorContext';
+import { EditorProvider, useEditor, getElementByPath, getContainerType } from './context/EditorContext';
 import { FieldValuesProvider } from './context/FieldValuesContext';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
@@ -1605,37 +1605,33 @@ const AppContent: React.FC = () => {
   };
 
   // Element-Handler für Haupt- und verschachtelte Elemente
+  // Verbesserte Version, die besser mit der Komplexität von doorbit_original.json umgehen kann
   const handleAddElement = (type: string, parentPath?: number[]) => {
     if (!state.selectedPageId) return;
 
+    console.log('[AppContent handleAddElement] type:', type, 'parentPath:', parentPath);
     const newElement = createElement(type);
 
     if (parentPath && parentPath.length > 0) {
       // Ziel-Element anhand des Pfads holen
       const currentPage = state.currentFlow?.pages_edit.find(page => page.id === state.selectedPageId);
-      let parent = currentPage?.elements;
-      let target: any = null;
-      if (parent) {
-        // Navigiere explizit über .elements-Arrays
-        target = parent;
-        for (let i = 0; i < parentPath.length; i++) {
-          if (Array.isArray(target)) {
-            target = target[parentPath[i]];
-          } else if (target && target.element && (target.element.elements || target.element.chips)) {
-            if (target.element.elements) {
-              target = target.element.elements[parentPath[i]];
-            } else if (target.element.chips) {
-              target = target.element.chips[parentPath[i]];
-            }
-          } else {
-            target = null;
-            break;
-          }
-        }
+      if (!currentPage) return;
+
+      // Verwende die verbesserte getElementByPath-Funktion, um das Ziel-Element zu finden
+      const target = getElementByPath(currentPage.elements, parentPath);
+      console.log('[AppContent handleAddElement] Ziel-Element gefunden:', target);
+
+      if (!target) {
+        console.error('[AppContent handleAddElement] Ziel-Element nicht gefunden für Pfad:', parentPath);
+        return;
       }
 
+      // Bestimme den Containertyp des Zielelements
+      const containerType = getContainerType(target);
+      console.log('[AppContent handleAddElement] Container-Typ:', containerType);
+
       // Prüfe die Verschachtelungsregeln
-      if (target && target.element) {
+      if (target.element) {
         const parentType = target.element.pattern_type;
         const elementType = newElement.element.pattern_type;
         const { allowed, message } = isElementAllowedInParent(elementType, parentType);
@@ -1646,57 +1642,55 @@ const AppContent: React.FC = () => {
         }
       }
 
-      // Prüfen, ob das Ziel eine ChipGroup ist
-      if (target && target.element && target.element.pattern_type === 'ChipGroupUIElement') {
-        // Deep Copy des Flows
-        const updatedFlow = JSON.parse(JSON.stringify(state.currentFlow));
-        const pageIndex = updatedFlow.pages_edit.findIndex((page: { id: string }) => page.id === state.selectedPageId);
-        if (pageIndex === -1) return;
+      // Spezielle Behandlung für verschiedene Containertypen
+      switch (containerType) {
+        case 'chipgroup':
+          // Spezielle Behandlung für ChipGroupUIElement
+          handleAddToChipGroup(target, newElement, parentPath);
+          break;
 
-        // Navigiere zu ChipGroup anhand des Pfads (nur über .elements)
-        let chipGroupRef = updatedFlow.pages_edit[pageIndex].elements;
-        for (let i = 0; i < parentPath.length; i++) {
-          chipGroupRef = chipGroupRef[parentPath[i]].element.elements || chipGroupRef[parentPath[i]].element.chips || chipGroupRef[parentPath[i]].element;
-        }
-        // Der letzte Schritt ist das eigentliche ChipGroup-Objekt
-        let chipGroupObj = updatedFlow.pages_edit[pageIndex].elements;
-        for (let i = 0; i < parentPath.length; i++) {
-          chipGroupObj = chipGroupObj[parentPath[i]].element;
-          if (i < parentPath.length - 1) {
-            if (chipGroupObj.elements) {
-              chipGroupObj = chipGroupObj.elements;
-            } else if (chipGroupObj.chips) {
-              chipGroupObj = chipGroupObj.chips;
+        case 'custom':
+          // Prüfen, ob das CustomUIElement sub_flows hat
+          if ((target.element as any).sub_flows) {
+            // Wenn wir direkt in das CustomUIElement einfügen wollen (nicht in einen bestehenden sub_flow)
+            if (type.startsWith('CustomUIElement_')) {
+              // Füge einen neuen sub_flow hinzu
+              handleAddToCustomElement(target, newElement, parentPath);
+            } else {
+              // Normales Element zu einem CustomUIElement hinzufügen
+              dispatch({
+                type: 'ADD_SUB_ELEMENT',
+                element: newElement,
+                path: [...parentPath, 0], // Am Anfang der Unterelemente hinzufügen
+                pageId: state.selectedPageId
+              });
             }
+          } else {
+            // CustomUIElement ohne sub_flows behandeln wie ein normales Element
+            dispatch({
+              type: 'ADD_SUB_ELEMENT',
+              element: newElement,
+              path: [...parentPath, 0], // Am Anfang der Unterelemente hinzufügen
+              pageId: state.selectedPageId
+            });
           }
-        }
-        // Füge das neue BooleanUIElement zu chips hinzu
-        if (!chipGroupObj.chips) chipGroupObj.chips = [];
-        // BooleanUIElement extrahieren - ChipGroup erwartet BooleanUIElement, nicht PatternLibraryElement
-        const boolElement = newElement.element && newElement.element.pattern_type === 'BooleanUIElement'
-          ? {
-              ...newElement.element,
-              field_id: { field_name: `chip_${uuidv4()}` } // Stelle sicher, dass die field_id eindeutig ist
-            }
-          : {
-              pattern_type: 'BooleanUIElement',
-              required: false,
-              field_id: { field_name: `chip_${uuidv4()}` },
-              title: { de: 'Neue Option', en: 'New Option' }
-            };
-        chipGroupObj.chips.push(boolElement);
+          break;
 
-        dispatch({ type: 'UPDATE_FLOW', flow: updatedFlow });
-        return;
+        case 'subflow':
+          // Spezielle Behandlung für Subflow-Objekte
+          handleAddToSubflow(target, newElement, parentPath);
+          break;
+
+        default:
+          // Standardbehandlung für andere Containertypen (group, array, etc.)
+          dispatch({
+            type: 'ADD_SUB_ELEMENT',
+            element: newElement,
+            path: [...parentPath, 0], // Am Anfang der Unterelemente hinzufügen
+            pageId: state.selectedPageId
+          });
+          break;
       }
-
-      // Unterelement zu einem vorhandenen Element hinzufügen (wie bisher)
-      dispatch({
-        type: 'ADD_SUB_ELEMENT',
-        element: newElement,
-        path: [...parentPath, 0], // Am Anfang der Unterelemente hinzufügen
-        pageId: state.selectedPageId
-      });
     } else {
       // Element auf oberster Ebene hinzufügen
       dispatch({
@@ -1705,6 +1699,136 @@ const AppContent: React.FC = () => {
         pageId: state.selectedPageId
       });
     }
+  };
+
+  // Hilfsfunktion zum Hinzufügen eines Elements zu einer ChipGroup
+  const handleAddToChipGroup = (_chipGroup: PatternLibraryElement, newElement: PatternLibraryElement, parentPath: number[]) => {
+    // Deep Copy des Flows
+    const updatedFlow = JSON.parse(JSON.stringify(state.currentFlow));
+    const pageIndex = updatedFlow.pages_edit.findIndex((page: { id: string }) => page.id === state.selectedPageId);
+    if (pageIndex === -1) return;
+
+    // Navigiere zu ChipGroup anhand des Pfads
+    let chipGroupObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
+    if (!chipGroupObj || !chipGroupObj.element) {
+      console.error('[handleAddToChipGroup] ChipGroup nicht gefunden');
+      return;
+    }
+
+    // Füge das neue BooleanUIElement zu chips hinzu
+    if (!chipGroupObj.element.chips) chipGroupObj.element.chips = [];
+
+    // BooleanUIElement extrahieren - ChipGroup erwartet BooleanUIElement, nicht PatternLibraryElement
+    const boolElement = newElement.element && newElement.element.pattern_type === 'BooleanUIElement'
+      ? {
+          ...newElement.element,
+          field_id: { field_name: `chip_${uuidv4()}` } // Stelle sicher, dass die field_id eindeutig ist
+        }
+      : {
+          pattern_type: 'BooleanUIElement',
+          required: false,
+          field_id: { field_name: `chip_${uuidv4()}` },
+          title: { de: 'Neue Option', en: 'New Option' }
+        };
+
+    chipGroupObj.element.chips.push(boolElement);
+    dispatch({ type: 'UPDATE_FLOW', flow: updatedFlow });
+  };
+
+  // Hilfsfunktion zum Hinzufügen eines Elements zu einem CustomUIElement mit sub_flows
+  const handleAddToCustomElement = (_customElement: PatternLibraryElement, newElement: PatternLibraryElement, parentPath: number[]) => {
+    // Deep Copy des Flows
+    const updatedFlow = JSON.parse(JSON.stringify(state.currentFlow));
+    const pageIndex = updatedFlow.pages_edit.findIndex((page: { id: string }) => page.id === state.selectedPageId);
+    if (pageIndex === -1) return;
+
+    // Navigiere zu CustomUIElement anhand des Pfads
+    let customElementObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
+    if (!customElementObj || !customElementObj.element) {
+      console.error('[handleAddToCustomElement] CustomUIElement nicht gefunden');
+      return;
+    }
+
+    // Stelle sicher, dass sub_flows existiert
+    if (!customElementObj.element.sub_flows) customElementObj.element.sub_flows = [];
+
+    // Füge den neuen sub_flow hinzu
+    customElementObj.element.sub_flows.push(newElement.element);
+
+    dispatch({ type: 'UPDATE_FLOW', flow: updatedFlow });
+  };
+
+  // Hilfsfunktion zum Hinzufügen eines Elements zu einem Subflow
+  const handleAddToSubflow = (_subflow: PatternLibraryElement, newElement: PatternLibraryElement, parentPath: number[]) => {
+    // Deep Copy des Flows
+    const updatedFlow = JSON.parse(JSON.stringify(state.currentFlow));
+    const pageIndex = updatedFlow.pages_edit.findIndex((page: { id: string }) => page.id === state.selectedPageId);
+    if (pageIndex === -1) return;
+
+    // Navigiere zu Subflow anhand des Pfads
+    let subflowObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
+    if (!subflowObj || !subflowObj.element) {
+      console.error('[handleAddToSubflow] Subflow nicht gefunden');
+      return;
+    }
+
+    // Stelle sicher, dass elements existiert
+    if (!subflowObj.element.elements) subflowObj.element.elements = [];
+
+    // Füge das neue Element hinzu
+    subflowObj.element.elements.unshift(newElement.element);
+
+    dispatch({ type: 'UPDATE_FLOW', flow: updatedFlow });
+  };
+
+  // Hilfsfunktion zum Finden eines Elements in einem Objekt anhand eines Pfads
+  const getElementByPathInObject = (elements: any[], path: number[]): any => {
+    if (!elements || elements.length === 0 || path.length === 0) return null;
+
+    let current = elements;
+    let currentElement = null;
+
+    for (let i = 0; i < path.length; i++) {
+      const index = path[i];
+
+      if (Array.isArray(current) && index < current.length) {
+        currentElement = current[index];
+
+        // Navigiere weiter, wenn es nicht das letzte Element im Pfad ist
+        if (i < path.length - 1) {
+          if (currentElement.element) {
+            // PatternLibraryElement
+            if (currentElement.element.elements) {
+              current = currentElement.element.elements;
+            } else if (currentElement.element.chips) {
+              current = currentElement.element.chips;
+            } else if (currentElement.element.sub_flows) {
+              current = currentElement.element.sub_flows;
+            } else {
+              // Keine weiteren Kinder
+              return null;
+            }
+          } else {
+            // Direktes Element (z.B. in sub_flows oder chips)
+            if (currentElement.elements) {
+              current = currentElement.elements;
+            } else if (currentElement.chips) {
+              current = currentElement.chips;
+            } else if (currentElement.sub_flows) {
+              current = currentElement.sub_flows;
+            } else {
+              // Keine weiteren Kinder
+              return null;
+            }
+          }
+        }
+      } else {
+        // Ungültiger Index
+        return null;
+      }
+    }
+
+    return currentElement;
   };
 
   // Diese Funktion wird vom HybridEditor intern verwendet
@@ -1947,8 +2071,15 @@ const AppContent: React.FC = () => {
           onSelectElement={handleSelectElement}
           onRemoveElement={handleRemoveElement}
           onDuplicateElement={handleDuplicateElement}
-          onAddSubElement={(parentPath, type) => handleAddElement(type || 'TextUIElement', parentPath)}
+          onAddSubElement={(parentPath, type) => {
+            console.log('[AppContent onAddSubElement] parentPath:', parentPath, 'type:', type);
+            handleAddElement(type || 'TextUIElement', parentPath);
+          }}
           onDropElement={handleAddElement}
+          onAddElement={(type, elementPath) => {
+            console.log('[AppContent onAddElement] type:', type, 'elementPath:', elementPath);
+            handleAddElement(type || 'TextUIElement', elementPath);
+          }}
           onMoveElement={(sourceIndex, targetIndex, targetParentPath, sourcePath) => {
             if (!state.selectedPageId) return;
 

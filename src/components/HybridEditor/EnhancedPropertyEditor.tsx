@@ -18,6 +18,7 @@ import { PatternLibraryElement } from '../../models/listingFlow';
 import { VisibilityConditionEditor } from '../PropertyEditor/editors/VisibilityConditionEditor';
 import StructureNavigator from './StructureNavigator';
 import EnhancedElementEditorFactory from './EnhancedElementEditorFactory';
+import { getContainerType } from '../../context/EditorContext';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
@@ -327,9 +328,29 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
         <EditorTitle variant="subtitle1">
           {element.element.title?.de || element.element.title?.en || element.element.pattern_type}
         </EditorTitle>
-        <Typography variant="body2" color="text.secondary">
-          Typ: {element.element.pattern_type}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            Typ: {element.element.pattern_type || (element.element as any).type || 'Unbekannt'}
+          </Typography>
+
+          {/* Container-Typ anzeigen */}
+          {getContainerType(element) !== 'none' && (
+            <Typography
+              variant="body2"
+              sx={{
+                color:
+                  getContainerType(element) === 'group' ? '#009F64' :
+                  getContainerType(element) === 'array' ? '#F05B29' :
+                  getContainerType(element) === 'chipgroup' ? '#3F51B5' :
+                  getContainerType(element) === 'custom' ? '#009F64' :
+                  getContainerType(element) === 'subflow' ? '#009F64' :
+                  'text.secondary'
+              }}
+            >
+              Container-Typ: {getContainerType(element)}
+            </Typography>
+          )}
+        </Box>
       </EditorHeader>
 
       <Box sx={{

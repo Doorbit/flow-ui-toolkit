@@ -84,6 +84,9 @@ Der EnhancedPropertyEditor ist ein zentraler Bestandteil des HybridEditors, der 
 3. **Spezialisierte Editoren**: Optimierte Bearbeitung spezifischer Elementtypen.
 4. **Erweiterte Funktionalität**: Unterstützung für komplexe Elementstrukturen und Subflows.
 5. **Bessere Typensicherheit**: Strikte Typisierung durch TypeScript.
+6. **Containertyp-Erkennung**: Intelligente Erkennung und Anzeige des Containertyps (group, array, chipgroup, custom, subflow).
+7. **Verbesserte Strukturnavigation**: Optimierte Navigation durch verschachtelte Elemente mit Containertyp-Informationen.
+8. **Unterstützung für komplexe JSON-Strukturen**: Verbesserte Handhabung von doorbit_original.json und ähnlichen komplexen Strukturen.
 
 ## Implementierungsdetails
 

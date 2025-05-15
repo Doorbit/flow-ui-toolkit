@@ -86,6 +86,8 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Hauptbearbeitungsbereich für UI-Elemente
 - Unterstützt Drag & Drop
 - Ermöglicht verschachtelte Strukturen
+- Verbesserte Pfadnavigation für tiefe Verschachtelungen
+- Intelligente Containertyp-Erkennung für verschiedene Elementtypen
 
 #### PropertyEditor und EnhancedPropertyEditor
 - Bearbeitung von Element-Eigenschaften
@@ -94,6 +96,8 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Modulare Struktur mit spezialisierten Editor-Komponenten
 - Factory-Pattern für elementtypspezifische Editoren
 - Wiederverwendbare UI-Komponenten für konsistente Benutzeroberfläche
+- Verbesserte Anzeige von Containereigenschaften und Unterelementen
+- Unterstützung für komplexe JSON-Strukturen und Subflows
 
 ##### ElementEditorFactory und EnhancedElementEditorFactory
 - Factory-Pattern zur Instanziierung des passenden Editors für jeden Elementtyp
@@ -125,11 +129,15 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 #### HybridEditor
 - Kombiniert die Vorteile von EditorArea und PropertyEditor
 - Verbesserte Benutzeroberfläche mit drei Hauptbereichen:
-  - Strukturnavigator: Hierarchische Anzeige aller Elemente
-  - EnhancedPropertyEditor: Verbesserte Eigenschaftsbearbeitung
-  - ElementContextView: Kontextinformationen zum ausgewählten Element
+  - Strukturnavigator: Hierarchische Anzeige aller Elemente mit Containertyp-Informationen
+  - EnhancedPropertyEditor: Verbesserte Eigenschaftsbearbeitung mit Containertyp-Anzeige
+  - ElementContextView: Kontextinformationen zum ausgewählten Element mit detaillierten Strukturinformationen
 - Unterstützt komplexe Elementstrukturen und Subflows
 - Optimierte Benutzerführung für verschachtelte Elemente
+- Verbesserte Pfadnavigation für tiefe Verschachtelungen (bis zu 6 Ebenen)
+- Intelligente Containertyp-Erkennung und -Anzeige (group, array, chipgroup, custom, subflow)
+- Optimierte Hinzufügung von Elementen in verschiedenen Containertypen
+- Verbesserte Breadcrumb-Navigation mit Containertyp-Informationen
 
 #### PageNavigator
 - Verwaltung mehrerer Seiten
@@ -168,6 +176,10 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Validierung der Struktur über JSON-Schema
 - Live-Preview des JSON
 - Speicherung von Seitentiteln und Icons im JSON
+- Automatische Strukturnormalisierung für konsistente JSON-Ausgabe
+- Unterstützung für komplexe JSON-Strukturen wie doorbit_original.json
+- Validierung und Korrektur von Strukturfehlern
+- Konsistente Einwicklung von Elementen in PatternLibraryElement-Objekte
 
 ### 4. Icon-Auswahl
 - Integrierter IconSelector für Material Design Icons
@@ -231,7 +243,10 @@ src/
     ├── visibilityUtils.ts    # Auswertung von Visibility-Bedingungen
     ├── optimizedVisibilityUtils.ts # Optimierte Auswertung mit Memoization
     ├── SubflowManager.ts     # Verwaltung von Subflows
-    └── uuidUtils.ts          # UUID-Generierung und -Verwaltung
+    ├── uuidUtils.ts          # UUID-Generierung und -Verwaltung
+    ├── normalizeUtils.ts     # Strukturnormalisierung und -validierung
+    ├── pathUtils.ts          # Pfadnavigation und -manipulation
+    └── containerUtils.ts     # Containertyp-Erkennung und -Verwaltung
 ```
 
 ## Technische Abhängigkeiten

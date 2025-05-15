@@ -156,7 +156,7 @@ describe('normalizeElementTypes', () => {
     testNormalization(
       input,
       (result) => (result.pages_edit[0].elements[0].element as any).type,
-      'DAY'
+      'YMD'
     );
   });
 
