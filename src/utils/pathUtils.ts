@@ -51,7 +51,13 @@ export const pathToString = (path: number[]): string => {
  * @returns Der Pfad als Array von Zahlen
  */
 export const stringToPath = (pathString: string): number[] => {
-  return pathString.split('.').map(Number);
+  if (!pathString) {
+    return [];
+  }
+  return pathString
+    .split('.')
+    .filter(segment => segment !== '')
+    .map(Number);
 };
 
 /**
