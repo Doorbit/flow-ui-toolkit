@@ -98,10 +98,12 @@ const VisibilityConditionBuilder: React.FC<VisibilityConditionBuilderProps> = ({
       const elementData = element.element ? element.element : element;
 
       if (elementData.field_id) {
+        const fieldName = elementData.field_id.field_name || elementData.field_id;
+        const fieldTitle = elementData.title?.de || elementData.title?.en || fieldName;
         fields.push({
-          fieldName: elementData.field_id.field_name || elementData.field_id,
+          fieldName: fieldName,
           elementType: elementData.pattern_type,
-          title: elementData.title?.de || elementData.title?.en || elementData.field_id,
+          title: fieldTitle,
           pageName
         });
       }
