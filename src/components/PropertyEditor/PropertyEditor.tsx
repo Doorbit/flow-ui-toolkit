@@ -53,6 +53,7 @@ import FileElementEditor from './editors/FileElementEditor';
 import ChipGroupEditor from './editors/ChipGroupEditor';
 import SubflowNavigator from './common/SubflowNavigator';
 import { TranslatableField } from './common/TranslatableField';
+import IconField from './common/IconField';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
@@ -418,12 +419,12 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
             }}
           />
 
-          <TextField
+          <IconField
             label="Icon"
             size="small"
             fullWidth
             value={subElement.element.icon || ''}
-            onChange={(e) => {
+            onChange={(value) => {
               const updatedCustomElement = { ...element.element as CustomUIElement };
 
               // Aktualisiere das Element im CustomUIElement
@@ -433,7 +434,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                 elementPath,
                 {
                   ...subElement.element,
-                  icon: e.target.value
+                  icon: value
                 }
               );
 
@@ -1783,13 +1784,12 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                       }}
                     />
 
-                    <TextField
+                    <IconField
                       label="Icon"
                       size="small"
                       fullWidth
-                      margin="dense"
                       value={option.icon || ''}
-                      onChange={(e) => {
+                      onChange={(value) => {
                         if (!element) return;
                         const updatedCustomElement = { ...element.element as CustomUIElement };
                         const updatedSubflows = [...updatedCustomElement.sub_flows!];
@@ -1800,7 +1800,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
 
                         updatedOptions[optionIndex] = {
                           ...updatedOptions[optionIndex],
-                          icon: e.target.value
+                          icon: value
                         };
 
                         updatedSelection.options = updatedOptions;

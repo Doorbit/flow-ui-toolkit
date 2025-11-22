@@ -173,6 +173,7 @@ const TreeNode: React.FC<{
   isLastChildInLevel
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [manuallyToggled, setManuallyToggled] = useState(false); // Track manual user interaction
   const isSelected = arePathsEqual(path, selectedPath);
   const isInCurrentPath = path.length <= currentPath.length &&
                           path.every((value, index) => value === currentPath[index]);
@@ -216,16 +217,16 @@ const TreeNode: React.FC<{
            `${element.element.pattern_type || 'Element'} ${path[path.length - 1]}`;
   };
 
-  // Automatisch expandieren, wenn das Element im aktuellen Pfad ist
+  // Automatisch expandieren, wenn das Element im aktuellen Pfad ist (nur wenn nicht manuell geschlossen)
   React.useEffect(() => {
-    if (isInCurrentPath && hasActualChildren) { // Nur expandieren, wenn Kinder vorhanden sind
+    if (isInCurrentPath && hasActualChildren && !manuallyToggled) {
       setExpanded(true);
     }
-  }, [isInCurrentPath, hasActualChildren]);
+  }, [isInCurrentPath, hasActualChildren, manuallyToggled]);
 
-  // Automatisch expandieren, wenn der Knoten Teil des selectedPath ist oder ein Vorfahre davon
+  // Automatisch expandieren, wenn der Knoten Teil des selectedPath ist oder ein Vorfahre davon (nur wenn nicht manuell geschlossen)
   React.useEffect(() => {
-    if (selectedPath && selectedPath.length > 0 && hasActualChildren && !expanded) {
+    if (selectedPath && selectedPath.length > 0 && hasActualChildren && !expanded && !manuallyToggled) {
       const isNodeOrAncestorOfSelected =
         selectedPath.length >= path.length &&
         path.every((val, idx) => val === selectedPath[idx]);
@@ -234,7 +235,14 @@ const TreeNode: React.FC<{
         setExpanded(true);
       }
     }
-  }, [selectedPath, path, expanded, hasActualChildren]);
+  }, [selectedPath, path, expanded, hasActualChildren, manuallyToggled]);
+
+  // Reset manual toggle state when this element is no longer in the current path
+  React.useEffect(() => {
+    if (!isInCurrentPath) {
+      setManuallyToggled(false);
+    }
+  }, [isInCurrentPath]);
 
 
   return (
@@ -254,6 +262,7 @@ const TreeNode: React.FC<{
               onClick={(e) => {
                 e.stopPropagation();
                 setExpanded(!expanded);
+                setManuallyToggled(true); // Mark as manually toggled
               }}
             >
               {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}

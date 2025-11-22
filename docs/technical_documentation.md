@@ -180,6 +180,11 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Unterstützung für komplexe JSON-Strukturen wie doorbit_original.json
 - Validierung und Korrektur von Strukturfehlern
 - Konsistente Einwicklung von Elementen in PatternLibraryElement-Objekte
+- **Trennung von internen UUIDs und externen Field-IDs**:
+  - Beim Import werden Flows zunächst mit `normalizeElementTypes` normalisiert und anschließend mit `ensureUUIDs` um interne `uuid`-Felder ergänzt.
+  - `field_id.field_name` von importierten Dateien (z.B. `doorbit_esg (2).json`) bleibt dabei unverändert.
+  - Beim Export wird über `transformFlowForExport` ein Export-Flow erzeugt, der alle internen `uuid`-Felder entfernt und `visibility_condition`-Strukturen von technischen UUIDs bereinigt.
+  - Dadurch sind Roundtrips (Import → Bearbeitung → Export) möglich, ohne dass sich `field_id.field_name` oder die Struktur ändern.
 
 ### 4. Icon-Auswahl
 - Integrierter IconSelector für Material Design Icons

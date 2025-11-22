@@ -86,7 +86,7 @@ export interface NumberUIElement extends UIElementEdit {
 export interface DateUIElement extends UIElementEdit {
   pattern_type: 'DateUIElement';
   field_id: FieldId;
-  type: 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'MINUTE' | 'YMD';
+  type: 'Y' | 'YM' | 'YMD';
   minimum?: string;
   maximum?: string;
   default_value?: string;

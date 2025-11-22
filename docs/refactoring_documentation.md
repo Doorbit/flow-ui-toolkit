@@ -201,6 +201,37 @@ Das Refactoring konzentrierte sich auf folgende Hauptbereiche:
   - Verbesserte Unterstützung für komplexe JSON-Dateien
   - Zuverlässige Verarbeitung von doorbit_original.json und ähnlichen Strukturen
 
+## 9. Trennung von UUIDs und Field-IDs
+
+### Ausgangsproblem
+
+- Importierte Referenz-Flows (z.B. `doorbit_esg (2).json`) enthielten fachliche Feldnamen in `field_id.field_name`.
+- Die ursprüngliche Implementierung von `uuidUtils.ensureUUIDs` hat bei Elementen ohne "-" im Feldnamen UUID-Suffixe an `field_id.field_name` angehängt.
+- Visibility-Bedingungen und andere Referenzen (z.B. KeyValue-Listen) blieben jedoch auf die ursprünglichen Feldnamen gerichtet.
+- Dadurch entstanden Divergenzen zwischen Felddefinitionen und Referenzen sowie falsche Export-Strukturen.
+
+### Implementierte Lösung
+
+- **Klare Trennung von internen und externen IDs**:
+  - `uuid` wird als rein interne ID für Seiten, Subflows, Elemente, Optionen, Chips und Visibility-Bedingungen verwendet.
+  - `field_id.field_name` bleibt fachlich/external und wird beim Import nie automatisch verändert.
+- **Anpassungen in `uuidUtils.ts`**:
+  - `ensureElementUUID` normalisiert `field_id` nur noch von String → Objekt, ohne den `field_name` inhaltlich zu ändern.
+  - ChipGroup-Chips und `other_user_value.text_ui_element` erhalten UUIDs, ihre `field_id.field_name`-Werte bleiben jedoch unverändert (nur String → Objekt-Konvertierung, falls nötig).
+  - Neue Hilfsfunktion `stripUUIDFromVisibilityCondition` entfernt rekursiv alle `uuid`-Felder aus Visibility-Bedingungen und normalisiert ggf. `field_id` von String → Objekt.
+  - `transformElementForExport` nutzt `stripUUIDFromVisibilityCondition` und entfernt zusätzlich alle `uuid`-Felder aus verschachtelten Elementen, Chips, Items und Optionen.
+  - Neue Funktion `transformFlowForExport` erzeugt aus einem internen `ListingFlow` einen exportfertigen Flow ohne `uuid`-Felder, inklusive Bereinigung von Seiten- und Subflow-UUIDs sowie deren Visibility-Bedingungen.
+- **Anpassungen in `App.tsx` und `JsonPreview.tsx`**:
+  - `handleSave` verwendet nun `transformFlowForExport(state.currentFlow)`, bevor der JSON-Download erzeugt wird.
+  - `JsonPreview` zeigt die gleiche exportbereite Struktur an, indem es `transformFlowForExport(data)` verwendet.
+
+### Vorteile
+
+- Importierte Referenzdateien wie `doorbit_esg (2).json)` können verlustfrei importiert, im Editor bearbeitet und wieder exportiert werden, ohne dass sich `field_id.field_name` oder die Struktur ändern.
+- Alle internen UUIDs bleiben auf den Editor beschränkt und tauchen im Export nicht mehr auf.
+- Visibility-Bedingungen behalten stabile Feldreferenzen, da `field_id.field_name` nicht mehr nachträglich verändert wird.
+- JSON-Preview und tatsächlicher Export verwenden dieselbe Transformationslogik und sind damit konsistent.
+
 ## Testergebnisse
 
 Die implementierten Refactoring-Maßnahmen wurden mit automatisierten Tests validiert:

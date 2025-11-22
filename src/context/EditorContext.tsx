@@ -1004,18 +1004,27 @@ function editorReducer(state: EditorState, action: Action): EditorState {
     case 'UPDATE_PAGE': {
       if (!state.currentFlow) return state;
 
+      // Bestimme die korrespondierende View-Seiten-ID
+      const viewPageId = action.page.id.startsWith('edit-')
+        ? action.page.id.replace('edit-', 'view-')
+        : action.page.id.replace('view-', 'edit-');
+
       // Aktualisiere die Seite in pages_edit
       const updatedPagesEdit = state.currentFlow.pages_edit.map(page =>
         page.id === action.page.id ? action.page : page
       );
 
       // Aktualisiere auch die entsprechende Seite in pages_view
-      // Behalte dabei die elements der View-Seite bei
+      // Synchronisiere title, short_title und icon, aber behalte die elements der View-Seite bei
       const updatedPagesView = state.currentFlow.pages_view.map(page => {
-        if (page.id === action.page.id) {
+        if (page.id === viewPageId || page.id === action.page.id) {
           return {
-            ...action.page,
-            elements: page.elements // Behalte die bestehenden Elemente der View-Seite
+            ...page,
+            title: action.page.title,
+            short_title: action.page.short_title,
+            icon: action.page.icon,
+            layout: action.page.layout,
+            visibility_condition: action.page.visibility_condition
           };
         }
         return page;

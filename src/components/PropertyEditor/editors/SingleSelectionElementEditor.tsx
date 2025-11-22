@@ -18,6 +18,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { SingleSelectionUIElement, StringUIElement } from '../../../models/uiElements';
 import { v4 as uuidv4 } from 'uuid';
+import IconField from '../common/IconField';
 
 interface SingleSelectionElementEditorProps {
   element: SingleSelectionUIElement;
@@ -138,7 +139,7 @@ export const SingleSelectionElementEditor: React.FC<SingleSelectionElementEditor
       ...element,
       options: [
         {
-          key: 'option1',
+          key: uuidv4(),
           label: { de: 'Option 1', en: 'Option 1' }
         }
       ]
@@ -187,46 +188,67 @@ export const SingleSelectionElementEditor: React.FC<SingleSelectionElementEditor
       <Typography variant="subtitle2" gutterBottom>Optionen</Typography>
 
       {element.options?.map((option, index) => (
-        <Stack direction="row" spacing={2} key={index} alignItems="center" sx={{ mb: 1 }}>
-          <Box sx={{ width: '25%' }}>
-            <TextField
-              fullWidth
-              label="Schlüssel"
+        <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+            <Box sx={{ width: '25%' }}>
+              <TextField
+                fullWidth
+                label="Schlüssel"
+                size="small"
+                value={option.key}
+                onChange={(e) => handleUpdateOptionKey(index, e.target.value)}
+              />
+            </Box>
+            <Box sx={{ width: '30%' }}>
+              <TextField
+                fullWidth
+                label="Deutsch"
+                size="small"
+                value={option.label?.de || ''}
+                onChange={(e) => handleUpdateOption(index, 'de', e.target.value)}
+              />
+            </Box>
+            <Box sx={{ width: '30%' }}>
+              <TextField
+                fullWidth
+                label="Englisch"
+                size="small"
+                value={option.label?.en || ''}
+                onChange={(e) => handleUpdateOption(index, 'en', e.target.value)}
+              />
+            </Box>
+            <Box sx={{ width: '15%' }}>
+              <Tooltip title="Option löschen">
+                <IconButton
+                  color="error"
+                  onClick={() => handleDeleteOption(index)}
+                  disabled={element.options?.length === 1} // Mindestens eine Option muss bleiben
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Stack>
+          <Box sx={{ mt: 1 }}>
+            <IconField
+              label="Icon"
               size="small"
-              value={option.key}
-              onChange={(e) => handleUpdateOptionKey(index, e.target.value)}
+              value={option.icon || ''}
+              onChange={(value) => {
+                const updatedOptions = [...element.options];
+                updatedOptions[index] = {
+                  ...option,
+                  icon: value
+                };
+                onChange({
+                  ...element,
+                  options: updatedOptions
+                });
+              }}
+              fullWidth
             />
           </Box>
-          <Box sx={{ width: '30%' }}>
-            <TextField
-              fullWidth
-              label="Deutsch"
-              size="small"
-              value={option.label?.de || ''}
-              onChange={(e) => handleUpdateOption(index, 'de', e.target.value)}
-            />
-          </Box>
-          <Box sx={{ width: '30%' }}>
-            <TextField
-              fullWidth
-              label="Englisch"
-              size="small"
-              value={option.label?.en || ''}
-              onChange={(e) => handleUpdateOption(index, 'en', e.target.value)}
-            />
-          </Box>
-          <Box sx={{ width: '15%' }}>
-            <Tooltip title="Option löschen">
-              <IconButton
-                color="error"
-                onClick={() => handleDeleteOption(index)}
-                disabled={element.options?.length === 1} // Mindestens eine Option muss bleiben
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Stack>
+        </Box>
       ))}
 
       <Box sx={{ display: 'flex', gap: 1, mt: 1, mb: 3 }}>

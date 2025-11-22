@@ -37,6 +37,7 @@ import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
 import { ElementPreview } from '../common/ElementPreview';
 
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
+import IconField from '../common/IconField';
 
 interface SingleSelectionElementEditorEnhancedProps {
   element: SingleSelectionUIElement;
@@ -214,14 +215,12 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
             onLanguageTabChange={(newValue) => setLanguageTab(newValue)}
           />
 
-          <TextField
-            label="Icon"
-            size="small"
+          <IconField
             value={element.icon || ''}
-            onChange={(e) => {
+            onChange={(value) => {
               onChange({
                 ...element,
-                icon: e.target.value
+                icon: value
               });
             }}
             fullWidth
@@ -280,8 +279,8 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell width="30%">Schlüssel</TableCell>
-                  <TableCell width="60%">
+                  <TableCell width="25%">Schlüssel</TableCell>
+                  <TableCell width="45%">
                     <Tabs
                       value={languageTab}
                       onChange={(_, newValue) => setLanguageTab(newValue)}
@@ -291,6 +290,7 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
                       <Tab label="Englisch" />
                     </Tabs>
                   </TableCell>
+                  <TableCell width="20%">Icon</TableCell>
                   <TableCell width="10%" align="center">Aktion</TableCell>
                 </TableRow>
               </TableHead>
@@ -321,6 +321,24 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
                           onChange={(e) => handleUpdateOption(index, 'en', e.target.value)}
                         />
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <IconField
+                        size="small"
+                        value={option.icon || ''}
+                        onChange={(value) => {
+                          const updatedOptions = [...element.options];
+                          updatedOptions[index] = {
+                            ...option,
+                            icon: value
+                          };
+                          onChange({
+                            ...element,
+                            options: updatedOptions
+                          });
+                        }}
+                        fullWidth
+                      />
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Option löschen">

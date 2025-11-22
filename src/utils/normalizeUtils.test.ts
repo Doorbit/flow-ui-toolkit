@@ -40,7 +40,7 @@ describe('normalizeElementTypes', () => {
     testNormalization(
       input,
       (result) => (result.pages_edit[0].elements[0].element as any).type,
-      'YEAR'
+      'Y'
     );
   });
 
@@ -79,7 +79,7 @@ describe('normalizeElementTypes', () => {
     testNormalization(
       input,
       (result) => (result.pages_edit[0].elements[0].element as any).elements[0].element.type,
-      'YEAR'
+      'Y'
     );
   });
 
@@ -124,7 +124,7 @@ describe('normalizeElementTypes', () => {
     testNormalization(
       input,
       (result) => (result.pages_edit[0].elements[0].element as any).sub_flows[0].elements[0].element.type,
-      'YEAR'
+      'Y'
     );
   });
 

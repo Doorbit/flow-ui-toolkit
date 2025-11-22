@@ -55,9 +55,6 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
 }) => {
   const [titleDe, setTitleDe] = useState(page.title?.de || '');
   const [titleEn, setTitleEn] = useState(page.title?.en || '');
-  // Kurztitel werden in der UI ausgeblendet, aber im Modell beibehalten
-  const shortTitleDe = page.short_title?.de || '';
-  const shortTitleEn = page.short_title?.en || '';
   const [icon, setIcon] = useState(page.icon || '');
   const [layout, setLayout] = useState(page.layout || (isEditPage ? '2_COL_RIGHT_FILL' : '2_COL_RIGHT_WIDER'));
   const [iconSelectorOpen, setIconSelectorOpen] = useState(false);
@@ -224,16 +221,19 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const getDefaultPatternType = () => isEditPage ? "CustomUIElement" : "CustomUIElement";
 
   const handleSave = () => {
+    const finalTitleDe = titleDe || page.id;
+    const finalTitleEn = titleEn || page.id;
+
     const updatedPage: Page = {
       ...page,
       pattern_type: page.pattern_type || getDefaultPatternType(),
       title: {
-        de: titleDe || page.id,
-        en: titleEn || page.id
+        de: finalTitleDe,
+        en: finalTitleEn
       },
       short_title: {
-        de: shortTitleDe,
-        en: shortTitleEn
+        de: finalTitleDe, // short_title wird automatisch mit title synchronisiert
+        en: finalTitleEn  // short_title wird automatisch mit title synchronisiert
       },
       icon: icon,
       layout: layout,

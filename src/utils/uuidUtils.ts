@@ -142,12 +142,11 @@ const ensureOtherUserValueUUIDs = (otherUserValue: SingleSelectionUIElementItemO
       otherUserValue.text_ui_element.uuid = uuidv4();
     }
 
-    // Stelle sicher, dass die field_id eine UUID enthält
-    if (otherUserValue.text_ui_element.field_id && typeof otherUserValue.text_ui_element.field_id === 'object') {
-      const fieldName = otherUserValue.text_ui_element.field_id.field_name || '';
-      if (!fieldName.includes('-')) {
-        otherUserValue.text_ui_element.field_id.field_name = `other_text_${uuidv4()}`;
-      }
+    // Normalisiere field_id, falls sie ein String ist
+    if (typeof otherUserValue.text_ui_element.field_id === 'string') {
+      otherUserValue.text_ui_element.field_id = {
+        field_name: otherUserValue.text_ui_element.field_id
+      };
     }
 
     // Auch visibility_condition der StringUIElement verarbeiten
@@ -196,7 +195,7 @@ const ensureElementUUID = (element: PatternLibraryElement): PatternLibraryElemen
     element.element.uuid = uuidv4();
   }
 
-  // Normalisiere field_id, wenn es ein String ist
+  // Normalisiere field_id, wenn es ein String ist, verändere aber den field_name nicht inhaltlich
   if (element.element.pattern_type !== 'TextUIElement' &&
       'field_id' in element.element) {
 
@@ -205,18 +204,6 @@ const ensureElementUUID = (element: PatternLibraryElement): PatternLibraryElemen
       element.element.field_id = {
         field_name: element.element.field_id
       };
-    }
-
-    // Stelle sicher, dass field_id ein Objekt ist und eine field_name-Eigenschaft hat
-    if (element.element.field_id &&
-        typeof element.element.field_id === 'object') {
-      const fieldName = element.element.field_id.field_name || '';
-
-      // Prüfe, ob die field_id bereits eine UUID enthält
-      if (!fieldName.includes('-')) {
-        // Wenn nicht, füge eine UUID hinzu
-        element.element.field_id.field_name = `${fieldName}_${uuidv4()}`;
-      }
     }
   }
 
@@ -269,19 +256,11 @@ const ensureElementUUID = (element: PatternLibraryElement): PatternLibraryElemen
             chip.uuid = uuidv4();
           }
 
-          // Normalisiere field_id, wenn es ein String ist
+          // Normalisiere field_id, wenn es ein String ist, aber ändere den field_name nicht inhaltlich
           if (typeof chip.field_id === 'string') {
             chip.field_id = {
               field_name: chip.field_id
             };
-          }
-
-          // Stelle sicher, dass die field_id eine UUID enthält
-          if (chip.field_id && typeof chip.field_id === 'object') {
-            const fieldName = chip.field_id.field_name || '';
-            if (!fieldName.includes('-')) {
-              chip.field_id.field_name = `chip_${uuidv4()}`;
-            }
           }
 
           return chip;
@@ -333,17 +312,43 @@ export const generateUUID = (): string => {
  * @param element Das zu transformierende Element
  * @returns Das transformierte Element
  */
+// Entfernt uuid-Felder rekursiv aus VisibilityConditions
+const stripUUIDFromVisibilityCondition = (condition: any): any => {
+  if (!condition) return condition;
+
+  const cleaned: any = { ...condition };
+
+  if (cleaned.uuid) {
+    delete cleaned.uuid;
+  }
+
+  // field_id ggf. von String in Objekt normalisieren, aber Namen nicht ändern
+  if (cleaned.operator_type === 'RFO' && cleaned.field_id) {
+    if (typeof cleaned.field_id === 'string') {
+      cleaned.field_id = {
+        field_name: cleaned.field_id
+      };
+    }
+  }
+
+  if (Array.isArray(cleaned.conditions)) {
+    cleaned.conditions = cleaned.conditions.map(stripUUIDFromVisibilityCondition);
+  }
+
+  return cleaned;
+};
+
 export const transformElementForExport = (element: any): any => {
   if (!element) return element;
 
   const result: any = {};
 
-  // Visibility condition zuerst hinzufügen, falls vorhanden
+  // Visibility condition zuerst hinzufügen, falls vorhanden und von UUIDs bereinigen
   if (element.visibility_condition) {
-    result.visibility_condition = element.visibility_condition;
+    result.visibility_condition = stripUUIDFromVisibilityCondition(element.visibility_condition);
   }
 
-  // Alle anderen Eigenschaften außer uuid hinzufügen
+  // Alle anderen Eigenschaften außer uuid und visibility_condition hinzufügen
   for (const key in element) {
     if (key !== 'uuid' && key !== 'visibility_condition') {
       result[key] = element[key];
@@ -379,7 +384,7 @@ export const transformElementForExport = (element: any): any => {
         delete newOption.uuid;
       }
       if (newOption.visibility_condition) {
-        const visibilityCondition = newOption.visibility_condition;
+        const visibilityCondition = stripUUIDFromVisibilityCondition(newOption.visibility_condition);
         delete newOption.visibility_condition;
         return { visibility_condition: visibilityCondition, ...newOption };
       }
@@ -388,4 +393,51 @@ export const transformElementForExport = (element: any): any => {
   }
 
   return result;
+};
+
+// Transformiert einen gesamten Flow für den Export
+export const transformFlowForExport = (flow: ListingFlow): ListingFlow => {
+  const copy: any = JSON.parse(JSON.stringify(flow));
+
+  const cleanPage = (page: any): any => {
+    if (page.uuid) {
+      delete page.uuid;
+    }
+
+    if (page.visibility_condition) {
+      page.visibility_condition = stripUUIDFromVisibilityCondition(page.visibility_condition);
+    }
+
+    if (Array.isArray(page.elements)) {
+      page.elements = page.elements.map((el: any) => ({
+        element: transformElementForExport(el.element)
+      }));
+    }
+
+    if (Array.isArray(page.sub_flows)) {
+      page.sub_flows = page.sub_flows.map((sub: any) => {
+        if (sub.uuid) {
+          delete sub.uuid;
+        }
+        if (Array.isArray(sub.elements)) {
+          sub.elements = sub.elements.map((el: any) => ({
+            element: transformElementForExport(el.element)
+          }));
+        }
+        return sub;
+      });
+    }
+
+    return page;
+  };
+
+  if (Array.isArray(copy.pages_edit)) {
+    copy.pages_edit = copy.pages_edit.map(cleanPage);
+  }
+
+  if (Array.isArray(copy.pages_view)) {
+    copy.pages_view = copy.pages_view.map(cleanPage);
+  }
+
+  return copy as ListingFlow;
 };

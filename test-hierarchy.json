@@ -1,0 +1,128 @@
+{
+  "id": "test-hierarchy-flow",
+  "url-key": "test-hierarchy-flow",
+  "name": "Test Hierarchy Flow",
+  "title": {
+    "de": "Test Hierarchie Flow",
+    "en": "Test Hierarchy Flow"
+  },
+  "icon": "mdiFileOutline",
+  "pages_edit": [
+    {
+      "pattern_type": "Page",
+      "id": "page-1",
+      "title": {
+        "de": "Hierarchie Test",
+        "en": "Hierarchy Test"
+      },
+      "elements": [
+        {
+          "element": {
+            "pattern_type": "GroupUIElement",
+            "uuid": "group-1",
+            "title": {
+              "de": "Hauptgruppe",
+              "en": "Main Group"
+            },
+            "elements": [
+              {
+                "element": {
+                  "pattern_type": "TextUIElement",
+                  "uuid": "text-1",
+                  "field_id": "text-1",
+                  "title": {
+                    "de": "Text Element 1",
+                    "en": "Text Element 1"
+                  }
+                }
+              },
+              {
+                "element": {
+                  "pattern_type": "GroupUIElement",
+                  "uuid": "group-2",
+                  "title": {
+                    "de": "Untergruppe",
+                    "en": "Sub Group"
+                  },
+                  "elements": [
+                    {
+                      "element": {
+                        "pattern_type": "BooleanUIElement",
+                        "uuid": "bool-1",
+                        "field_id": "bool-1",
+                        "title": {
+                          "de": "Boolean Element",
+                          "en": "Boolean Element"
+                        }
+                      }
+                    },
+                    {
+                      "element": {
+                        "pattern_type": "ArrayUIElement",
+                        "uuid": "array-1",
+                        "field_id": "array-1",
+                        "title": {
+                          "de": "Array Element",
+                          "en": "Array Element"
+                        },
+                        "elements": [
+                          {
+                            "element": {
+                              "pattern_type": "TextUIElement",
+                              "uuid": "text-2",
+                              "field_id": "text-2",
+                              "title": {
+                                "de": "Array Text Element",
+                                "en": "Array Text Element"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "element": {
+            "pattern_type": "ChipGroupUIElement",
+            "uuid": "chipgroup-1",
+            "field_id": "chipgroup-1",
+            "title": {
+              "de": "Chip Gruppe",
+              "en": "Chip Group"
+            },
+            "elements": [
+              {
+                "element": {
+                  "pattern_type": "BooleanUIElement",
+                  "uuid": "chip-1",
+                  "field_id": "chip-1",
+                  "title": {
+                    "de": "Chip 1",
+                    "en": "Chip 1"
+                  }
+                }
+              },
+              {
+                "element": {
+                  "pattern_type": "BooleanUIElement",
+                  "uuid": "chip-2",
+                  "field_id": "chip-2",
+                  "title": {
+                    "de": "Chip 2",
+                    "en": "Chip 2"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "pages_view": []
+}

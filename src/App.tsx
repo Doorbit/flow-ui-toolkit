@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
-import { generateUUID } from './utils/uuidUtils';
+import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
 import WorkflowNameDialog from './components/WorkflowNameDialog/WorkflowNameDialog';
 
@@ -341,8 +341,8 @@ const emptyFlow: ListingFlow = {
         en: 'Page 1'
       },
       short_title: {
-        de: '',
-        en: ''
+        de: 'Seite 1', // short_title wird mit title synchronisiert
+        en: 'Page 1'  // short_title wird mit title synchronisiert
       },
       elements: []
     }
@@ -396,9 +396,9 @@ const createElement = (type: string): PatternLibraryElement => {
           },
           type: 'DROPDOWN',
           options: [
-            { key: 'option1', label: { de: 'Option 1', en: 'Option 1' } },
-            { key: 'option2', label: { de: 'Option 2', en: 'Option 2' } },
-            { key: 'option3', label: { de: 'Option 3', en: 'Option 3' } }
+            { key: uuidv4(), label: { de: 'Option 1', en: 'Option 1' } },
+            { key: uuidv4(), label: { de: 'Option 2', en: 'Option 2' } },
+            { key: uuidv4(), label: { de: 'Option 3', en: 'Option 3' } }
           ],
           title: {
             de: 'Auswahl Element',
@@ -433,7 +433,8 @@ const createElement = (type: string): PatternLibraryElement => {
           field_id: {
             field_name: `date_field_${uuidv4()}`
           },
-          type: 'DAY', // Korrigiert: Typ hinzugefügt, erforderlich für DateUIElement
+          // Standardmäßig Jahresauswahl ('Y') entsprechend enion_esg.json
+          type: 'Y',
           title: {
             de: 'Datum Element',
             en: 'Date Element'
@@ -2007,8 +2008,9 @@ const AppContent: React.FC = () => {
   const handleSave = () => {
     if (!state.currentFlow) return;
 
-    // Erstelle einen Blob aus dem JSON
-    const json = JSON.stringify(state.currentFlow, null, 2);
+	    // Erstelle einen Blob aus dem exportbereiten JSON (ohne interne UUIDs)
+	    const exportFlow = transformFlowForExport(state.currentFlow);
+	    const json = JSON.stringify(exportFlow, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 

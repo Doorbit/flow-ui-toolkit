@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ensureUUIDs, generateUUID } from './uuidUtils';
+import { ensureUUIDs, generateUUID, transformFlowForExport } from './uuidUtils';
 import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
 import { 
   GroupUIElement, 
@@ -60,11 +60,12 @@ describe('uuidUtils', () => {
         pages_view: []
       };
 
-      const result = ensureUUIDs(testFlow);
+	      const result = ensureUUIDs(testFlow);
 
-      // Überprüfen, dass alle Elemente UUIDs haben
-      expect(result.pages_edit[0].elements[0].element.uuid).not.toBeUndefined();
-      expect(mockedUuidv4).toHaveBeenCalled();
+	      // Überprüfen, dass alle Elemente UUIDs haben, aber field_id.field_name unverändert bleibt
+	      expect(result.pages_edit[0].elements[0].element.uuid).not.toBeUndefined();
+	      expect((result.pages_edit[0].elements[0].element as any).field_id.field_name).toBe('test_field');
+	      expect(mockedUuidv4).toHaveBeenCalled();
     });
 
     it('sollte keine vorhandenen UUIDs überschreiben', () => {

@@ -9,6 +9,7 @@ import { PatternLibraryElement } from '../../../models/listingFlow';
 
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import { AccordionSection } from '../common/AccordionSection';
+import IconField from '../common/IconField';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 
@@ -72,14 +73,12 @@ const GroupElementEditor: React.FC<GroupElementEditorProps> = ({ element, onUpda
             onLanguageTabChange={(newValue) => setLanguageTab(newValue)}
           />
 
-          <TextField
-            label="Icon"
-            size="small"
+          <IconField
             value={(element.element as any).icon || ''}
-            onChange={(e) => {
+            onChange={(value) => {
               const updatedElement = { ...element };
               const elementAny = updatedElement.element as any;
-              elementAny.icon = e.target.value;
+              elementAny.icon = value;
               onUpdate(updatedElement);
             }}
           />

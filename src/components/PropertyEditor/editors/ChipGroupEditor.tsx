@@ -27,6 +27,7 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import { ChipGroupUIElement, BooleanUIElement } from '../../../models/uiElements';
 
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
+import IconField from '../common/IconField';
 import { AccordionSection } from '../common/AccordionSection';
 import { VisibilityConditionEditor } from './VisibilityConditionEditor';
 import { useSubflow } from '../../../context/SubflowContext';
@@ -195,14 +196,12 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
               onLanguageTabChange={(newValue) => setLanguageTab(newValue)}
             />
 
-            <TextField
-              label="Icon"
-              size="small"
+            <IconField
               value={element.icon || ''}
-              onChange={(e) => {
+              onChange={(value) => {
                 onChange({
                   ...element,
-                  icon: e.target.value,
+                  icon: value,
                 });
               }}
             />

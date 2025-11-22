@@ -70,19 +70,13 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
     onUpdate(updatedElement);
   };
 
-  // Hilfsfunktion für die Anzeige des Hilfetext basierend auf dem Datumstyp
+  // Hilfsfunktion für die Anzeige des Hilfetextes basierend auf dem Datumstyp
   function getHelperTextForDateType(type: string): string {
     switch (type) {
-      case 'YEAR':
+      case 'Y':
         return 'Format: YYYY (z.B. 2023)';
-      case 'MONTH':
-        return 'Format: MM (z.B. 01 für Januar)';
-      case 'DAY':
-        return 'Format: DD (z.B. 15)';
-      case 'HOUR':
-        return 'Format: HH (z.B. 14 für 14:00)';
-      case 'MINUTE':
-        return 'Format: MM (z.B. 30)';
+      case 'YM':
+        return 'Format: YYYY-MM (z.B. 2023-01)';
       case 'YMD':
         return 'Format: YYYY-MM-DD (z.B. 2023-01-15)';
       default:
@@ -93,16 +87,12 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
   // Hilfsfunktion für die Anzeige des Eingabetyps basierend auf dem Datumstyp
   function getInputTypeForDateType(type: string): string {
     switch (type) {
-      case 'YEAR':
+      case 'Y':
+        // Nur Jahreszahl – als einfache Zahl eingeben
         return 'number';
-      case 'MONTH':
+      case 'YM':
+        // Browser-Unterstützung für type="month" ist gut genug für unseren Anwendungsfall
         return 'month';
-      case 'DAY':
-        return 'number';
-      case 'HOUR':
-        return 'time';
-      case 'MINUTE':
-        return 'number';
       case 'YMD':
         return 'date';
       default:
@@ -113,9 +103,10 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
   // Hilfsfunktion für die Anzeige des Icons basierend auf dem Datumstyp
   function getIconForDateType(type: string): React.ReactElement {
     switch (type) {
-      case 'HOUR':
-      case 'MINUTE':
-        return <AccessTimeIcon />;
+      case 'Y':
+        return <CalendarMonthIcon />;
+      case 'YM':
+      case 'YMD':
       default:
         return <CalendarMonthIcon />;
     }
@@ -185,26 +176,23 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
           <FormControl fullWidth size="small">
             <InputLabel>Typ</InputLabel>
             <Select
-              value={dateElement.type || 'DAY'}
+              value={dateElement.type || 'Y'}
               onChange={handleSelectChange('type')}
               label="Typ"
             >
-              <MenuItem value="YEAR">Jahr</MenuItem>
-              <MenuItem value="MONTH">Monat</MenuItem>
-              <MenuItem value="DAY">Tag</MenuItem>
-              <MenuItem value="HOUR">Stunde</MenuItem>
-              <MenuItem value="MINUTE">Minute</MenuItem>
+              <MenuItem value="Y">Jahr</MenuItem>
+              <MenuItem value="YM">Jahr &amp; Monat</MenuItem>
               <MenuItem value="YMD">Datum (Jahr-Monat-Tag)</MenuItem>
             </Select>
             <FormHelperText>
-              {getHelperTextForDateType(dateElement.type || 'DAY')}
+              {getHelperTextForDateType(dateElement.type || 'Y')}
             </FormHelperText>
           </FormControl>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Chip
-              icon={getIconForDateType(dateElement.type || 'DAY')}
-              label={`Format: ${getHelperTextForDateType(dateElement.type || 'DAY')}`}
+              icon={getIconForDateType(dateElement.type || 'Y')}
+              label={`Format: ${getHelperTextForDateType(dateElement.type || 'Y')}`}
               variant="outlined"
               size="small"
             />
@@ -213,23 +201,23 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
             </Tooltip>
           </Box>
 
-          <TextField
+            <TextField
             label="Default-Wert"
             value={dateElement.default_value || ''}
             onChange={handleTextChange('default_value')}
             fullWidth
             size="small"
-            type={getInputTypeForDateType(dateElement.type || 'DAY')}
+              type={getInputTypeForDateType(dateElement.type || 'Y')}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <Tooltip title={getHelperTextForDateType(dateElement.type || 'DAY')}>
+                    <Tooltip title={getHelperTextForDateType(dateElement.type || 'Y')}>
                     <HelpOutlineIcon color="info" fontSize="small" />
                   </Tooltip>
                 </InputAdornment>
               ),
             }}
-            helperText={getHelperTextForDateType(dateElement.type || 'DAY')}
+              helperText={getHelperTextForDateType(dateElement.type || 'Y')}
           />
         </Box>
       </AccordionSection>

@@ -13,6 +13,7 @@ import { PatternLibraryElement } from '../../../models/listingFlow';
 import { StringUIElement } from '../../../models/uiElements';
 
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
+import IconField from '../common/IconField';
 import { AccordionSection } from '../common/AccordionSection';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
 import { ElementPreview } from '../common/ElementPreview';
@@ -99,11 +100,14 @@ const StringElementEditor: React.FC<StringElementEditorProps> = ({ element, onUp
             onLanguageTabChange={(newValue) => setLanguageTab(newValue)}
           />
 
-          <TextField
-            label="Icon"
-            size="small"
+          <IconField
             value={stringElement.icon || ''}
-            onChange={handleTextChange('icon')}
+            onChange={(value) => {
+              const updatedElement = { ...element };
+              const elementAny = updatedElement.element as any;
+              elementAny.icon = value;
+              onUpdate(updatedElement);
+            }}
             fullWidth
           />
         </Box>

@@ -6,14 +6,19 @@ import { v4 as uuidv4 } from 'uuid';
  */
 const TYPE_MAPPINGS: Record<string, Record<string, string>> = {
   DateUIElement: {
-    'Y': 'YEAR',
-    'M': 'MONTH',
-    'D': 'DAY',
-    'h': 'HOUR',
-    'm': 'MINUTE',
-    'YMD': 'YMD', // 'YMD' wird als eigener Typ beibehalten
-    'DATE': 'DAY', // Weitere mögliche Variante
-    'TIME': 'HOUR', // Weitere mögliche Variante
+    // enion_esg.json ist die Referenz: es verwendet die Kurzformen 'Y', 'YM', 'YMD'.
+    // Neue Flows sollen ausschließlich diese Werte nutzen.
+    'Y': 'Y',
+    'YM': 'YM',
+    'YMD': 'YMD',
+
+    // Rückwärtskompatibilität: ältere Flows oder Beispiel-Dateien können noch
+    // Langformen wie 'YEAR', 'MONTH', 'DAY' oder 'DATE' enthalten.
+    // Diese werden hier auf die neuen Kurzformen abgebildet.
+    YEAR: 'Y',
+    MONTH: 'YM',
+    DAY: 'YMD',
+    DATE: 'YMD',
   },
   BooleanUIElement: {
     'TOGGLE': 'SWITCH', // Falls in manchen JSONs TOGGLE statt SWITCH verwendet wird

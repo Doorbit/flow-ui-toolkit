@@ -65,12 +65,14 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
 
   const handleCreateNewPage = () => {
     const pageId = `edit-${uuidv4()}`;
+    const pageTitleDe = newPageTitle || 'Neue Seite';
+    const pageTitleEn = newPageTitle || 'New Page';
     const newPage: Page = {
       pattern_type: 'CustomUIElement',
       id: pageId,
       layout: '2_COL_RIGHT_FILL', // Default-Layout für Edit-Seiten
-      title: { de: newPageTitle || 'Neue Seite', en: newPageTitle || 'New Page' },
-      short_title: { de: '', en: '' }, // Leere Kurztitel (ausgeblendet in der UI)
+      title: { de: pageTitleDe, en: pageTitleEn },
+      short_title: { de: pageTitleDe, en: pageTitleEn }, // short_title wird mit title synchronisiert
       elements: []
     };
 
