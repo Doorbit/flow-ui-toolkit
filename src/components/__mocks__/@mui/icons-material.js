@@ -36,5 +36,11 @@ module.exports = {
   Error: createIconMock('ErrorIcon'),
   Warning: createIconMock('WarningIcon'),
   Info: createIconMock('InfoIcon'),
-  Person: createIconMock('PersonIcon')
+  Person: createIconMock('PersonIcon'),
+  Visibility: createIconMock('VisibilityIcon'),
+  AccountTree: createIconMock('AccountTreeIcon'),
+  DragIndicator: createIconMock('DragIndicatorIcon'),
+  HelpOutline: createIconMock('HelpOutlineIcon'),
+  Home: createIconMock('HomeIcon'),
+  ChevronRight: createIconMock('ChevronRightIcon')
 };

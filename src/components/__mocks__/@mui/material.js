@@ -261,27 +261,98 @@ module.exports = {
       ...props
     }, children);
   }),
-  Typography: ({ children, variant, component, align, gutterBottom, ...props }) => {
+
+  // Data Display - Typography mit korrekter gutterBottom Behandlung
+  Typography: ({ children, variant, component, align, gutterBottom, color, sx, ...props }) => {
     const Component = component || 'p';
+    const className = [
+      'MuiTypography-root',
+      `MuiTypography-${variant || 'body1'}`,
+      align ? `MuiTypography-align${align}` : '',
+      gutterBottom ? 'MuiTypography-gutterBottom' : ''
+    ].filter(Boolean).join(' ');
+
+    // Filtere MUI-spezifische Props heraus, die nicht an DOM-Elemente weitergegeben werden dürfen
+    // gutterBottom, color, sx sind bereits aus ...props entfernt
     return React.createElement(Component, {
-      className: `MuiTypography-root MuiTypography-${variant || 'body1'} MuiTypography-align${align || 'inherit'}`,
+      className,
       ...props
     }, children);
   },
 
-  // Data Display
-  Typography: ({ children, variant, component, align, ...props }) =>
-    React.createElement(component || 'p', {
-      className: `MuiTypography-root MuiTypography-${variant || 'body1'} MuiTypography-align${align || 'inherit'}`,
-      ...props
-    }, children),
-
   // Selection Controls
   Select: mockSelect,
   MenuItem: mockMenuItem,
-  FormControl: ({ children, ...props }) => React.createElement('div', { className: 'MuiFormControl-root', ...props }, children),
-  FormLabel: ({ children, ...props }) => React.createElement('label', { className: 'MuiFormLabel-root', ...props }, children),
-  InputLabel: ({ children, ...props }) => React.createElement('label', { className: 'MuiInputLabel-root', ...props }, children),
+  FormControl: ({ children, fullWidth, variant, error, disabled, ...props }) =>
+    React.createElement('div', {
+      className: `MuiFormControl-root ${fullWidth ? 'MuiFormControl-fullWidth' : ''} ${error ? 'Mui-error' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      ...props
+    }, children),
+  FormLabel: ({ children, error, disabled, ...props }) =>
+    React.createElement('label', {
+      className: `MuiFormLabel-root ${error ? 'Mui-error' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      ...props
+    }, children),
+  InputLabel: ({ children, shrink, error, disabled, ...props }) =>
+    React.createElement('label', {
+      className: `MuiInputLabel-root ${shrink ? 'MuiInputLabel-shrink' : ''} ${error ? 'Mui-error' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      ...props
+    }, children),
+  FormHelperText: ({ children, error, ...props }) =>
+    React.createElement('p', {
+      className: `MuiFormHelperText-root ${error ? 'Mui-error' : ''}`,
+      ...props
+    }, children),
+
+  // Input Components
+  TextField: React.forwardRef(({
+    label,
+    value,
+    onChange,
+    error,
+    helperText,
+    fullWidth,
+    variant,
+    type,
+    placeholder,
+    disabled,
+    multiline,
+    rows,
+    InputProps,
+    InputLabelProps,
+    ...props
+  }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: `MuiTextField-root ${fullWidth ? 'MuiTextField-fullWidth' : ''} ${error ? 'Mui-error' : ''}`,
+    }, [
+      label && React.createElement('label', {
+        key: 'label',
+        className: 'MuiInputLabel-root'
+      }, label),
+      React.createElement(multiline ? 'textarea' : 'input', {
+        key: 'input',
+        className: 'MuiInputBase-input',
+        type: type || 'text',
+        value,
+        onChange,
+        placeholder,
+        disabled,
+        rows: multiline ? rows : undefined,
+        ...props
+      }),
+      helperText && React.createElement('p', {
+        key: 'helper',
+        className: `MuiFormHelperText-root ${error ? 'Mui-error' : ''}`
+      }, helperText)
+    ]);
+  }),
+
+  InputAdornment: ({ children, position, ...props }) =>
+    React.createElement('div', {
+      className: `MuiInputAdornment-root MuiInputAdornment-position${position || 'end'}`,
+      ...props
+    }, children),
 
   // Miscellaneous
   Divider: (props) => React.createElement('hr', { className: 'MuiDivider-root', ...props }),
@@ -331,6 +402,108 @@ module.exports = {
       ref,
       className: `MuiCollapse-root ${inProp ? 'MuiCollapse-entered' : ''}`,
       style: { display: inProp ? 'block' : 'none' },
+      ...props
+    }, children);
+  }),
+
+  Chip: React.forwardRef(({ label, onDelete, onClick, color, size, variant, icon, deleteIcon, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: `MuiChip-root MuiChip-${variant || 'filled'} MuiChip-${size || 'medium'} ${color ? `MuiChip-color${color}` : ''}`,
+      onClick,
+      ...props
+    }, [
+      icon && React.createElement('span', { key: 'icon', className: 'MuiChip-icon' }, icon),
+      React.createElement('span', { key: 'label', className: 'MuiChip-label' }, label),
+      onDelete && React.createElement('span', {
+        key: 'delete',
+        className: 'MuiChip-deleteIcon',
+        onClick: onDelete
+      }, deleteIcon || '×')
+    ]);
+  }),
+
+  Breadcrumbs: ({ children, separator, maxItems, itemsBeforeCollapse, itemsAfterCollapse, ...props }) => {
+    return React.createElement('nav', {
+      className: 'MuiBreadcrumbs-root',
+      'aria-label': 'breadcrumb',
+      ...props
+    }, React.createElement('ol', {
+      className: 'MuiBreadcrumbs-ol'
+    }, React.Children.map(children, (child, index) => {
+      return React.createElement('li', {
+        key: index,
+        className: 'MuiBreadcrumbs-li'
+      }, [
+        child,
+        index < React.Children.count(children) - 1 && separator && React.createElement('span', {
+          key: 'separator',
+          className: 'MuiBreadcrumbs-separator'
+        }, separator)
+      ]);
+    })));
+  },
+
+  Link: React.forwardRef(({ children, href, onClick, component, variant, color, underline, ...props }, ref) => {
+    const Component = component || 'a';
+    return React.createElement(Component, {
+      ref,
+      href,
+      onClick,
+      className: `MuiLink-root MuiLink-underline${underline || 'hover'}`,
+      ...props
+    }, children);
+  }),
+
+  List: React.forwardRef(({ children, dense, disablePadding, ...props }, ref) => {
+    return React.createElement('ul', {
+      ref,
+      className: `MuiList-root ${dense ? 'MuiList-dense' : ''} ${disablePadding ? 'MuiList-padding' : ''}`,
+      ...props
+    }, children);
+  }),
+
+  ListItem: React.forwardRef(({ children, button, selected, disabled, ...props }, ref) => {
+    return React.createElement('li', {
+      ref,
+      className: `MuiListItem-root ${button ? 'MuiListItem-button' : ''} ${selected ? 'Mui-selected' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      ...props
+    }, children);
+  }),
+
+  ListItemButton: React.forwardRef(({ children, selected, disabled, onClick, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      role: 'button',
+      className: `MuiListItemButton-root ${selected ? 'Mui-selected' : ''} ${disabled ? 'Mui-disabled' : ''}`,
+      onClick,
+      ...props
+    }, children);
+  }),
+
+  ListItemIcon: React.forwardRef(({ children, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: 'MuiListItemIcon-root',
+      ...props
+    }, children);
+  }),
+
+  ListItemText: React.forwardRef(({ primary, secondary, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: 'MuiListItemText-root',
+      ...props
+    }, [
+      primary && React.createElement('span', { key: 'primary', className: 'MuiListItemText-primary' }, primary),
+      secondary && React.createElement('span', { key: 'secondary', className: 'MuiListItemText-secondary' }, secondary)
+    ]);
+  }),
+
+  ListItemSecondaryAction: React.forwardRef(({ children, ...props }, ref) => {
+    return React.createElement('div', {
+      ref,
+      className: 'MuiListItemSecondaryAction-root',
       ...props
     }, children);
   }),
