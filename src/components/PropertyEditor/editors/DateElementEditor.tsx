@@ -28,7 +28,6 @@ import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 interface DateElementEditorProps {
   element: PatternLibraryElement;
