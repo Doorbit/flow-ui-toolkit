@@ -40,9 +40,19 @@ Die Hauptnavigation bietet folgende Funktionen:
 ### 3. Verfügbare UI-Elemente
 
 #### Textuelle Elemente
-- **Textblock**: Für Überschriften oder Absätze
-- **Texteingabe**: Einzeilige oder mehrzeilige Texteingabefelder
-- **String-Element**: Für formatierte Texteingaben mit Längenvalidierung
+- **Text (Anzeige)** (`TextUIElement`): Für statische Textanzeige wie Überschriften oder Absätze
+  - Wird **nicht** vom Benutzer bearbeitet
+  - Dient zur Information und Strukturierung
+  - Unterstützt Überschriften (HEADING) und Absätze (PARAGRAPH)
+
+- **Texteingabe** (`StringUIElement`): Für Benutzereingaben von Text
+  - Ermöglicht **Benutzereingabe** von Textdaten
+  - Speichert eingegebene Werte in einem Feld
+  - Unterstützt einzeilige und mehrzeilige Eingaben
+  - Bietet Validierungsoptionen (Mindest-/Maximallänge, Muster)
+  - Kann Platzhaltertext und Standardwerte haben
+
+> **Wichtig**: Verwenden Sie **Text (Anzeige)** für statische Inhalte und **Texteingabe** wenn Benutzer Text eingeben sollen.
 
 #### Auswahloptionen
 - **Boolean**: Ja/Nein-Auswahl (Checkbox/Toggle)

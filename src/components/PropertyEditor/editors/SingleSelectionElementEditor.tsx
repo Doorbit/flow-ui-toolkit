@@ -34,7 +34,7 @@ export const SingleSelectionElementEditor: React.FC<SingleSelectionElementEditor
   const handleTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     onChange({
       ...element,
-      type: event.target.value as 'DROPDOWN' | 'BUTTONGROUP'
+			type: event.target.value as 'DROPDOWN' | 'BUTTON_GROUP'
     });
   };
 
@@ -157,7 +157,7 @@ export const SingleSelectionElementEditor: React.FC<SingleSelectionElementEditor
           onChange={(e) => handleTypeChange(e as any)}
         >
           <MenuItem value="DROPDOWN">Dropdown</MenuItem>
-          <MenuItem value="BUTTONGROUP">Button Gruppe</MenuItem>
+				<MenuItem value="BUTTON_GROUP">Button Gruppe</MenuItem>
         </Select>
       </FormControl>
 

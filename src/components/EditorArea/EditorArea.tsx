@@ -208,7 +208,8 @@ const ElementPreview: React.FC<{ element: UIElement }> = ({ element }) => {
             <FormControlLabel control={<Radio size="small" disabled />} label={falseLabel} />
           </Box>;
           break;
-        case 'BUTTONGROUP':
+	      case 'BUTTONGROUP':
+	      case 'BUTTON_GROUP':
           displayComponent = <Box sx={{ display: 'flex', gap: 1 }}>
             <Button variant="outlined" size="small">{trueLabel}</Button>
             <Button variant="outlined" size="small">{falseLabel}</Button>
@@ -226,22 +227,40 @@ const ElementPreview: React.FC<{ element: UIElement }> = ({ element }) => {
       );
       break;
     }
-    case 'SingleSelectionUIElement':
-      content = (
-        <Box>
-          <Typography variant="subtitle1">
-            {element.title?.de || element.title?.en || 'Auswahl'}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {(element as any).options?.map((option: any, index: number) => (
-              <Button key={index} variant="outlined" size="small">
-                {option.label?.de || option.label?.en || option.key}
-              </Button>
-            ))}
-          </Box>
-        </Box>
-      );
-      break;
+	    case 'SingleSelectionUIElement': {
+	      const selectionElement = element as any;
+	      const displayType = selectionElement.type || 'DROPDOWN';
+	      const options = selectionElement.options || [];
+	      const firstOption = options[0];
+
+	      content = (
+	        <Box>
+	          <Typography variant="subtitle1">
+	            {element.title?.de || element.title?.en || 'Auswahl'}
+	          </Typography>
+	          {displayType === 'DROPDOWN' ? (
+	            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+	              <Typography variant="body2">Dropdown:</Typography>
+	              <Button variant="outlined" size="small">
+	                {firstOption?.label?.de ||
+	                  firstOption?.label?.en ||
+	                  firstOption?.key ||
+	                  'Option auswählen'}
+	              </Button>
+	            </Box>
+	          ) : (
+	            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+	              {options.map((option: any, index: number) => (
+	                <Button key={index} variant="outlined" size="small">
+	                  {option.label?.de || option.label?.en || option.key}
+	                </Button>
+	              ))}
+	            </Box>
+	          )}
+	        </Box>
+	      );
+	      break;
+	    }
     case 'GroupUIElement':
       content = (
         <Box>

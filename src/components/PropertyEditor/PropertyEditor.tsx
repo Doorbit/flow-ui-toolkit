@@ -3146,28 +3146,28 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
               }}
             />
 
-            <FormControl fullWidth size="small">
-              <InputLabel>Typ</InputLabel>
-              <Select
-                value={selectionElement.type || 'DROPDOWN'}
-                label="Typ"
-                onChange={(e) => {
-                  const newValue = e.target.value as "BUTTONGROUP" | "DROPDOWN";
-                  const updatedSelectionElement: SingleSelectionUIElement = {
-                    ...selectionElement,
-                    type: newValue
-                  };
-                  const updatedElement = {
-                    ...element,
-                    element: updatedSelectionElement
-                  };
-                  onUpdate(updatedElement);
-                }}
-              >
-                <MenuItem value="DROPDOWN">Dropdown</MenuItem>
-                <MenuItem value="BUTTONGROUP">Button-Gruppe</MenuItem>
-              </Select>
-            </FormControl>
+	          <FormControl fullWidth size="small">
+	            <InputLabel>Typ</InputLabel>
+	            <Select
+	              value={selectionElement.type || 'DROPDOWN'}
+	              label="Typ"
+	              onChange={(e) => {
+	                const newValue = e.target.value as "BUTTON_GROUP" | "DROPDOWN";
+	                const updatedSelectionElement: SingleSelectionUIElement = {
+	                  ...selectionElement,
+	                  type: newValue
+	                };
+	                const updatedElement = {
+	                  ...element,
+	                  element: updatedSelectionElement
+	                };
+	                onUpdate(updatedElement);
+	              }}
+	            >
+	              <MenuItem value="DROPDOWN">Dropdown</MenuItem>
+	              <MenuItem value="BUTTON_GROUP">Button-Gruppe</MenuItem>
+	            </Select>
+	          </FormControl>
 
             <TextField
               label="Default-Wert"

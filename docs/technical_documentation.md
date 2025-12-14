@@ -66,19 +66,21 @@ interface TranslatableString {
 
 #### UI-Elemente
 Die Anwendung unterstützt verschiedene UI-Elementtypen:
-- TextUIElement
-- BooleanUIElement
+- **TextUIElement**: Statische Textanzeige (Überschriften, Absätze) - keine Benutzereingabe
+- **StringUIElement**: Texteingabefeld für Benutzereingaben mit Validierung
+- **BooleanUIElement**: Ja/Nein-Auswahl
   - Unterstützt verschiedene Darstellungsarten: SWITCH, CHECKBOX, DROPDOWN, RADIO, BUTTONGROUP
   - Anpassbare Beschriftungen für Wahr/Falsch-Werte
-- SingleSelectionUIElement
-- NumberUIElement
-- DateUIElement
-- FileUIElement
-- GroupUIElement
-- ArrayUIElement
-- CustomUIElement
-- ChipGroupUIElement
-- StringUIElement
+- **SingleSelectionUIElement**: Einzelauswahl aus mehreren Optionen
+- **NumberUIElement**: Zahleneingabe
+- **DateUIElement**: Datumseingabe
+- **FileUIElement**: Datei-Upload
+- **GroupUIElement**: Container für Elementgruppierung
+- **ArrayUIElement**: Container für wiederholbare Elemente
+- **CustomUIElement**: Spezielle benutzerdefinierte Komponenten
+- **ChipGroupUIElement**: Mehrfachauswahl mit Chips
+
+> **Wichtiger Unterschied**: `TextUIElement` ist für statische Anzeige, `StringUIElement` für Benutzereingaben.
 
 ### 3. Komponenten im Detail
 

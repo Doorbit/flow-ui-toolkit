@@ -42,6 +42,7 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import NumbersIcon from '@mui/icons-material/Numbers';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import InputIcon from '@mui/icons-material/Input';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
@@ -214,7 +215,8 @@ interface ElementType {
 
 // Elementtypen-Liste
 const elementTypes: ElementType[] = [
-  { type: 'TextUIElement', label: 'Text', icon: <TextFieldsIcon />, category: 'basic' },
+  { type: 'TextUIElement', label: 'Text (Anzeige)', icon: <TextFieldsIcon />, category: 'basic' },
+  { type: 'StringUIElement', label: 'Texteingabe', icon: <InputIcon />, category: 'basic' },
   { type: 'BooleanUIElement', label: 'Boolean', icon: <CheckBoxIcon />, category: 'basic' },
   { type: 'SingleSelectionUIElement', label: 'Auswahl', icon: <RadioButtonCheckedIcon />, category: 'basic' },
   { type: 'NumberUIElement', label: 'Nummer', icon: <NumbersIcon />, category: 'basic' },

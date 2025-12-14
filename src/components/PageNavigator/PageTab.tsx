@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Tab, IconButton, Tooltip, Box } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon } from '@mui/icons-material';
+import { Tab, IconButton, Tooltip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon, MoreVert as MoreVertIcon, DragIndicator as DragIndicatorIcon } from '@mui/icons-material';
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
 import { Page } from '../../models/listingFlow';
@@ -41,6 +41,29 @@ const PageTab: React.FC<PageTabProps> = ({
   isVisible = true
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    handleMenuClose();
+    onEdit(page);
+  };
+
+  const handleDelete = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    handleMenuClose();
+    onDelete(page.id);
+  };
 
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.PAGE_TAB,
@@ -172,61 +195,69 @@ const PageTab: React.FC<PageTabProps> = ({
         sx={{
           cursor: 'move',
           color: '#000000',
-          '&:hover .delete-icon, &:hover .edit-icon': {
+          '&:hover .page-menu-icon': {
             opacity: 1,
           },
         }}
         iconPosition="end"
         icon={
           !isLastPage ? (
-            <Box sx={{ display: 'flex' }}>
-              <Tooltip title="Seite bearbeiten">
-                <IconButton
-                  size="small"
-                  className="edit-icon"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Verhindern, dass der Tab ausgewählt wird
-                    onEdit(page);
-                  }}
-                  sx={{
+            <Tooltip title="Seitenaktionen">
+              <IconButton
+                size="small"
+                className="page-menu-icon"
+                onClick={handleMenuOpen}
+                sx={{
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  color: '#000000',
+                  '&:hover': {
                     opacity: 1,
-                    transition: 'opacity 0.2s',
-                    mr: 0.5,
-                    color: '#000000',
-                    '&:hover': {
-                      opacity: 1,
-                      color: '#009F64'
-                    }
-                  }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Seite löschen">
-                <IconButton
-                  size="small"
-                  className="delete-icon"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Verhindern, dass der Tab ausgewählt wird
-                    onDelete(page.id);
-                  }}
-                  sx={{
-                    opacity: 1,
-                    transition: 'opacity 0.2s',
-                    color: '#000000',
-                    '&:hover': {
-                      opacity: 1,
-                      color: '#F05B29'
-                    }
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
+                    color: '#009F64'
+                  }
+                }}
+              >
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           ) : undefined
         }
       />
+
+      {/* Context Menu for page actions */}
+      <Menu
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" sx={{ color: '#009F64' }} />
+          </ListItemIcon>
+          <ListItemText>Seite bearbeiten</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" sx={{ color: '#F05B29' }} />
+          </ListItemIcon>
+          <ListItemText>Seite löschen</ListItemText>
+        </MenuItem>
+        <MenuItem disabled>
+          <ListItemIcon>
+            <DragIndicatorIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText secondary="Zum Verschieben ziehen">Seite verschieben</ListItemText>
+        </MenuItem>
+      </Menu>
     </div>
   );
 };

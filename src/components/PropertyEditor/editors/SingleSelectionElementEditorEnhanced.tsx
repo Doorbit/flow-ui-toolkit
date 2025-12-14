@@ -58,7 +58,7 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
   const handleTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     onChange({
       ...element,
-      type: event.target.value as 'DROPDOWN' | 'BUTTONGROUP'
+			type: event.target.value as 'DROPDOWN' | 'BUTTON_GROUP'
     });
   };
 

@@ -17,6 +17,7 @@ import {
   TextFields as TextIcon,
   CheckBox as BooleanIcon,
   RadioButtonChecked as SingleSelectionIcon,
+  Input as StringInputIcon,
   Numbers as NumberIcon,
   CalendarToday as DateIcon,
   AttachFile as FileIcon,
@@ -42,7 +43,8 @@ interface ElementTypeDialogProps {
 
 // Wiederverwendung der Elementtypen aus der ElementPalette
 const elements: ElementType[] = [
-  { type: 'TextUIElement', label: 'Text', icon: <TextIcon />, category: 'basic' },
+  { type: 'TextUIElement', label: 'Text (Anzeige)', icon: <TextIcon />, category: 'basic' },
+  { type: 'StringUIElement', label: 'Texteingabe', icon: <StringInputIcon />, category: 'basic' },
   { type: 'BooleanUIElement', label: 'Boolean', icon: <BooleanIcon />, category: 'basic' },
   { type: 'SingleSelectionUIElement', label: 'Auswahl', icon: <SingleSelectionIcon />, category: 'basic' },
   { type: 'NumberUIElement', label: 'Nummer', icon: <NumberIcon />, category: 'basic' },

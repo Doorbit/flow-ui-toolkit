@@ -27,8 +27,10 @@ const TYPE_MAPPINGS: Record<string, Record<string, string>> = {
     'BOOL': 'CHECKBOX', // Weitere mögliche Variante
   },
   SingleSelectionUIElement: {
-    'BUTTON_GROUP': 'BUTTONGROUP', // Normalisierung von BUTTON_GROUP zu BUTTONGROUP
-    'RADIO_GROUP': 'BUTTONGROUP', // Weitere mögliche Variante
+		// Historische Toolkit-Werte wieder auf das Doorbit-Schema abbilden
+		'BUTTONGROUP': 'BUTTON_GROUP', // interne Alt-Schreibweise -> kanonische Schreibweise mit Unterstrich
+		'RADIO_GROUP': 'BUTTON_GROUP', // Weitere mögliche Variante
+		'BUTTON_GROUP': 'BUTTON_GROUP', // Bereits korrekter Wert bleibt erhalten
     'SELECT': 'DROPDOWN', // Weitere mögliche Variante
     'COMBOBOX': 'DROPDOWN', // Weitere mögliche Variante
   },

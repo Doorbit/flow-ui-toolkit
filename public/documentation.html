@@ -446,35 +446,59 @@
 
       <div id="text-elements" class="card element-card">
         <h3>Textelemente</h3>
-        <p>Textelemente dienen zur Anzeige von statischem Text wie Überschriften, Absätzen oder Hinweisen.</p>
+        <p>Es gibt zwei Arten von Textelementen mit unterschiedlichen Zwecken:</p>
 
-        <h4>Eigenschaften</h4>
+        <h4>Text (Anzeige) - TextUIElement</h4>
+        <p>Für <strong>statische Textanzeige</strong> ohne Benutzereingabe.</p>
         <ul>
-          <li><strong>Texttyp</strong>: HEADING (Überschrift), PARAGRAPH (Absatz), SMALL (Kleingedrucktes)</li>
+          <li><strong>Zweck</strong>: Anzeige von Überschriften, Absätzen und Informationstexten</li>
+          <li><strong>Texttyp</strong>: HEADING (Überschrift) oder PARAGRAPH (Absatz)</li>
           <li><strong>Text</strong>: Der anzuzeigende Text (mehrsprachig)</li>
-          <li><strong>Formatierung</strong>: Grundlegende Textformatierung</li>
+          <li><strong>Keine Datenspeicherung</strong>: Dient nur zur Anzeige, speichert keine Benutzereingaben</li>
         </ul>
 
-        <h4>Verwendung</h4>
-        <p>Textelemente eignen sich besonders für:</p>
+        <h4>Texteingabe - StringUIElement</h4>
+        <p>Für <strong>Benutzereingaben</strong> von Textdaten.</p>
+        <ul>
+          <li><strong>Zweck</strong>: Erfassung von Textdaten vom Benutzer</li>
+          <li><strong>Eingabetyp</strong>: TEXT (einzeilig) oder TEXT_AREA (mehrzeilig)</li>
+          <li><strong>Feld-ID</strong>: Eindeutige ID zur Speicherung der Eingabe</li>
+          <li><strong>Validierung</strong>: Mindest-/Maximallänge, Muster (Regex)</li>
+          <li><strong>Platzhalter</strong>: Optionaler Hinweistext im leeren Feld</li>
+          <li><strong>Standardwert</strong>: Vorbelegter Wert</li>
+        </ul>
+
+        <div class="note">
+          <p><strong>Wichtig:</strong> Verwenden Sie <strong>Text (Anzeige)</strong> für statische Inhalte wie Überschriften und Beschreibungen. Verwenden Sie <strong>Texteingabe</strong> wenn Benutzer Text eingeben und speichern sollen.</p>
+        </div>
+
+        <h4>Verwendungsbeispiele</h4>
+        <p><strong>Text (Anzeige)</strong> eignet sich für:</p>
         <ul>
           <li>Abschnittsüberschriften</li>
           <li>Erklärungstexte und Anleitungen</li>
           <li>Hinweise und Warnungen</li>
           <li>Rechtliche Informationen</li>
         </ul>
+
+        <p><strong>Texteingabe</strong> eignet sich für:</p>
+        <ul>
+          <li>Namen, Adressen, Beschreibungen</li>
+          <li>Kommentare und Notizen</li>
+          <li>Suchfelder</li>
+          <li>Beliebige Textdaten vom Benutzer</li>
+        </ul>
       </div>
 
       <div id="input-elements" class="card element-card">
-        <h3>Eingabeelemente</h3>
-        <p>Eingabeelemente ermöglichen die Erfassung verschiedener Datentypen.</p>
+        <h3>Weitere Eingabeelemente</h3>
+        <p>Neben Texteingaben gibt es weitere spezialisierte Eingabeelemente für verschiedene Datentypen.</p>
 
         <h4>Typen von Eingabeelementen</h4>
         <ul>
-          <li><strong>StringUIElement</strong>: Für Texteingaben</li>
-          <li><strong>NumberUIElement</strong>: Für Zahleneingaben</li>
-          <li><strong>DateUIElement</strong>: Für Datumseingaben</li>
-          <li><strong>FileUIElement</strong>: Für Datei-Uploads</li>
+          <li><strong>NumberUIElement</strong>: Für Zahleneingaben (Ganzzahlen oder Dezimalzahlen)</li>
+          <li><strong>DateUIElement</strong>: Für Datumseingaben (Jahr, Monat, Tag)</li>
+          <li><strong>FileUIElement</strong>: Für Datei-Uploads (Bilder, Dokumente)</li>
         </ul>
 
         <h4>Validierung</h4>

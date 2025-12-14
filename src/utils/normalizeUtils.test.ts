@@ -174,8 +174,8 @@ describe('normalizeElementTypes', () => {
           elements: [
             {
               element: {
-                pattern_type: 'SingleSelectionUIElement',
-                type: 'BUTTON_GROUP',
+					pattern_type: 'SingleSelectionUIElement',
+					type: 'BUTTONGROUP',
                 field_id: { field_name: 'test_selection' }
               }
             }
@@ -185,11 +185,11 @@ describe('normalizeElementTypes', () => {
       pages_view: []
     };
 
-    testNormalization(
-      input,
-      (result) => (result.pages_edit[0].elements[0].element as any).type,
-      'BUTTONGROUP'
-    );
+			testNormalization(
+				input,
+				(result) => (result.pages_edit[0].elements[0].element as any).type,
+				'BUTTON_GROUP'
+			);
   });
 
   it('should normalize NumberUIElement type values', () => {

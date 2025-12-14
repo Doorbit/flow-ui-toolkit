@@ -21,14 +21,14 @@ export interface TextUIElement extends UIElementEdit {
 }
 
 export interface SingleSelectionUIElement extends UIElementEdit {
-  pattern_type: 'SingleSelectionUIElement';
-  type?: 'BUTTONGROUP' | 'DROPDOWN';
-  field_id: FieldId;
-  options: SingleSelectionUIElementItem[];
-  items?: SingleSelectionUIElementItem[]; // Alias für options für Kompatibilität
-  default?: string;
-  sorting?: 'ASC';
-  other_user_value?: SingleSelectionUIElementItemOther;
+	pattern_type: 'SingleSelectionUIElement';
+	type?: 'BUTTON_GROUP' | 'DROPDOWN';
+	field_id: FieldId;
+	options: SingleSelectionUIElementItem[];
+	items?: SingleSelectionUIElementItem[]; // Alias für options für Kompatibilität
+	default?: string;
+	sorting?: 'ASC';
+	other_user_value?: SingleSelectionUIElementItemOther;
 }
 
 export interface SingleSelectionUIElementItem {
