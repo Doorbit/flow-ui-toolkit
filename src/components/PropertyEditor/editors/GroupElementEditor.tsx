@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import {
   Box,
   FormControlLabel,
-  Switch,
-  TextField
+  Switch
 } from '@mui/material';
 import { PatternLibraryElement } from '../../../models/listingFlow';
 

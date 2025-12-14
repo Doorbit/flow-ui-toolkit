@@ -295,6 +295,8 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   // Handler für die Navigation in der Hierarchie
   const handleNavigateTo = (path: number[]) => {
     setCurrentPath(path);
+    // Aktualisiere auch das ausgewählte Element für konsistente Navigation
+    onSelectElement(path);
   };
 
   // Handler für "Tiefer gehen" in ein Element
@@ -522,9 +524,9 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                 case 'subflow':
                   icon = <CodeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
                   break;
-                case 'root':
-                  icon = <HomeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
-                  break;
+                // case 'root': Entfernt, da bereits ein dedizierter Home-Button vorhanden ist
+                //   icon = <HomeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />;
+                //   break;
               }
 
               return isLast ? (
