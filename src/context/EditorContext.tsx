@@ -26,7 +26,7 @@ type Action =
   | { type: 'REMOVE_SUB_ELEMENT'; path: number[]; pageId: string }
   | { type: 'MOVE_SUB_ELEMENT'; sourcePath: number[]; targetPath: number[]; pageId: string }
   | { type: 'ADD_PAGE'; page: Page }
-  | { type: 'UPDATE_PAGE'; page: Page }
+  | { type: 'UPDATE_PAGE'; page: Page; viewPage?: Page }
   | { type: 'REMOVE_PAGE'; pageId: string }
   | { type: 'SELECT_PAGE'; pageId: string }
   | { type: 'MOVE_PAGE'; sourceIndex: number; targetIndex: number }
@@ -1014,21 +1014,30 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         page.id === action.page.id ? action.page : page
       );
 
-      // Aktualisiere auch die entsprechende Seite in pages_view
-      // Synchronisiere title, short_title und icon, aber behalte die elements der View-Seite bei
-      const updatedPagesView = state.currentFlow.pages_view.map(page => {
-        if (page.id === viewPageId || page.id === action.page.id) {
-          return {
-            ...page,
-            title: action.page.title,
-            short_title: action.page.short_title,
-            icon: action.page.icon,
-            layout: action.page.layout,
-            visibility_condition: action.page.visibility_condition
-          };
-        }
-        return page;
-      });
+      // Aktualisiere die View-Seite
+      let updatedPagesView;
+
+      if (action.viewPage) {
+        // Wenn eine viewPage übergeben wurde, verwende diese
+        updatedPagesView = state.currentFlow.pages_view.map(page =>
+          page.id === viewPageId ? action.viewPage! : page
+        );
+      } else {
+        // Ansonsten synchronisiere nur Metadaten (wie bisher)
+        updatedPagesView = state.currentFlow.pages_view.map(page => {
+          if (page.id === viewPageId || page.id === action.page.id) {
+            return {
+              ...page,
+              title: action.page.title,
+              short_title: action.page.short_title,
+              icon: action.page.icon,
+              layout: action.page.layout,
+              visibility_condition: action.page.visibility_condition
+            };
+          }
+          return page;
+        });
+      }
 
       const newFlow = {
         ...state.currentFlow,

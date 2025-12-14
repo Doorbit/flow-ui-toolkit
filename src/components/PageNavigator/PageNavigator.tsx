@@ -119,8 +119,8 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   };
 
   // Handler für Speichern der bearbeiteten Seite
-  const handleSaveEditedPage = (updatedPage: Page) => {
-    dispatch({ type: 'UPDATE_PAGE', page: updatedPage });
+  const handleSaveEditedPage = (updatedPage: Page, viewPage?: Page) => {
+    dispatch({ type: 'UPDATE_PAGE', page: updatedPage, viewPage });
     setEditPageDialogOpen(false);
     setPageToEdit(null);
   };

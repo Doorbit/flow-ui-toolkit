@@ -35,11 +35,12 @@ import { useFieldValues } from '../../context/FieldValuesContext';
 import { useEditor } from '../../context/EditorContext';
 import VisibilityConditionBuilder from '../HybridEditor/VisibilityConditionBuilder';
 import { toBuilderFormat, fromBuilderFormat, BuilderCondition } from '../../utils/visibilityConverters';
+import { transformEditPageToViewPage } from '../../utils/viewModeTransformer';
 
 interface EditPageDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (updatedPage: Page) => void;
+  onSave: (updatedPage: Page, viewPage?: Page) => void;
   page: Page;
   pages: Page[]; // Alle Seiten für Referenzierung
   isEditPage: boolean; // Ob es sich um eine Edit- oder View-Seite handelt
@@ -62,6 +63,14 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const [builderCondition, setBuilderCondition] = useState<BuilderCondition | undefined>(toBuilderFormat(page.visibility_condition));
   const [childElementsHaveVisibilityConditions, setChildElementsHaveVisibilityConditions] = useState<boolean>(false);
   const [childVisibilityConditions, setChildVisibilityConditions] = useState<VisibilityCondition[]>([]);
+
+  // Neuer State für "Im View-Modus anzeigen" Toggle
+  const [includeInViewMode, setIncludeInViewMode] = useState(() => {
+    // Prüfe, ob eine View-Page existiert UND Elemente hat
+    const viewPageId = page.id.replace('edit-', 'view-');
+    const viewPage = _pages.find(p => p.id === viewPageId);
+    return viewPage && viewPage.elements && viewPage.elements.length > 0;
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { availableFields: _ } = useFieldValues();
@@ -240,7 +249,26 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
       visibility_condition: visibilityCondition
     };
 
-    onSave(updatedPage);
+    // Generiere View-Page basierend auf Toggle
+    let viewPage: Page | undefined;
+
+    if (isEditPage && includeInViewMode) {
+      // Automatische Transformation!
+      viewPage = transformEditPageToViewPage(updatedPage);
+    } else if (isEditPage && !includeInViewMode) {
+      // Leere View-Page (wie bisher)
+      viewPage = {
+        ...updatedPage,
+        id: updatedPage.id.replace('edit-', 'view-'),
+        elements: [],
+        related_pages: [{
+          viewing_context: 'EDIT',
+          page_id: updatedPage.id
+        }]
+      };
+    }
+
+    onSave(updatedPage, viewPage);
     onClose();
   };
 
@@ -489,6 +517,39 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                 </Button>
               </Box>
             </Box>
+
+            {/* View-Modus Toggle - nur für Edit-Pages */}
+            {isEditPage && (
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={includeInViewMode}
+                      onChange={(e) => setIncludeInViewMode(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Im View-Modus anzeigen"
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 4, display: 'block', mt: 0.5 }}>
+                  Wenn aktiviert, werden die Elemente dieser Seite automatisch für den View-Modus transformiert
+                  und als Tabellen/Galerien angezeigt. Sie müssen keine View-Elemente manuell erstellen!
+                </Typography>
+                {includeInViewMode && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <Typography variant="body2">
+                      <strong>Automatische Transformation:</strong> Ihre Input-Felder werden automatisch in
+                      Anzeige-Elemente umgewandelt:
+                    </Typography>
+                    <Typography variant="body2" component="ul" sx={{ mt: 1, mb: 0 }}>
+                      <li>Eingabefelder → Tabellen mit Schlüssel-Wert-Paaren</li>
+                      <li>Datei-Uploads → Bildergalerien</li>
+                      <li>Gruppen → Überschriften mit Tabellen</li>
+                    </Typography>
+                  </Alert>
+                )}
+              </Box>
+            )}
 
             {/* Gelöscht: Duplikat der Sichtbarkeitsregeln, da diese bereits am Anfang eingefügt wurden */}
           </Box>
