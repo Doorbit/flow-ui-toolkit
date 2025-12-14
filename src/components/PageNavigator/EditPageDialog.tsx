@@ -42,7 +42,8 @@ interface EditPageDialogProps {
   onClose: () => void;
   onSave: (updatedPage: Page, viewPage?: Page) => void;
   page: Page;
-  pages: Page[]; // Alle Seiten für Referenzierung
+  pages: Page[]; // Alle Edit-Seiten für Referenzierung
+  viewPages: Page[]; // Alle View-Seiten für Toggle-Initialisierung
   isEditPage: boolean; // Ob es sich um eine Edit- oder View-Seite handelt
 }
 
@@ -52,6 +53,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   onSave,
   page,
   pages: _pages = [],
+  viewPages: _viewPages = [],
   isEditPage = true
 }) => {
   const [titleDe, setTitleDe] = useState(page.title?.de || '');
@@ -68,7 +70,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const [includeInViewMode, setIncludeInViewMode] = useState(() => {
     // Prüfe, ob eine View-Page existiert UND Elemente hat
     const viewPageId = page.id.replace('edit-', 'view-');
-    const viewPage = _pages.find(p => p.id === viewPageId);
+    const viewPage = _viewPages.find(p => p.id === viewPageId);
     return viewPage && viewPage.elements && viewPage.elements.length > 0;
   });
 

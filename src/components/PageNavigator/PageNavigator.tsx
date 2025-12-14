@@ -29,7 +29,7 @@ interface PageNavigatorProps {
 }
 
 const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) => {
-  const { dispatch } = useEditor();
+  const { dispatch, state } = useEditor();
   const { fieldValues } = useFieldValues();
   const [openNewPageDialog, setOpenNewPageDialog] = React.useState(false);
   const [newPageTitle, setNewPageTitle] = React.useState('');
@@ -258,6 +258,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           onSave={handleSaveEditedPage}
           page={pageToEdit}
           pages={pages}
+          viewPages={state.currentFlow?.pages_view || []}
           isEditPage={pageToEdit.id.startsWith('edit-') || !pageToEdit.id.includes('-')}
         />
       )}
