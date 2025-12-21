@@ -443,18 +443,35 @@ const createElement = (type: string): PatternLibraryElement => {
       };
 
     case 'FileUIElement':
+      const fileUuid = uuidv4();
       return {
         element: {
           pattern_type: 'FileUIElement',
           required: false,
-          file_type: 'FILE',
-          allowed_file_types: ['image/jpeg', 'image/png', 'application/pdf'], // Korrigiert: allowed_file_types statt accepted_types
-          id_field_id: { // Korrigiert: id_field_id hinzugefügt, erforderlich für FileUIElement
-            field_name: `file_field_${uuidv4()}`
+          file_type: 'IMAGE',
+          allowed_file_types: ['image/jpeg', 'image/png'],
+          // KRITISCH: field_id für eindeutige Identifikation des Elements
+          field_id: {
+            field_name: `fileuielement_${fileUuid}`
           },
+          // KRITISCH: id_field_id für Speicherort der Datei-IDs
+          id_field_id: {
+            field_name: `file_images_id`
+          },
+          // EMPFOHLEN: caption_field_id für Bildunterschriften
+          caption_field_id: {
+            field_name: `file_images_caption`
+          },
+          // EMPFOHLEN: min_count und max_count definieren
+          min_count: 0,
+          max_count: 10,
           title: {
             de: 'Datei Element',
             en: 'File Element'
+          },
+          description: {
+            de: '',
+            en: ''
           }
         } as FileUIElement
       };
@@ -2008,20 +2025,74 @@ const AppContent: React.FC = () => {
   const handleSave = () => {
     if (!state.currentFlow) return;
 
-	    // Erstelle einen Blob aus dem exportbereiten JSON (ohne interne UUIDs)
-	    const exportFlow = transformFlowForExport(state.currentFlow);
-	    const json = JSON.stringify(exportFlow, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // Importiere die Validierungsfunktion
+    import('./utils/fileElementValidator').then(({ validateAllFileUIElements }) => {
+      // Validiere alle FileUIElements in pages_edit
+      const editValidationResults = validateAllFileUIElements(
+        state.currentFlow!.pages_edit.flatMap(page => page.elements || [])
+      );
 
-    // Erstelle einen Link zum Herunterladen
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${state.currentFlow.id || 'listing-flow'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      // Validiere alle FileUIElements in pages_view
+      const viewValidationResults = validateAllFileUIElements(
+        state.currentFlow!.pages_view.flatMap(page => page.elements || [])
+      );
+
+      const allValidationResults = [...editValidationResults, ...viewValidationResults];
+
+      // Zeige Warnungen und Fehler an
+      if (allValidationResults.length > 0) {
+        const errors = allValidationResults.filter(r => !r.result.isValid);
+        const warnings = allValidationResults.filter(r => r.result.isValid && r.result.warnings.length > 0);
+
+        let message = '';
+
+        if (errors.length > 0) {
+          message += '❌ FEHLER: Die folgenden FileUIElements haben kritische Probleme:\n\n';
+          errors.forEach(({ path, result }) => {
+            message += `Pfad: ${path}\n`;
+            result.errors.forEach(error => {
+              message += `  • ${error}\n`;
+            });
+            message += '\n';
+          });
+          message += '\n⚠️ Die JSON-Datei kann im Zielsystem NICHT korrekt dargestellt werden!\n\n';
+          message += 'Möchten Sie trotzdem fortfahren?';
+
+          if (!window.confirm(message)) {
+            return;
+          }
+        } else if (warnings.length > 0) {
+          message += '⚠️ WARNUNGEN: Die folgenden FileUIElements haben optionale Probleme:\n\n';
+          warnings.forEach(({ path, result }) => {
+            message += `Pfad: ${path}\n`;
+            result.warnings.forEach(warning => {
+              message += `  • ${warning}\n`;
+            });
+            message += '\n';
+          });
+          message += '\nMöchten Sie trotzdem fortfahren?';
+
+          if (!window.confirm(message)) {
+            return;
+          }
+        }
+      }
+
+      // Erstelle einen Blob aus dem exportbereiten JSON (ohne interne UUIDs)
+      const exportFlow = transformFlowForExport(state.currentFlow!);
+      const json = JSON.stringify(exportFlow, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      // Erstelle einen Link zum Herunterladen
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${state.currentFlow!.id || 'listing-flow'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
   };
 
   // Diese Funktion wird vom HybridEditor intern verwendet

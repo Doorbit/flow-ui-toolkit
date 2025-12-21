@@ -94,6 +94,7 @@ export interface DateUIElement extends UIElementEdit {
 
 export interface FileUIElement extends UIElementEdit {
   pattern_type: 'FileUIElement';
+  field_id?: FieldId; // Eindeutige Identifikation des Elements (erforderlich für Export)
   file_type?: 'IMAGE' | 'FILE';
   allowed_file_types: string[];
   id_field_id: FieldId;

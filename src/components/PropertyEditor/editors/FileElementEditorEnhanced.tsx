@@ -284,6 +284,66 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
       </AccordionSection>
 
       <AccordionSection
+        title="Technische Felder (erforderlich)"
+        icon={<VerifiedIcon />}
+        defaultExpanded={true}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Field ID (eindeutige Element-ID)"
+            size="small"
+            fullWidth
+            required
+            value={element.field_id?.field_name || ''}
+            onChange={(e) => {
+              onChange({
+                ...element,
+                field_id: {
+                  field_name: e.target.value
+                }
+              });
+            }}
+            helperText="Eindeutige Identifikation des Elements (z.B. fileuielement_uuid)"
+            error={!element.field_id || !element.field_id.field_name}
+          />
+
+          <TextField
+            label="ID Field ID (Speicherort für Datei-IDs)"
+            size="small"
+            fullWidth
+            required
+            value={element.id_field_id?.field_name || ''}
+            onChange={(e) => {
+              onChange({
+                ...element,
+                id_field_id: {
+                  field_name: e.target.value
+                }
+              });
+            }}
+            helperText="Feldname für die Speicherung der Datei-IDs (z.B. document_images_id)"
+            error={!element.id_field_id || !element.id_field_id.field_name}
+          />
+
+          <TextField
+            label="Caption Field ID (Speicherort für Bildunterschriften)"
+            size="small"
+            fullWidth
+            value={element.caption_field_id?.field_name || ''}
+            onChange={(e) => {
+              onChange({
+                ...element,
+                caption_field_id: {
+                  field_name: e.target.value
+                }
+              });
+            }}
+            helperText="Feldname für die Speicherung der Bildunterschriften (z.B. document_images_caption)"
+          />
+        </Box>
+      </AccordionSection>
+
+      <AccordionSection
         title="Validierung & Einschränkungen"
         icon={<VerifiedIcon />}
         defaultExpanded={false}
@@ -311,6 +371,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
                 type="number"
                 size="small"
                 fullWidth
+                required
                 value={element.min_count !== undefined ? element.min_count : 0}
                 onChange={(e) => {
                   const value = parseInt(e.target.value);
@@ -327,6 +388,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
                     </InputAdornment>
                   )
                 }}
+                error={element.min_count === undefined || element.min_count === null}
               />
             </Grid>
             <Grid size={6}>
@@ -335,6 +397,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
                 type="number"
                 size="small"
                 fullWidth
+                required
                 value={element.max_count !== undefined ? element.max_count : 1}
                 onChange={(e) => {
                   const value = parseInt(e.target.value);
@@ -351,6 +414,7 @@ const FileElementEditorEnhanced: React.FC<FileElementEditorEnhancedProps> = ({ e
                     </InputAdornment>
                   )
                 }}
+                error={element.max_count === undefined || element.max_count === null}
               />
             </Grid>
           </Grid>
