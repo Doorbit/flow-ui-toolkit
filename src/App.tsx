@@ -454,13 +454,13 @@ const createElement = (type: string): PatternLibraryElement => {
           field_id: {
             field_name: `fileuielement_${fileUuid}`
           },
-          // KRITISCH: id_field_id für Speicherort der Datei-IDs
+          // KRITISCH: id_field_id für Speicherort der Datei-IDs (eindeutig mit UUID)
           id_field_id: {
-            field_name: `file_images_id`
+            field_name: `file_images_id_${uuidv4()}`
           },
-          // EMPFOHLEN: caption_field_id für Bildunterschriften
+          // EMPFOHLEN: caption_field_id für Bildunterschriften (eindeutig mit UUID)
           caption_field_id: {
-            field_name: `file_images_caption`
+            field_name: `file_images_caption_${uuidv4()}`
           },
           // EMPFOHLEN: min_count und max_count definieren
           min_count: 0,
@@ -1892,34 +1892,127 @@ const AppContent: React.FC = () => {
     }
   };
 
+  /**
+   * Rekursive Hilfsfunktion zum Generieren neuer field_ids für duplizierte Elemente
+   * @param element Das zu verarbeitende Element
+   * @returns Element mit neuen field_ids
+   */
+  const regenerateFieldIds = (element: any): any => {
+    // Deep copy um Immutabilität zu gewährleisten
+    const newElement = JSON.parse(JSON.stringify(element));
+
+    // Generiere neue field_id für das Element selbst, falls vorhanden
+    if (newElement.element && 'field_id' in newElement.element && newElement.element.field_id) {
+      const patternType = newElement.element.pattern_type;
+
+      // Bestimme das Präfix basierend auf dem Element-Typ
+      let prefix = 'field';
+      switch (patternType) {
+        case 'BooleanUIElement':
+          prefix = 'boolean_field';
+          break;
+        case 'StringUIElement':
+          prefix = 'string_field';
+          break;
+        case 'NumberUIElement':
+          prefix = 'number_field';
+          break;
+        case 'DateUIElement':
+          prefix = 'date_field';
+          break;
+        case 'SingleSelectionUIElement':
+          prefix = 'selection_field';
+          break;
+        case 'FileUIElement':
+          prefix = 'fileuielement';
+          break;
+        default:
+          prefix = patternType.toLowerCase().replace('uielement', '_field');
+      }
+
+      newElement.element.field_id = {
+        field_name: `${prefix}_${uuidv4()}`
+      };
+    }
+
+    // Spezielle Behandlung für verschiedene Element-Typen mit verschachtelten Elementen
+    if (newElement.element) {
+      const elem = newElement.element;
+
+      // ChipGroupUIElement: Regeneriere field_ids für alle Chips
+      if (elem.pattern_type === 'ChipGroupUIElement' && elem.chips) {
+        elem.chips = elem.chips.map((chip: any) => ({
+          ...chip,
+          field_id: { field_name: `chip_${uuidv4()}` }
+        }));
+      }
+
+      // GroupUIElement: Regeneriere field_ids für alle Unterelemente
+      if (elem.pattern_type === 'GroupUIElement' && elem.elements) {
+        elem.elements = elem.elements.map((subElem: any) =>
+          regenerateFieldIds({ element: subElem }).element
+        );
+      }
+
+      // ArrayUIElement: Regeneriere field_ids für alle Unterelemente
+      if (elem.pattern_type === 'ArrayUIElement' && elem.elements) {
+        elem.elements = elem.elements.map((subElem: any) =>
+          regenerateFieldIds({ element: subElem }).element
+        );
+      }
+
+      // CustomUIElement: Regeneriere field_ids für sub_flows und elements
+      if (elem.pattern_type === 'CustomUIElement') {
+        if ((elem as any).sub_flows) {
+          (elem as any).sub_flows = (elem as any).sub_flows.map((subflow: any) => ({
+            ...subflow,
+            elements: subflow.elements ? subflow.elements.map((subElem: any) =>
+              regenerateFieldIds({ element: subElem }).element
+            ) : []
+          }));
+        }
+        if ((elem as any).elements) {
+          (elem as any).elements = (elem as any).elements.map((subElem: any) =>
+            regenerateFieldIds({ element: subElem }).element
+          );
+        }
+      }
+
+      // SingleSelectionUIElement: Regeneriere field_id für other_user_value.text_ui_element
+      if (elem.pattern_type === 'SingleSelectionUIElement' && elem.other_user_value?.text_ui_element) {
+        elem.other_user_value.text_ui_element.field_id = {
+          field_name: `string_field_${uuidv4()}`
+        };
+      }
+
+      // FileUIElement: Regeneriere field_id, id_field_id und caption_field_id
+      if (elem.pattern_type === 'FileUIElement') {
+        // id_field_id ist erforderlich und muss immer regeneriert werden
+        if (elem.id_field_id) {
+          elem.id_field_id = {
+            field_name: `file_images_id_${uuidv4()}`
+          };
+        }
+        // caption_field_id ist optional, aber wenn vorhanden, regenerieren
+        if (elem.caption_field_id) {
+          elem.caption_field_id = {
+            field_name: `file_images_caption_${uuidv4()}`
+          };
+        }
+      }
+    }
+
+    return newElement;
+  };
+
   const handleDuplicateElement = (path: number[]) => {
     if (!state.selectedPageId || !currentPage) return;
 
     const elementToDuplicate = getElementByPath(currentPage.elements, path);
     if (!elementToDuplicate) return;
 
-    // Prüfen, ob es sich um ein BooleanUIElement in einer ChipGroup handelt
-    let duplicatedElement = {...elementToDuplicate};
-
-    // Wenn es ein BooleanUIElement ist, generiere eine neue UUID für die field_id
-    if (elementToDuplicate.element.pattern_type === 'BooleanUIElement') {
-      // Prüfen, ob das Elternelement eine ChipGroup ist
-      if (path.length > 1) {
-        const parentPath = path.slice(0, -1);
-        const parentElement = getElementByPath(currentPage.elements, parentPath);
-
-        if (parentElement && parentElement.element.pattern_type === 'ChipGroupUIElement') {
-          // Es ist ein BooleanUIElement in einer ChipGroup, generiere eine neue UUID
-          duplicatedElement = {
-            ...elementToDuplicate,
-            element: {
-              ...elementToDuplicate.element,
-              field_id: { field_name: `chip_${uuidv4()}` }
-            }
-          };
-        }
-      }
-    }
+    // Regeneriere alle field_ids im duplizierten Element und seinen Unterelementen
+    const duplicatedElement = regenerateFieldIds(elementToDuplicate);
 
     if (path.length === 1) {
       // Element auf oberster Ebene duplizieren

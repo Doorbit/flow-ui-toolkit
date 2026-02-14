@@ -26,11 +26,38 @@ import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
+// Unterstützte Einheiten für NumberUIElement
+const SUPPORTED_UNITS = [
+  { value: 'CENTIMETER', label: 'Zentimeter (cm)' },
+  { value: 'DEGREE_OF_ARC', label: 'Grad (°)' },
+  { value: 'WATT_PER_SQUARE_METER_PER_KELVIN', label: 'W/(m²·K)' },
+  { value: 'SQUARE_METER', label: 'Quadratmeter (m²)' },
+  { value: 'KILOWATT', label: 'Kilowatt (kW)' },
+  { value: 'LITER', label: 'Liter (L)' },
+  { value: 'PERCENTAGE', label: 'Prozent (%)' },
+  { value: 'METER', label: 'Meter (m)' },
+  { value: 'DEGREE_CELSIUS', label: 'Grad Celsius (°C)' },
+  { value: 'KILOWATT_HOUR', label: 'Kilowattstunde (kWh)' }
+] as const;
 
 interface NumberElementEditorProps {
   element: PatternLibraryElement;
   onUpdate: (updatedElement: PatternLibraryElement) => void;
 }
+
+/**
+ * Hilfsfunktion, um den Einheitswert in eine lesbare Darstellung umzuwandeln
+ */
+const getUnitDisplayLabel = (unitValue: string | undefined): string => {
+  if (!unitValue) return '';
+  const unit = SUPPORTED_UNITS.find(u => u.value === unitValue);
+  if (unit) {
+    // Extrahiere nur die Einheit in Klammern, z.B. "(cm)" aus "Zentimeter (cm)"
+    const match = unit.label.match(/\(([^)]+)\)/);
+    return match ? match[1] : unitValue;
+  }
+  return unitValue;
+};
 
 /**
  * Spezialisierte Komponente für die Bearbeitung von NumberUIElement-Eigenschaften.
@@ -159,14 +186,31 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
             </FormHelperText>
           </FormControl>
 
-          <TextField
-            label="Einheit"
-            value={numberElement.unit || ''}
-            onChange={handleTextChange('unit')}
-            fullWidth
-            size="small"
-            placeholder="z.B. kg, m, €"
-          />
+          <FormControl fullWidth size="small">
+            <InputLabel>Einheit</InputLabel>
+            <Select
+              value={numberElement.unit || ''}
+              label="Einheit"
+              onChange={(e: SelectChangeEvent<string>) => {
+                const updatedElement = { ...element };
+                const elementAny = updatedElement.element as any;
+                elementAny.unit = e.target.value;
+                onUpdate(updatedElement);
+              }}
+            >
+              <MenuItem value="">
+                <em>Keine Einheit</em>
+              </MenuItem>
+              {SUPPORTED_UNITS.map((unit) => (
+                <MenuItem key={unit.value} value={unit.value}>
+                  {unit.label}
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              Wählen Sie eine Einheit für die Zahleneingabe
+            </FormHelperText>
+          </FormControl>
 
           <TextField
             label="Default-Wert"
@@ -179,7 +223,7 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
             size="small"
             InputProps={{
               endAdornment: numberElement.unit ? (
-                <InputAdornment position="end">{numberElement.unit}</InputAdornment>
+                <InputAdornment position="end">{getUnitDisplayLabel(numberElement.unit)}</InputAdornment>
               ) : null,
             }}
           />
@@ -264,7 +308,7 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
             defaultValue={defaultValue}
             InputProps={{
               endAdornment: numberElement.unit ? (
-                <InputAdornment position="end">{numberElement.unit}</InputAdornment>
+                <InputAdornment position="end">{getUnitDisplayLabel(numberElement.unit)}</InputAdornment>
               ) : null,
               inputProps: {
                 min: numberElement.min,
