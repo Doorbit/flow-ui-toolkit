@@ -32,7 +32,10 @@ import {
   CustomUIElement,
   ChipGroupUIElement,
   StringUIElement,
-  KeyValueListUIElement
+  KeyValueListUIElement,
+  ImageGalleryUIElement,
+  FieldTextUIElement,
+  TableUIElement
 } from './models/uiElements';
 
 const theme = createTheme({
@@ -1539,6 +1542,49 @@ const createElement = (type: string): PatternLibraryElement => {
             en: 'String Element'
           }
         } as StringUIElement
+      };
+
+    case 'ImageGalleryUIElement':
+      return {
+        element: {
+          pattern_type: 'ImageGalleryUIElement',
+          required: false,
+          preferred_size: 'M',
+          display_position: 'LEFT',
+          id_field_value: { field_id: { field_name: '' } },
+          title: {
+            de: 'Bildergalerie',
+            en: 'Image Gallery'
+          }
+        } as ImageGalleryUIElement
+      };
+
+    case 'FieldTextUIElement':
+      return {
+        element: {
+          pattern_type: 'FieldTextUIElement',
+          required: false,
+          type: 'PARAGRAPH',
+          field_value: { field_id: { field_name: '' } },
+          title: {
+            de: 'Feldtext',
+            en: 'Field Text'
+          }
+        } as FieldTextUIElement
+      };
+
+    case 'TableUIElement':
+      return {
+        element: {
+          pattern_type: 'TableUIElement',
+          required: false,
+          type: 'TABLE',
+          columns: [],
+          title: {
+            de: 'Tabelle',
+            en: 'Table'
+          }
+        } as TableUIElement
       };
 
     default:

@@ -19,9 +19,10 @@
 .env.production.local
 
 # project specific
-doorbit_esg.json
-enion_esg.json
-new-flow.json
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
 .clinerules
 .clineignore
 

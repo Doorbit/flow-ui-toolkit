@@ -938,10 +938,15 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         return state;
       }
 
+      // Die View-Page hat eine andere ID als die Edit-Page (view- statt edit- Präfix)
+      const viewPageIdToRemove = action.pageId.startsWith('edit-')
+        ? action.pageId.replace('edit-', 'view-')
+        : action.pageId;
+
       const newFlow = {
         ...state.currentFlow,
         pages_edit: state.currentFlow.pages_edit.filter(page => page.id !== action.pageId),
-        pages_view: state.currentFlow.pages_view.filter(page => page.id !== action.pageId)
+        pages_view: state.currentFlow.pages_view.filter(page => page.id !== viewPageIdToRemove)
       };
 
       // Bestimme die nächste ausgewählte Seite
@@ -1023,7 +1028,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
           page.id === viewPageId ? action.viewPage! : page
         );
       } else {
-        // Ansonsten synchronisiere nur Metadaten (wie bisher)
+        // Ansonsten synchronisiere nur Metadaten (layout der View-Page bleibt erhalten)
         updatedPagesView = state.currentFlow.pages_view.map(page => {
           if (page.id === viewPageId || page.id === action.page.id) {
             return {
@@ -1031,7 +1036,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
               title: action.page.title,
               short_title: action.page.short_title,
               icon: action.page.icon,
-              layout: action.page.layout,
+              // layout wird NICHT übernommen – View-Pages haben ihr eigenes Layout (2_COL_RIGHT_WIDER)
               visibility_condition: action.page.visibility_condition
             };
           }

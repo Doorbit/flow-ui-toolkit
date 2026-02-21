@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Page, PatternLibraryElement } from '../models/listingFlow';
 import {
+  CustomUIElement,
   FileUIElement,
   GroupUIElement,
   TextUIElement,
@@ -11,73 +12,88 @@ import {
 /**
  * Transformiert eine Edit-Page automatisch in eine View-Page
  * mit intelligenter Gruppierung und Element-Transformation.
- * 
+ *
  * Strategie:
  * 1. Root-Level Input-Felder → KeyValueListUIElement (Tabelle)
  * 2. FileUIElements → TextUIElement (Heading) + ImageGalleryUIElement
  * 3. GroupUIElements → TextUIElement (Heading) + KeyValueListUIElement (Tabelle)
- * 4. Display-Elemente (TextUIElement, KeyValueListUIElement) → Bleiben unverändert
+ * 4. CustomUIElement (SCANNER) → CustomUIElement (SCANNER_REFERENCE)
+ * 5. Display-Elemente (TextUIElement, KeyValueListUIElement) → Bleiben unverändert
  */
 export function transformEditPageToViewPage(editPage: Page): Page {
   const viewElements: PatternLibraryElement[] = [];
-  
+
   // Sammle Elemente nach Typ
   const rootLevelFields: PatternLibraryElement[] = [];
   const fileElements: PatternLibraryElement[] = [];
   const groupElements: PatternLibraryElement[] = [];
-  
+  const scannerElements: PatternLibraryElement[] = [];
+
   // Kategorisiere Elemente
   editPage.elements?.forEach(elem => {
     const element = elem.element;
-    
+
     if (element.pattern_type === 'FileUIElement') {
       fileElements.push(elem);
     } else if (element.pattern_type === 'GroupUIElement') {
       groupElements.push(elem);
+    } else if (element.pattern_type === 'CustomUIElement' && element.type === 'SCANNER') {
+      scannerElements.push(elem);
     } else if (isInputElement(element)) {
       rootLevelFields.push(elem);
-    } else if (element.pattern_type === 'TextUIElement' || 
-               element.pattern_type === 'KeyValueListUIElement') {
+    } else if (
+      element.pattern_type === 'TextUIElement' ||
+      element.pattern_type === 'KeyValueListUIElement'
+    ) {
       // Display-Elemente bleiben unverändert
       viewElements.push(elem);
     }
+    // ArrayUIElement und unbekannte Typen werden bewusst übersprungen
   });
-  
+
   // 1. Haupt-Tabelle für Root-Level-Felder
   if (rootLevelFields.length > 0) {
     const mainTableItems = rootLevelFields
       .map(elem => transformToKeyValueListItem(elem.element))
       .filter(item => item !== null) as KeyValueListItem[];
-    
+
     if (mainTableItems.length > 0) {
       viewElements.push(createKeyValueListElement(mainTableItems));
     }
   }
-  
+
   // 2. File-Sections (Bilder-Galerien)
   fileElements.forEach(fileElem => {
     const fileElement = fileElem.element as FileUIElement;
     viewElements.push(...createImageGallerySection(fileElement));
   });
-  
+
   // 3. Group-Sections
   groupElements.forEach(groupElem => {
     const groupElement = groupElem.element as GroupUIElement;
     viewElements.push(...createGroupSection(groupElement));
   });
-  
+
+  // 4. Scanner-Referenzen
+  scannerElements.forEach(scannerElem => {
+    const scannerElement = scannerElem.element as CustomUIElement;
+    viewElements.push(createScannerReferenceElement(scannerElement));
+  });
+
   // Erstelle View-Page
+  // Layout wird explizit auf 2_COL_RIGHT_WIDER gesetzt – View-Pages nutzen ein anderes Layout als Edit-Pages
   const viewPage: Page = {
     ...editPage,
     id: editPage.id.replace('edit-', 'view-'),
-    icon: editPage.icon || '', // View-Pages haben oft Icons
+    layout: '2_COL_RIGHT_WIDER',
+    icon: editPage.icon || '',
     elements: viewElements,
     related_pages: [{
       viewing_context: 'EDIT',
       page_id: editPage.id
     }]
   };
-  
+
   return viewPage;
 }
 
@@ -214,5 +230,22 @@ function createGroupSection(groupElement: GroupUIElement): PatternLibraryElement
   });
 
   return result;
+}
+
+/**
+ * Erstellt eine SCANNER_REFERENCE aus einem SCANNER-CustomUIElement.
+ * Das View-Element referenziert das Edit-Scanner-Element über `related_custom_ui_element_id`.
+ */
+function createScannerReferenceElement(scannerElement: CustomUIElement): PatternLibraryElement {
+  const scannerRef: CustomUIElement = {
+    pattern_type: 'CustomUIElement',
+    type: 'SCANNER_REFERENCE',
+    id: scannerElement.id ? `${scannerElement.id}-view` : undefined,
+    related_custom_ui_element_id: scannerElement.id,
+    title: scannerElement.title || { de: 'Scanner-Ansicht', en: 'Scanner View' },
+    required: false
+  };
+
+  return { element: scannerRef };
 }
 

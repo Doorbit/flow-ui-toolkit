@@ -46,7 +46,11 @@ import {
   NumberUIElement,
   DateUIElement,
   FileUIElement,
-  SubFlow
+  SubFlow,
+  ImageGalleryUIElement,
+  FieldTextUIElement,
+  TableUIElement,
+  TableColumn
 } from '../../models/uiElements';
 import { VisibilityConditionEditor } from './editors/VisibilityConditionEditor';
 import FileElementEditor from './editors/FileElementEditor';
@@ -3061,6 +3065,220 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
                 )}
               </Paper>
             </Box>
+          </>
+        );
+      }
+
+      case 'ImageGalleryUIElement': {
+        const galleryElement = element.element as ImageGalleryUIElement;
+        return (
+          <>
+            <SectionTitle variant="subtitle1">Bildergalerie-Eigenschaften (View)</SectionTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                Zeigt Bilder eines referenzierten Datei-Feldes aus dem Edit-Modus an.
+              </Typography>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                label="Referenz-Feld-ID (id_field_value)"
+                size="small"
+                fullWidth
+                value={galleryElement.id_field_value?.field_id?.field_name || ''}
+                helperText="Feld-ID des FileUIElement aus dem Edit-Modus"
+                onChange={(e) => {
+                  const updated: ImageGalleryUIElement = {
+                    ...galleryElement,
+                    id_field_value: { field_id: { field_name: e.target.value } }
+                  };
+                  onUpdate({ ...element, element: updated });
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Bevorzugte Größe</InputLabel>
+                <Select
+                  value={galleryElement.preferred_size || 'M'}
+                  label="Bevorzugte Größe"
+                  onChange={(e) => {
+                    const updated: ImageGalleryUIElement = {
+                      ...galleryElement,
+                      preferred_size: e.target.value as 'S' | 'M' | 'M_NARROW' | 'L'
+                    };
+                    onUpdate({ ...element, element: updated });
+                  }}
+                >
+                  <MenuItem value="S">S – Klein</MenuItem>
+                  <MenuItem value="M">M – Mittel</MenuItem>
+                  <MenuItem value="M_NARROW">M_NARROW – Mittel schmal</MenuItem>
+                  <MenuItem value="L">L – Groß</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Anzeigeposition</InputLabel>
+                <Select
+                  value={galleryElement.display_position || 'LEFT'}
+                  label="Anzeigeposition"
+                  onChange={(e) => {
+                    const updated: ImageGalleryUIElement = {
+                      ...galleryElement,
+                      display_position: e.target.value as 'LEFT' | 'RIGHT'
+                    };
+                    onUpdate({ ...element, element: updated });
+                  }}
+                >
+                  <MenuItem value="LEFT">Links</MenuItem>
+                  <MenuItem value="RIGHT">Rechts</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </>
+        );
+      }
+
+      case 'FieldTextUIElement': {
+        const fieldTextElement = element.element as FieldTextUIElement;
+        return (
+          <>
+            <SectionTitle variant="subtitle1">Feldtext-Eigenschaften (View)</SectionTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                Zeigt den Wert eines Feldes aus dem Edit-Modus als Text an.
+              </Typography>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Typ</InputLabel>
+                <Select
+                  value={fieldTextElement.type || 'PARAGRAPH'}
+                  label="Typ"
+                  onChange={(e) => {
+                    const updated: FieldTextUIElement = {
+                      ...fieldTextElement,
+                      type: e.target.value as 'HEADING' | 'PARAGRAPH'
+                    };
+                    onUpdate({ ...element, element: updated });
+                  }}
+                >
+                  <MenuItem value="HEADING">Überschrift (HEADING)</MenuItem>
+                  <MenuItem value="PARAGRAPH">Absatz (PARAGRAPH)</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                label="Referenz-Feld-ID (field_value)"
+                size="small"
+                fullWidth
+                value={fieldTextElement.field_value?.field_id?.field_name || ''}
+                helperText="Feld-ID des Edit-Modus-Feldes, dessen Wert angezeigt wird"
+                onChange={(e) => {
+                  const updated: FieldTextUIElement = {
+                    ...fieldTextElement,
+                    field_value: { field_id: { field_name: e.target.value } }
+                  };
+                  onUpdate({ ...element, element: updated });
+                }}
+              />
+            </Box>
+          </>
+        );
+      }
+
+      case 'TableUIElement': {
+        const tableElement = element.element as TableUIElement;
+        const columns: TableColumn[] = tableElement.columns || [];
+        return (
+          <>
+            <SectionTitle variant="subtitle1">Tabellen-Eigenschaften (View)</SectionTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                Zeigt Feldwerte aus dem Edit-Modus in tabellarischer Form an.
+              </Typography>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+
+            <Typography variant="subtitle2" gutterBottom>Spalten</Typography>
+
+            {columns.map((col, idx) => (
+              <Box key={idx} sx={{ mb: 2, p: 1.5, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary">Spalte {idx + 1}</Typography>
+                <TextField
+                  label="Kopfzeile (Deutsch)"
+                  size="small"
+                  fullWidth
+                  sx={{ mt: 1, mb: 1 }}
+                  value={col.header?.de || ''}
+                  onChange={(e) => {
+                    const newCols = columns.map((c, i) =>
+                      i === idx ? { ...c, header: { ...c.header, de: e.target.value } } : c
+                    );
+                    onUpdate({ ...element, element: { ...tableElement, columns: newCols } as TableUIElement });
+                  }}
+                />
+                <TextField
+                  label="Kopfzeile (Englisch)"
+                  size="small"
+                  fullWidth
+                  sx={{ mb: 1 }}
+                  value={col.header?.en || ''}
+                  onChange={(e) => {
+                    const newCols = columns.map((c, i) =>
+                      i === idx ? { ...c, header: { ...c.header, en: e.target.value } } : c
+                    );
+                    onUpdate({ ...element, element: { ...tableElement, columns: newCols } as TableUIElement });
+                  }}
+                />
+                <TextField
+                  label="Feld-ID"
+                  size="small"
+                  fullWidth
+                  value={col.field_value?.field_id?.field_name || ''}
+                  helperText="Feld-ID des Edit-Modus-Feldes für diese Spalte"
+                  onChange={(e) => {
+                    const newCols = columns.map((c, i) =>
+                      i === idx ? { ...c, field_value: { field_id: { field_name: e.target.value } } } : c
+                    );
+                    onUpdate({ ...element, element: { ...tableElement, columns: newCols } as TableUIElement });
+                  }}
+                />
+                <Button
+                  size="small"
+                  color="error"
+                  sx={{ mt: 1 }}
+                  onClick={() => {
+                    const newCols = columns.filter((_, i) => i !== idx);
+                    onUpdate({ ...element, element: { ...tableElement, columns: newCols } as TableUIElement });
+                  }}
+                >
+                  Spalte entfernen
+                </Button>
+              </Box>
+            ))}
+
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                const newCol: TableColumn = {
+                  header: { de: '', en: '' },
+                  field_value: { field_id: { field_name: '' } }
+                };
+                onUpdate({ ...element, element: { ...tableElement, columns: [...columns, newCol] } as TableUIElement });
+              }}
+            >
+              + Spalte hinzufügen
+            </Button>
           </>
         );
       }

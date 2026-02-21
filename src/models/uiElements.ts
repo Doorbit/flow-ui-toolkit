@@ -12,7 +12,10 @@ export type UIElement =
   | ArrayUIElement
   | GroupUIElement
   | TextUIElement
-  | KeyValueListUIElement;
+  | KeyValueListUIElement
+  | ImageGalleryUIElement
+  | FieldTextUIElement
+  | TableUIElement;
 
 export interface TextUIElement extends UIElementEdit {
   pattern_type: 'TextUIElement';
@@ -147,4 +150,43 @@ export interface KeyValueListItem {
     field_id: FieldId;
   };
   icon?: string;
+}
+
+// ─── View-Modus-spezifische Element-Typen ────────────────────────────────────
+
+/**
+ * Zeigt eine Bildergalerie im View-Modus an.
+ * `id_field_value` referenziert das Feld, das die Bild-IDs enthält (aus FileUIElement.id_field_id).
+ */
+export interface ImageGalleryUIElement extends UIElementEdit {
+  pattern_type: 'ImageGalleryUIElement';
+  preferred_size?: 'S' | 'M' | 'M_NARROW' | 'L';
+  display_position?: 'LEFT' | 'RIGHT';
+  id_field_value?: { field_id: FieldId };
+  field_id?: FieldId;
+}
+
+/**
+ * Zeigt den Wert eines Feldes als formatierten Text an (HEADING oder PARAGRAPH).
+ * Im Gegensatz zu TextUIElement (statischer Text) wird hier der dynamische Feldwert angezeigt.
+ */
+export interface FieldTextUIElement extends UIElementEdit {
+  pattern_type: 'FieldTextUIElement';
+  type: 'HEADING' | 'PARAGRAPH';
+  field_value: { field_id: FieldId };
+}
+
+/**
+ * Zeigt Daten in einer mehrspaltige Tabelle an.
+ * Jede Spalte hat eine Überschrift und referenziert ein Feld für den Wert.
+ */
+export interface TableUIElement extends UIElementEdit {
+  pattern_type: 'TableUIElement';
+  type?: 'TABLE';
+  columns: TableColumn[];
+}
+
+export interface TableColumn {
+  header: TranslatableString;
+  field_value: { field_id: FieldId };
 }

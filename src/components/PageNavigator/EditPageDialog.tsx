@@ -19,7 +19,8 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
-  Alert
+  Alert,
+  DialogContentText
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -73,6 +74,9 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
     const viewPage = _viewPages.find(p => p.id === viewPageId);
     return viewPage && viewPage.elements && viewPage.elements.length > 0;
   });
+
+  // State für den Überschreib-Warnungsdialog
+  const [overwriteWarningOpen, setOverwriteWarningOpen] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { availableFields: _ } = useFieldValues();
@@ -526,8 +530,27 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={includeInViewMode}
-                      onChange={(e) => setIncludeInViewMode(e.target.checked)}
+                      checked={!!includeInViewMode}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          // Prüfe, ob die View-Page bereits manuell erstellte Inhalte hat
+                          const viewPageId = page.id.replace('edit-', 'view-');
+                          const existingViewPage = _viewPages.find(p => p.id === viewPageId);
+                          const hasExistingContent =
+                            existingViewPage &&
+                            existingViewPage.elements &&
+                            existingViewPage.elements.length > 0;
+
+                          if (hasExistingContent) {
+                            // Warnung anzeigen statt direkt zu überschreiben
+                            setOverwriteWarningOpen(true);
+                          } else {
+                            setIncludeInViewMode(true);
+                          }
+                        } else {
+                          setIncludeInViewMode(false);
+                        }
+                      }}
                       color="primary"
                     />
                   }
@@ -547,6 +570,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                       <li>Eingabefelder → Tabellen mit Schlüssel-Wert-Paaren</li>
                       <li>Datei-Uploads → Bildergalerien</li>
                       <li>Gruppen → Überschriften mit Tabellen</li>
+                      <li>Scanner → Scanner-Referenz</li>
                     </Typography>
                   </Alert>
                 )}
@@ -568,6 +592,42 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
         onSelectIcon={setIcon}
         currentIcon={icon}
       />
+
+      {/* Warnungsdialog: Manuelle View-Page-Inhalte würden überschrieben */}
+      <Dialog
+        open={overwriteWarningOpen}
+        onClose={() => setOverwriteWarningOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Vorhandene View-Inhalte überschreiben?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Diese View-Seite enthält bereits manuell erstellte Elemente. Wenn Sie die automatische
+            Transformation aktivieren, werden diese Inhalte beim Speichern durch die automatisch
+            generierten Elemente ersetzt.
+          </DialogContentText>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Manuell angepasste View-Elemente gehen dabei verloren und können nicht
+            wiederhergestellt werden.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOverwriteWarningOpen(false)}>
+            Abbrechen (Inhalte behalten)
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={() => {
+              setIncludeInViewMode(true);
+              setOverwriteWarningOpen(false);
+            }}
+          >
+            Ja, automatisch transformieren
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

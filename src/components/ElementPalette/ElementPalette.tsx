@@ -16,7 +16,10 @@ import {
   ViewInAr as ScannerIcon,
   LocationOn as LocationIcon,
   Home as AddressIcon,
-  Apartment as AdminBoundaryIcon
+  Apartment as AdminBoundaryIcon,
+  PhotoLibrary as ImageGalleryIcon,
+  TextSnippet as FieldTextIcon,
+  TableChart as TableIcon
 } from '@mui/icons-material';
 
 const PaletteContainer = styled(Paper)`
@@ -76,7 +79,7 @@ interface ElementType {
   type: string;
   label: string;
   icon: React.ReactNode;
-  category: 'basic' | 'complex';
+  category: 'basic' | 'complex' | 'view';
 }
 
 interface ElementPaletteProps {
@@ -98,7 +101,11 @@ const elements: ElementType[] = [
   { type: 'CustomUIElement_SCANNER', label: 'Scanner', icon: <ScannerIcon />, category: 'complex' },
   { type: 'CustomUIElement_ADDRESS', label: 'Adresseingabe', icon: <AddressIcon />, category: 'complex' },
   { type: 'CustomUIElement_LOCATION', label: 'Standort/Karte', icon: <LocationIcon />, category: 'complex' },
-  { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <AdminBoundaryIcon />, category: 'complex' }
+  { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <AdminBoundaryIcon />, category: 'complex' },
+  // View-Modus-spezifische Elemente
+  { type: 'ImageGalleryUIElement', label: 'Bildergalerie (View)', icon: <ImageGalleryIcon />, category: 'view' },
+  { type: 'FieldTextUIElement', label: 'Feldtext (View)', icon: <FieldTextIcon />, category: 'view' },
+  { type: 'TableUIElement', label: 'Tabelle (View)', icon: <TableIcon />, category: 'view' }
 ];
 
 // Implementierung mit Drag-and-Drop
@@ -120,10 +127,33 @@ const ElementItem: React.FC<{ element: ElementType, onClick: () => void }> = ({ 
   );
 };
 
+const ViewElementsSection = styled.div`
+  margin-bottom: 16px;
+  background-color: rgba(33, 150, 243, 0.05);
+  padding-bottom: 8px;
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  margin: 8px;
+  border-radius: 8px;
+`;
+
 const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
   const basicElements = elements.filter(e => e.category === 'basic');
   const complexElements = elements.filter(e => e.category === 'complex');
-  const [activeTab, setActiveTab] = useState<'basic' | 'complex'>('basic');
+  const viewElements = elements.filter(e => e.category === 'view');
+  const [activeTab, setActiveTab] = useState<'basic' | 'complex' | 'view'>('basic');
+
+  const tabStyle = (tab: 'basic' | 'complex' | 'view') => ({
+    flex: 1,
+    py: 1,
+    borderRadius: 0,
+    fontSize: '0.75rem',
+    backgroundColor: activeTab === tab ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
+    fontWeight: activeTab === tab ? 'bold' : 'normal',
+    color: activeTab === tab ? '#009F64' : '#2A2E3F',
+    '&:hover': {
+      backgroundColor: activeTab === tab ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
+    }
+  });
 
   return (
     <PaletteContainer elevation={2}>
@@ -133,37 +163,14 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
 
       {/* Tabs */}
       <Box sx={{ display: 'flex', borderBottom: 1, borderColor: 'divider' }}>
-        <Button
-          sx={{
-            flex: 1,
-            py: 1,
-            borderRadius: 0,
-            backgroundColor: activeTab === 'basic' ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
-            fontWeight: activeTab === 'basic' ? 'bold' : 'normal',
-            color: activeTab === 'basic' ? '#009F64' : '#2A2E3F',
-            '&:hover': {
-              backgroundColor: activeTab === 'basic' ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
-            }
-          }}
-          onClick={() => setActiveTab('basic')}
-        >
-          Basis-Elemente
+        <Button sx={tabStyle('basic')} onClick={() => setActiveTab('basic')}>
+          Basis
         </Button>
-        <Button
-          sx={{
-            flex: 1,
-            py: 1,
-            borderRadius: 0,
-            backgroundColor: activeTab === 'complex' ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
-            fontWeight: activeTab === 'complex' ? 'bold' : 'normal',
-            color: activeTab === 'complex' ? '#009F64' : '#2A2E3F',
-            '&:hover': {
-              backgroundColor: activeTab === 'complex' ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
-            }
-          }}
-          onClick={() => setActiveTab('complex')}
-        >
-          Komplexe Elemente
+        <Button sx={tabStyle('complex')} onClick={() => setActiveTab('complex')}>
+          Komplex
+        </Button>
+        <Button sx={tabStyle('view')} onClick={() => setActiveTab('view')}>
+          View
         </Button>
       </Box>
 
@@ -194,6 +201,20 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
               ))}
             </List>
           </ComplexElementsSection>
+        )}
+
+        {activeTab === 'view' && (
+          <ViewElementsSection>
+            <List>
+              {viewElements.map((element) => (
+                <ElementItem
+                  key={element.type}
+                  element={element}
+                  onClick={() => onElementClick(element.type)}
+                />
+              ))}
+            </List>
+          </ViewElementsSection>
         )}
       </ScrollableSection>
     </PaletteContainer>
