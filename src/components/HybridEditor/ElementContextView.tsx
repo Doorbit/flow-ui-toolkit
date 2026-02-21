@@ -9,7 +9,7 @@ import {
   Card,
   CardContent,
   CardActions,
-  // Grid wird nicht mehr verwendet
+  Checkbox,
   Chip,
   Dialog,
   DialogTitle,
@@ -45,6 +45,9 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import InputIcon from '@mui/icons-material/Input';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import LayersClearIcon from '@mui/icons-material/LayersClear';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import IosShareIcon from '@mui/icons-material/IosShare';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
@@ -135,6 +138,13 @@ interface ElementContextViewProps {
   onMoveElement?: (sourceIndex: number, targetIndex: number, parentPath?: number[], sourcePath?: number[]) => void;
   onDrillDown: (path: number[]) => void;
   onAddElement?: (type: string, elementPath?: number[]) => void; // Neue einheitliche Funktion für das Hinzufügen von Elementen
+  // Multi-Selektion Props
+  isSelectionMode?: boolean;
+  selectedElementPaths?: number[][];
+  onMultiSelect?: (path: number[]) => void;
+  onUngroup?: (path: number[]) => void;
+  onCopyToPage?: (path: number[]) => void;
+  onExportToFile?: (path: number[]) => void;
 }
 
 // Hilfsfunktion zum Ermitteln des Icons basierend auf dem Elementtyp
@@ -316,7 +326,14 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
   onDropElement,
   onMoveElement,
   onDrillDown,
-  onAddElement
+  onAddElement,
+  // Multi-Selektion Props
+  isSelectionMode = false,
+  selectedElementPaths = [],
+  onMultiSelect,
+  onUngroup,
+  onCopyToPage,
+  onExportToFile
 }) => {
   const [elementTypeDialogOpen, setElementTypeDialogOpen] = useState(false);
   const [selectedElementForDialog, setSelectedElementForDialog] = useState<number[] | null>([]);
@@ -325,10 +342,16 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
     return [...currentPath, index];
   };
 
-  // Bestimme, ob ein Element ausgewählt ist
+  // Bestimme, ob ein Element ausgewählt ist (Einzelselektion)
   const isSelected = (index: number) => {
     const fullPath = getFullPath(index);
     return arePathsEqual(fullPath, selectedElementPath);
+  };
+
+  // Bestimme, ob ein Element multi-selektiert ist
+  const isMultiSelected = (index: number) => {
+    const fullPath = getFullPath(index);
+    return selectedElementPaths.some(p => arePathsEqual(p, fullPath));
   };
 
   // Hilfsfunktion, um zu prüfen, ob wir uns in einer tieferen Ebene befinden
@@ -435,12 +458,33 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
       return (
         <ElementCard
           key={index}
-          isSelected={isSelected(index)}
-          onClick={() => onSelectElement(fullPath)}
+          isSelected={isSelectionMode ? isMultiSelected(index) : isSelected(index)}
+          onClick={() => {
+            if (isSelectionMode && onMultiSelect) {
+              onMultiSelect(fullPath);
+            } else {
+              onSelectElement(fullPath);
+            }
+          }}
+          sx={isSelectionMode && isMultiSelected(index) ? {
+            outline: '2px solid #1976d2',
+            outlineOffset: '1px',
+            backgroundColor: 'rgba(25, 118, 210, 0.04)'
+          } : undefined}
         >
           <ElementHeader color={getElementColor(elementType)}>
             <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, color: 'action.active' }}> {/* Standard Icon Farbe */}
-              <DragIndicatorIcon sx={{ opacity: 0.5, mr: 1 }} />
+              {isSelectionMode ? (
+                <Checkbox
+                  checked={isMultiSelected(index)}
+                  onChange={() => onMultiSelect && onMultiSelect(fullPath)}
+                  onClick={(e) => e.stopPropagation()}
+                  size="small"
+                  sx={{ p: 0, mr: 0.5 }}
+                />
+              ) : (
+                <DragIndicatorIcon sx={{ opacity: 0.5, mr: 1 }} />
+              )}
               {React.cloneElement(getElementIcon(elementType), { sx: { color: 'inherit' } })}
             </Box>
             <ElementTitle variant="subtitle2">
@@ -536,6 +580,36 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                 <ContentCopyIcon fontSize="small" />
               </IconButton>
             </Tooltip>
+
+            {onCopyToPage && (
+              <Tooltip title="Zu anderer Seite kopieren">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyToPage(fullPath);
+                  }}
+                  sx={{ color: 'action.active' }}
+                >
+                  <FileCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {onExportToFile && (
+              <Tooltip title="In andere JSON-Datei exportieren">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExportToFile(fullPath);
+                  }}
+                  sx={{ color: 'action.active' }}
+                >
+                  <IosShareIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
 
             <Tooltip title="Löschen">
               <IconButton
@@ -733,6 +807,27 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                    getContainerType(element) === 'custom' ? 'Custom-Element öffnen' :
                    getContainerType(element) === 'subflow' ? 'Subflow öffnen' :
                    'Unterelemente anzeigen'}
+                </Button>
+              </Tooltip>
+            )}
+
+            {getContainerType(element) === 'group' && onUngroup && (
+              <Tooltip title="Löst die Gruppe auf und verschiebt die Unterelemente an die Stelle der Gruppe">
+                <Button
+                  size="small"
+                  startIcon={<LayersClearIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUngroup(fullPath);
+                  }}
+                  color="warning"
+                  variant="outlined"
+                  sx={{
+                    borderColor: '#ED6C02',
+                    color: '#ED6C02',
+                  }}
+                >
+                  Gruppierung auflösen
                 </Button>
               </Tooltip>
             )}

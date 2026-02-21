@@ -13,6 +13,7 @@ Die Hauptnavigation bietet folgende Funktionen:
 - **Öffnen**: Lädt einen bestehenden Flow aus einer JSON-Datei
 - **Speichern**: Speichert den aktuellen Flow als JSON-Datei
 - **Rückgängig/Wiederholen**: Ermöglicht das Rückgängigmachen und Wiederholen von Änderungen
+- **Selektionsmodus**: Aktiviert Multi-Selektion zum Gruppieren mehrerer Elemente
 
 ### 2. Seitenverwaltung
 
@@ -22,6 +23,7 @@ Die Hauptnavigation bietet folgende Funktionen:
 - Seiten hinzufügen, bearbeiten oder löschen
 - Seitentitel in mehreren Sprachen anpassen
 - Material Design Icons für Seiten auswählen
+- **Seiten aus externen JSON-Dateien importieren**
 
 #### Seiten bearbeiten
 1. Klicken Sie auf das Bearbeiten-Symbol (Stift) neben dem Seiten-Tab
@@ -36,6 +38,22 @@ Die Hauptnavigation bietet folgende Funktionen:
 2. Wählen Sie eine Kategorie (z.B. "Haus & Gebäude", "Smart Home & HVAC")
 3. Nutzen Sie die Suchfunktion für spezifische Icons
 4. Klicken Sie auf ein Icon, um es auszuwählen
+
+#### Seiten aus anderer JSON-Datei importieren
+Sie können komplette Seiten aus einer anderen JSON-Datei in den aktuellen Flow importieren:
+
+1. Klicken Sie auf das **Import-Symbol** (Pfeil nach oben) neben dem „+"-Button in der Seitennavigation
+2. Im Import-Dialog klicken Sie auf **„Datei auswählen"** und wählen eine JSON-Datei aus
+3. Die verfügbaren Seiten der Quelldatei werden als Liste angezeigt
+4. Wählen Sie die gewünschten Seiten per Checkbox aus (oder nutzen Sie „Alle auswählen")
+5. Klicken Sie auf **„Importieren"**
+
+**Hinweise:**
+- Die importierten Seiten erhalten neue interne IDs (UUIDs), um Konflikte zu vermeiden
+- Sowohl die Edit- als auch die zugehörigen View-Seiten werden automatisch als Paar importiert
+- Die `field_id`-Werte der Elemente bleiben erhalten, damit die Datenbindung innerhalb der importierten Seite intakt bleibt
+- Undo/Redo wird unterstützt – ein Import kann rückgängig gemacht werden
+- Ungültige oder leere JSON-Dateien werden mit einer Fehlermeldung abgewiesen
 
 ### 3. Verfügbare UI-Elemente
 
@@ -85,6 +103,75 @@ Die Hauptnavigation bietet folgende Funktionen:
 - Elementspezifische Einstellungen
 - Sichtbarkeitsregeln
 
+#### Multi-Selektion und Gruppierung
+
+Sie können mehrere Elemente auswählen und zu einer neuen Gruppe zusammenfassen:
+
+##### Selektionsmodus aktivieren
+1. Klicken Sie auf das **Selektionsmodus-Symbol** (Checkbox-Icon) in der Werkzeugleiste des Editors
+2. Im aktiven Selektionsmodus erscheinen Checkboxen neben jedem Element
+3. Wählen Sie die gewünschten Elemente per Checkbox aus
+4. Ein **schwebender Aktionsbalken** am unteren Bildschirmrand zeigt die Anzahl der selektierten Elemente an
+
+##### Elemente gruppieren
+1. Aktivieren Sie den Selektionsmodus und wählen Sie mindestens ein Element aus
+2. Klicken Sie im Aktionsbalken auf **„Zu Gruppe zusammenfassen"**
+3. Geben Sie im Dialog einen **Gruppentitel** und eine **field_id** ein (wird automatisch vorgeschlagen)
+4. Klicken Sie auf **„Zusammenfassen"**
+5. Die ausgewählten Elemente werden in ein neues `GroupUIElement` eingebettet
+
+**Validierungsregeln:**
+- Alle selektierten Elemente müssen sich auf **derselben Hierarchieebene** befinden
+- Elemente innerhalb eines **Arrays** können nicht gruppiert werden
+- Elemente innerhalb eines **SubFlows** können nicht gruppiert werden
+- **Chips** innerhalb einer Chip-Gruppe können nicht gruppiert werden
+- Bereits vorhandene **Gruppen** können nicht erneut in eine Gruppe eingebettet werden
+- Bei Verstößen wird eine verständliche Fehlermeldung angezeigt
+
+##### Gruppierung auflösen (Ungroup)
+1. Klicken Sie auf eine bestehende Gruppe im Editor
+2. Klicken Sie auf das **Auflösen-Symbol** (Ungroup-Icon) in der Elementkarte
+3. Die Gruppe wird entfernt und ihre Kinder-Elemente werden an der ursprünglichen Position der Gruppe eingefügt
+
+**Hinweise:**
+- Die `field_id`-Werte der verschobenen Elemente bleiben unverändert
+- Undo/Redo wird vollständig unterstützt
+- Der Selektionsmodus wird nach dem Gruppieren automatisch deaktiviert
+
+#### Element auf andere Seite kopieren
+
+Sie können ein Element (einschließlich aller verschachtelten Kinder) auf eine andere Seite innerhalb desselben Flows kopieren:
+
+1. Klicken Sie auf das **Kopier-Symbol** (zwei übereinanderliegende Seiten) in der Elementkarte
+2. Wählen Sie im Dialog die **Zielseite** aus der Liste aller verfügbaren Seiten
+3. Wählen Sie die **Position**: „Am Anfang der Seite" oder „Am Ende der Seite"
+4. Klicken Sie auf **„Kopieren"**
+
+**Hinweise:**
+- Das kopierte Element erhält neue UUIDs **und** neue `field_id`-Werte, um Duplikat-Konflikte innerhalb desselben Flows zu vermeiden
+- Alle verschachtelten Elemente (Gruppen, Arrays, etc.) werden vollständig tief-kopiert
+- Sichtbarkeitsbedingungen, die auf Felder anderer Seiten verweisen, bleiben funktionsfähig
+- Ein Erfolgs-Snackbar bestätigt die Kopie
+- Undo/Redo wird unterstützt
+
+#### Element in andere JSON-Datei exportieren
+
+Sie können ein Element in eine externe JSON-Datei exportieren, ohne den aktuellen Flow zu verändern:
+
+1. Klicken Sie auf das **Export-Symbol** (Teilen-Icon) in der Elementkarte
+2. Klicken Sie im Dialog auf **„Zieldatei auswählen"** und wählen Sie eine JSON-Datei aus
+3. Die Seiten der Zieldatei werden angezeigt – wählen Sie die **Zielseite** aus
+4. Wählen Sie die **Position**: „Am Anfang der Seite" oder „Am Ende der Seite"
+5. Klicken Sie auf **„Exportieren"**
+6. Die modifizierte Zieldatei wird automatisch als `[Dateiname]_modified.json` heruntergeladen
+
+**Hinweise:**
+- Der aktuelle Flow wird **nicht verändert** – nur die Zieldatei erhält das neue Element
+- Die `field_id`-Werte werden **beibehalten** (kein Konflikt, da unterschiedliche Flows)
+- UUIDs werden neu generiert, um Eindeutigkeit in der Zieldatei zu gewährleisten
+- Falls das Element Sichtbarkeitsbedingungen mit Feldverweisen enthält, wird eine **Warnung** angezeigt, da diese Felder in der Zieldatei möglicherweise nicht existieren
+- Unterstützt alle Elementtypen einschließlich verschachtelter Gruppen und Arrays
+
 #### Bearbeitungsoberfläche
 
 1. **Strukturnavigator**: Zeigt die hierarchische Struktur aller Elemente
@@ -110,6 +197,9 @@ Die Hauptnavigation bietet folgende Funktionen:
    - Detaillierte Anzeige von Elementeigenschaften
    - Verbesserte Darstellung von Unterelementen
    - Containertyp-spezifische Aktionsschaltflächen
+   - **Element auf andere Seite kopieren** (Kopier-Symbol)
+   - **Element in andere JSON-Datei exportieren** (Export-Symbol)
+   - **Gruppe auflösen** (bei GroupUIElement-Elementen)
 
 ### 5. Verschachtelung und Container
 
@@ -142,6 +232,10 @@ Elemente können verschachtelt werden:
 - Nutzen Sie die Containertyp-Anzeige, um schnell zu erkennen, welche Art von Container Sie bearbeiten
 - Verwenden Sie die verbesserte Strukturnavigation, um schnell durch komplexe Hierarchien zu navigieren
 - Beachten Sie die farbliche Kennzeichnung der verschiedenen Containertypen für eine bessere Übersicht
+- **Nutzen Sie die Multi-Selektion**, um mehrere Elemente gleichzeitig in eine Gruppe zusammenzufassen – schneller als einzelnes Drag & Drop
+- **Importieren Sie Seiten** aus bestehenden Flows, um bewährte Seitenstrukturen wiederzuverwenden
+- **Kopieren Sie Elemente zwischen Seiten**, um konsistente Formularstrukturen aufzubauen
+- **Exportieren Sie Elemente** in andere JSON-Dateien, um Flows projektübergreifend zu standardisieren
 
 ### Mehrsprachigkeit
 - Füllen Sie alle Sprachversionen direkt aus
@@ -211,3 +305,28 @@ Elemente können verschachtelt werden:
    - Die Strukturnormalisierung sorgt für konsistente JSON-Ausgabe
    - Die Validierung prüft die Struktur auf Fehler
    - Komplexe Strukturen wie doorbit_original.json werden unterstützt
+
+6. **Wie kann ich mehrere Elemente gleichzeitig gruppieren?**
+   - Aktivieren Sie den Selektionsmodus über das Checkbox-Symbol in der Werkzeugleiste
+   - Wählen Sie die gewünschten Elemente per Checkbox aus
+   - Klicken Sie auf „Zu Gruppe zusammenfassen" im schwebenden Aktionsbalken
+   - Alle Elemente müssen auf derselben Ebene liegen
+
+7. **Wie kann ich eine Gruppe wieder auflösen?**
+   - Wählen Sie die Gruppe im Editor aus
+   - Klicken Sie auf das Auflösen-Symbol (Ungroup) in der Elementkarte
+   - Die Kinder-Elemente werden an der Position der Gruppe eingefügt
+
+8. **Wie kann ich Seiten aus einem anderen Flow übernehmen?**
+   - Nutzen Sie die Import-Funktion neben dem „+"-Button in der Seitennavigation
+   - Wählen Sie die Quell-JSON-Datei aus und markieren Sie die gewünschten Seiten
+   - Die importierten Seiten erhalten neue IDs, behalten aber ihre interne Struktur bei
+
+9. **Was passiert mit field_ids beim Kopieren und Exportieren?**
+   - **Kopieren innerhalb desselben Flows**: `field_id`-Werte werden **neu generiert**, um Duplikate zu vermeiden
+   - **Exportieren in eine andere JSON-Datei**: `field_id`-Werte werden **beibehalten**, da kein Konflikt in einem anderen Flow besteht
+   - **Seitenimport**: `field_id`-Werte werden **beibehalten**, damit die Datenbindung innerhalb der Seite funktioniert
+
+10. **Werden Sichtbarkeitsbedingungen beim Kopieren übernommen?**
+    - Ja, Sichtbarkeitsbedingungen werden mitkopiert
+    - Beim Export in eine andere Datei wird eine Warnung angezeigt, falls Feldverweise existieren, die in der Zieldatei möglicherweise nicht vorhanden sind

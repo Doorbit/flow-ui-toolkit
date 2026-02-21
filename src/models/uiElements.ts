@@ -108,6 +108,7 @@ export interface FileUIElement extends UIElementEdit {
 
 export interface GroupUIElement extends UIElementEdit {
   pattern_type: 'GroupUIElement';
+  field_id?: FieldId;
   isCollapsible?: boolean;
   elements: any[]; // PatternLibraryElement[]
 }

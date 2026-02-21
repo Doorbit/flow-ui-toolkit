@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, Box, Snackbar, Alert } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
 import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
@@ -12,6 +12,9 @@ import Navigation from './components/Navigation/Navigation';
 // import PropertyEditor from './components/PropertyEditor/PropertyEditor';
 import HybridEditor from './components/HybridEditor';
 import PageNavigator from './components/PageNavigator/PageNavigator';
+import CopyElementToPageDialog from './components/HybridEditor/CopyElementToPageDialog';
+import ExportElementToFileDialog from './components/HybridEditor/ExportElementToFileDialog';
+import { deepCloneElement } from './utils/deepCloneUtils';
 // DndProvider wird jetzt in index.tsx importiert
 // import { DndProvider } from './components/DndProvider';
 import { EditorProvider, useEditor, getElementByPath, getContainerType } from './context/EditorContext';
@@ -1611,6 +1614,11 @@ const AppContent: React.FC = () => {
   const { state, dispatch } = useEditor();
   const [selectedElementPath, setSelectedElementPath] = useState<number[]>([]);
   const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
+  const [groupErrorSnackbar, setGroupErrorSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+  // Copy/Export dialog state
+  const [copyToPageDialogState, setCopyToPageDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
+  const [exportToFileDialogState, setExportToFileDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
+  const [copySuccessSnackbar, setCopySuccessSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   // Diese Funktion wurde durch handleSaveWorkflowName ersetzt
 
@@ -1901,6 +1909,166 @@ const AppContent: React.FC = () => {
   //   // Implementierung auskommentiert, da sie jetzt im HybridEditor ist
   // };
 
+  // ==================== Multi-Selektion Handlers ====================
+
+  /** Selektionsmodus ein-/ausschalten */
+  const handleToggleSelectionMode = () => {
+    dispatch({ type: 'TOGGLE_SELECTION_MODE' });
+  };
+
+  /** Element zur Multi-Selektion hinzufügen/entfernen */
+  const handleMultiSelect = (path: number[]) => {
+    if (!state.selectedPageId) return;
+    dispatch({ type: 'TOGGLE_MULTI_SELECT', path, pageId: state.selectedPageId });
+  };
+
+  /** Multi-Selektion zurücksetzen */
+  const handleClearMultiSelect = () => {
+    dispatch({ type: 'CLEAR_MULTI_SELECT' });
+  };
+
+  /**
+   * Selektierte Elemente in eine neue Gruppe zusammenfassen.
+   * Führt 5 Validierungen durch bevor der Dispatch erfolgt.
+   */
+  const handleWrapInGroup = (paths: number[][], groupTitle: string, groupFieldId: string) => {
+    if (!state.selectedPageId || paths.length < 1) return;
+
+    // 1. Gleiche Elternebene: Alle Pfade müssen denselben Parent-Pfad haben
+    const parentPaths = paths.map(p => JSON.stringify(p.slice(0, -1)));
+    const uniqueParents = new Set(parentPaths);
+    if (uniqueParents.size !== 1) {
+      setGroupErrorSnackbar({ open: true, message: 'Nur Elemente derselben Ebene können gruppiert werden.' });
+      return;
+    }
+
+    const parentPath = paths[0].slice(0, -1);
+
+    // 2. Nicht in SubFlow: SubFlow-Pfade ausschließen (Phase 1)
+    if (parentPath.length > 0) {
+      const parentElement = getElementByPath(currentElements, parentPath);
+      if (parentElement) {
+        const parentType = parentElement.element.pattern_type;
+        // CustomUIElement mit sub_flows = SubFlow
+        if (parentType === 'CustomUIElement' || parentType?.startsWith('CustomUIElement_')) {
+          setGroupErrorSnackbar({ open: true, message: 'Elemente innerhalb eines SubFlows können nicht gruppiert werden.' });
+          return;
+        }
+      }
+    }
+
+    // 3. Nicht in ArrayUIElement
+    if (parentPath.length > 0) {
+      const parentElement = getElementByPath(currentElements, parentPath);
+      if (parentElement && parentElement.element.pattern_type === 'ArrayUIElement') {
+        setGroupErrorSnackbar({ open: true, message: 'Elemente innerhalb eines Arrays können nicht gruppiert werden.' });
+        return;
+      }
+    }
+
+    // 4. Keine Chips: Parent darf kein ChipGroupUIElement sein
+    if (parentPath.length > 0) {
+      const parentElement = getElementByPath(currentElements, parentPath);
+      if (parentElement && parentElement.element.pattern_type === 'ChipGroupUIElement') {
+        setGroupErrorSnackbar({ open: true, message: 'Chips innerhalb einer Chip-Gruppe können nicht gruppiert werden.' });
+        return;
+      }
+    }
+
+    // 5. Kein GroupUIElement in der Selektion
+    for (const path of paths) {
+      const element = getElementByPath(currentElements, path);
+      if (element && element.element.pattern_type === 'GroupUIElement') {
+        setGroupErrorSnackbar({ open: true, message: 'Gruppen können nicht erneut gruppiert werden.' });
+        return;
+      }
+    }
+
+    // Alle Validierungen bestanden → Dispatch
+    dispatch({
+      type: 'WRAP_IN_GROUP',
+      payload: { paths, groupTitle, groupFieldId, pageId: state.selectedPageId }
+    });
+
+    // Selektion zurücksetzen
+    setSelectedElementPath([]);
+  };
+
+  /**
+   * Gruppierung eines GroupUIElement auflösen.
+   * Extrahiert die Kinder der Gruppe und fügt sie an der Stelle der Gruppe ein.
+   */
+  const handleUngroup = (path: number[]) => {
+    if (!state.selectedPageId || path.length === 0) return;
+
+    // Validierung: Element muss ein GroupUIElement sein
+    const element = getElementByPath(currentElements, path);
+    if (!element || element.element.pattern_type !== 'GroupUIElement') {
+      setGroupErrorSnackbar({ open: true, message: 'Nur Gruppen können aufgelöst werden.' });
+      return;
+    }
+
+    dispatch({
+      type: 'UNGROUP',
+      payload: { path, pageId: state.selectedPageId }
+    });
+
+    // Selektion zurücksetzen
+    setSelectedElementPath([]);
+  };
+
+  // ==================== Copy to Page / Export to File ====================
+
+  /**
+   * Opens the "Copy to Page" dialog for the element at the given path
+   */
+  const handleCopyToPage = (path: number[]) => {
+    if (!state.selectedPageId || path.length === 0) return;
+    const element = getElementByPath(currentElements, path);
+    if (!element) {
+      setGroupErrorSnackbar({ open: true, message: 'Element konnte nicht gefunden werden.' });
+      return;
+    }
+    setCopyToPageDialogState({ open: true, elementPath: path });
+  };
+
+  /**
+   * Called when user confirms the copy-to-page dialog
+   */
+  const handleCopyElementToPageConfirm = (targetPageId: string, position: 'top' | 'bottom') => {
+    const element = getElementByPath(currentElements, copyToPageDialogState.elementPath);
+    if (!element) return;
+
+    // Clone with new field_ids (intra-file copy, avoid duplicates)
+    const cloned = deepCloneElement(element, { preserveFieldIds: false, regenerateUUIDs: true });
+
+    dispatch({
+      type: 'COPY_ELEMENT_TO_PAGE',
+      payload: { targetPageId, clonedElement: cloned, position }
+    });
+
+    setCopyToPageDialogState({ open: false, elementPath: [] });
+    const elementTitle = (element.element as any).title?.de || (element.element as any).field_id?.field_name || 'Element';
+    setCopySuccessSnackbar({ open: true, message: `"${elementTitle}" wurde erfolgreich kopiert.` });
+  };
+
+  /**
+   * Opens the "Export to File" dialog for the element at the given path
+   */
+  const handleExportToFile = (path: number[]) => {
+    if (path.length === 0) return;
+    const element = getElementByPath(currentElements, path);
+    if (!element) {
+      setGroupErrorSnackbar({ open: true, message: 'Element konnte nicht gefunden werden.' });
+      return;
+    }
+    setExportToFileDialogState({ open: true, elementPath: path });
+  };
+
+  // ==================== Ende Copy to Page / Export to File ====================
+
+  // ==================== Ende Multi-Selektion ====================
+
   const handleSelectElement = (path: number[]) => {
     if (!state.selectedPageId) return;
 
@@ -1939,116 +2107,13 @@ const AppContent: React.FC = () => {
   };
 
   /**
-   * Rekursive Hilfsfunktion zum Generieren neuer field_ids für duplizierte Elemente
-   * @param element Das zu verarbeitende Element
-   * @returns Element mit neuen field_ids
+   * Regeneriert field_ids für duplizierte Elemente.
+   * Delegiert an die zentrale deepCloneElement-Utility, die alle Element-Typen
+   * rekursiv verarbeitet (GroupUIElement, ArrayUIElement, ChipGroupUIElement,
+   * CustomUIElement mit sub_flows, SingleSelectionUIElement, FileUIElement).
    */
-  const regenerateFieldIds = (element: any): any => {
-    // Deep copy um Immutabilität zu gewährleisten
-    const newElement = JSON.parse(JSON.stringify(element));
-
-    // Generiere neue field_id für das Element selbst, falls vorhanden
-    if (newElement.element && 'field_id' in newElement.element && newElement.element.field_id) {
-      const patternType = newElement.element.pattern_type;
-
-      // Bestimme das Präfix basierend auf dem Element-Typ
-      let prefix = 'field';
-      switch (patternType) {
-        case 'BooleanUIElement':
-          prefix = 'boolean_field';
-          break;
-        case 'StringUIElement':
-          prefix = 'string_field';
-          break;
-        case 'NumberUIElement':
-          prefix = 'number_field';
-          break;
-        case 'DateUIElement':
-          prefix = 'date_field';
-          break;
-        case 'SingleSelectionUIElement':
-          prefix = 'selection_field';
-          break;
-        case 'FileUIElement':
-          prefix = 'fileuielement';
-          break;
-        default:
-          prefix = patternType.toLowerCase().replace('uielement', '_field');
-      }
-
-      newElement.element.field_id = {
-        field_name: `${prefix}_${uuidv4()}`
-      };
-    }
-
-    // Spezielle Behandlung für verschiedene Element-Typen mit verschachtelten Elementen
-    if (newElement.element) {
-      const elem = newElement.element;
-
-      // ChipGroupUIElement: Regeneriere field_ids für alle Chips
-      if (elem.pattern_type === 'ChipGroupUIElement' && elem.chips) {
-        elem.chips = elem.chips.map((chip: any) => ({
-          ...chip,
-          field_id: { field_name: `chip_${uuidv4()}` }
-        }));
-      }
-
-      // GroupUIElement: Regeneriere field_ids für alle Unterelemente
-      if (elem.pattern_type === 'GroupUIElement' && elem.elements) {
-        elem.elements = elem.elements.map((subElem: any) =>
-          regenerateFieldIds({ element: subElem }).element
-        );
-      }
-
-      // ArrayUIElement: Regeneriere field_ids für alle Unterelemente
-      if (elem.pattern_type === 'ArrayUIElement' && elem.elements) {
-        elem.elements = elem.elements.map((subElem: any) =>
-          regenerateFieldIds({ element: subElem }).element
-        );
-      }
-
-      // CustomUIElement: Regeneriere field_ids für sub_flows und elements
-      if (elem.pattern_type === 'CustomUIElement') {
-        if ((elem as any).sub_flows) {
-          (elem as any).sub_flows = (elem as any).sub_flows.map((subflow: any) => ({
-            ...subflow,
-            elements: subflow.elements ? subflow.elements.map((subElem: any) =>
-              regenerateFieldIds({ element: subElem }).element
-            ) : []
-          }));
-        }
-        if ((elem as any).elements) {
-          (elem as any).elements = (elem as any).elements.map((subElem: any) =>
-            regenerateFieldIds({ element: subElem }).element
-          );
-        }
-      }
-
-      // SingleSelectionUIElement: Regeneriere field_id für other_user_value.text_ui_element
-      if (elem.pattern_type === 'SingleSelectionUIElement' && elem.other_user_value?.text_ui_element) {
-        elem.other_user_value.text_ui_element.field_id = {
-          field_name: `string_field_${uuidv4()}`
-        };
-      }
-
-      // FileUIElement: Regeneriere field_id, id_field_id und caption_field_id
-      if (elem.pattern_type === 'FileUIElement') {
-        // id_field_id ist erforderlich und muss immer regeneriert werden
-        if (elem.id_field_id) {
-          elem.id_field_id = {
-            field_name: `file_images_id_${uuidv4()}`
-          };
-        }
-        // caption_field_id ist optional, aber wenn vorhanden, regenerieren
-        if (elem.caption_field_id) {
-          elem.caption_field_id = {
-            field_name: `file_images_caption_${uuidv4()}`
-          };
-        }
-      }
-    }
-
-    return newElement;
+  const regenerateFieldIds = (element: PatternLibraryElement): PatternLibraryElement => {
+    return deepCloneElement(element, { preserveFieldIds: false, regenerateUUIDs: true });
   };
 
   const handleDuplicateElement = (path: number[]) => {
@@ -2283,6 +2348,15 @@ const AppContent: React.FC = () => {
           onSelectElement={handleSelectElement}
           onRemoveElement={handleRemoveElement}
           onDuplicateElement={handleDuplicateElement}
+          isSelectionMode={state.isSelectionMode}
+          selectedElementPaths={state.selectedElementPaths}
+          onToggleSelectionMode={handleToggleSelectionMode}
+          onMultiSelect={handleMultiSelect}
+          onWrapInGroup={handleWrapInGroup}
+          onClearMultiSelect={handleClearMultiSelect}
+          onUngroup={handleUngroup}
+          onCopyToPage={handleCopyToPage}
+          onExportToFile={handleExportToFile}
           onAddSubElement={(parentPath, type) => {
             console.log('[AppContent onAddSubElement] parentPath:', parentPath, 'type:', type);
             handleAddElement(type || 'TextUIElement', parentPath);
@@ -2352,6 +2426,75 @@ const AppContent: React.FC = () => {
         </Box>
       )}
       */}
+      {/* Snackbar für Gruppierungs-Fehlermeldungen */}
+      <Snackbar
+        open={groupErrorSnackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setGroupErrorSnackbar({ open: false, message: '' })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setGroupErrorSnackbar({ open: false, message: '' })}
+          severity="warning"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {groupErrorSnackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Copy to Page Dialog */}
+      <CopyElementToPageDialog
+        open={copyToPageDialogState.open}
+        onClose={() => setCopyToPageDialogState({ open: false, elementPath: [] })}
+        onCopy={handleCopyElementToPageConfirm}
+        pages={state.currentFlow?.pages_edit || []}
+        currentPageId={state.selectedPageId || ''}
+        elementTitle={
+          copyToPageDialogState.open && copyToPageDialogState.elementPath.length > 0
+            ? (() => {
+                const el = getElementByPath(currentElements, copyToPageDialogState.elementPath);
+                return el ? ((el.element as any).title?.de || (el.element as any).field_id?.field_name || 'Element') : 'Element';
+              })()
+            : 'Element'
+        }
+      />
+
+      {/* Export to File Dialog */}
+      <ExportElementToFileDialog
+        open={exportToFileDialogState.open}
+        onClose={() => setExportToFileDialogState({ open: false, elementPath: [] })}
+        elementToExport={
+          exportToFileDialogState.open && exportToFileDialogState.elementPath.length > 0
+            ? getElementByPath(currentElements, exportToFileDialogState.elementPath) || null
+            : null
+        }
+        elementTitle={
+          exportToFileDialogState.open && exportToFileDialogState.elementPath.length > 0
+            ? (() => {
+                const el = getElementByPath(currentElements, exportToFileDialogState.elementPath);
+                return el ? ((el.element as any).title?.de || (el.element as any).field_id?.field_name || 'Element') : 'Element';
+              })()
+            : 'Element'
+        }
+      />
+
+      {/* Snackbar für Copy-Erfolgsmeldungen */}
+      <Snackbar
+        open={copySuccessSnackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setCopySuccessSnackbar({ open: false, message: '' })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setCopySuccessSnackbar({ open: false, message: '' })}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {copySuccessSnackbar.message}
+        </Alert>
+      </Snackbar>
     </AppContainer>
     </FieldValuesProvider>
   );

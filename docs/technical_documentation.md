@@ -27,6 +27,8 @@ graph TD
   - Handhabt Undo/Redo-Funktionalität
   - Steuert die Seitennavigation
   - Verwaltet ausgewählte Elemente
+  - Multi-Selektion mit `selectedElementPaths` und `isSelectionMode`
+  - Reducer-Actions: `WRAP_IN_GROUP`, `UNGROUP`, `IMPORT_PAGES`, `COPY_ELEMENT_TO_PAGE`
 
 ### 2. Datenmodell
 
@@ -90,6 +92,9 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Ermöglicht verschachtelte Strukturen
 - Verbesserte Pfadnavigation für tiefe Verschachtelungen
 - Intelligente Containertyp-Erkennung für verschiedene Elementtypen
+- **Multi-Selektionsmodus**: Checkbox-basierte Auswahl mehrerer Elemente mit visuellem Highlight
+- **FloatingActionBar**: Schwebendes Aktionspanel mit Gruppierungs- und Auswahl-Aktionen
+- **WrapInGroupDialog**: Eingabedialog für Gruppentitel und field_id beim Zusammenfassen
 
 #### PropertyEditor und EnhancedPropertyEditor
 - Bearbeitung von Element-Eigenschaften
@@ -140,6 +145,8 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Intelligente Containertyp-Erkennung und -Anzeige (group, array, chipgroup, custom, subflow)
 - Optimierte Hinzufügung von Elementen in verschiedenen Containertypen
 - Verbesserte Breadcrumb-Navigation mit Containertyp-Informationen
+- **CopyElementToPageDialog**: Dialog zum Kopieren von Elementen auf andere Seiten (Intra-File)
+- **ExportElementToFileDialog**: Dialog zum Exportieren von Elementen in externe JSON-Dateien
 
 #### PageNavigator
 - Verwaltung mehrerer Seiten
@@ -147,6 +154,7 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
 - Drag & Drop Seitenreihenfolge
 - Bearbeitung von Seiteneigenschaften über Dialog
 - Mehrsprachige Seitentitel (kurz und lang)
+- **ImportPagesDialog**: Import von Seiten aus externen JSON-Dateien mit Mehrseitenauswahl
 
 ##### EditPageDialog
 - Bearbeitung von Seitentiteln in mehreren Sprachen
@@ -188,7 +196,44 @@ Die Anwendung unterstützt verschiedene UI-Elementtypen:
   - Beim Export wird über `transformFlowForExport` ein Export-Flow erzeugt, der alle internen `uuid`-Felder entfernt und `visibility_condition`-Strukturen von technischen UUIDs bereinigt.
   - Dadurch sind Roundtrips (Import → Bearbeitung → Export) möglich, ohne dass sich `field_id.field_name` oder die Struktur ändern.
 
-### 4. Icon-Auswahl
+### 4. Multi-Selektion und Gruppierung
+
+- **Selektionsmodus**: Toggle-basiert (`isSelectionMode` im EditorContext)
+- **Pfad-Tracking**: `selectedElementPaths: number[][]` speichert alle selektierten Elementpfade
+- **WRAP_IN_GROUP Action**: Extrahiert selektierte Elemente, erstellt `GroupUIElement`, fügt es an der Position des ersten Elements ein
+  - Pfade werden sortiert und rückwärts entfernt (Back-to-Front), um Index-Verschiebungen zu vermeiden
+  - Neues GroupUIElement erhält UUID via `ensureUUIDs()`
+- **UNGROUP Action**: Extrahiert Kinder einer Gruppe und fügt sie an der Position der Gruppe ein
+- **Validierungen** (in App.tsx `handleWrapInGroup`):
+  - Gleiche Elternebene (Parent-Pfad-Vergleich)
+  - Kein Parent vom Typ `ArrayUIElement`, `ChipGroupUIElement`, `CustomUIElement`
+  - Keine `GroupUIElement` in der Selektion
+- **FloatingActionBar**: Fixiert am unteren Bildschirmrand, zeigt Aktionen wenn `selectedElementPaths.length >= 1`
+- **Undo-Kompatibilität**: Alle Actions sichern den vorherigen State in `undoStack`
+
+### 5. Element-Kopie und Export
+
+- **Intra-File Copy** (`COPY_ELEMENT_TO_PAGE` Action):
+  - Deep-Clone mit `deepCloneElement({ preserveFieldIds: false, regenerateUUIDs: true })`
+  - `field_id`-Werte werden regeneriert, um Duplikate im selben Flow zu vermeiden
+  - Einfügung am Anfang oder Ende der Zielseite
+- **Inter-File Export** (kein Reducer — modifiziert nur externe Datei):
+  - Deep-Clone mit `deepCloneElement({ preserveFieldIds: true, regenerateUUIDs: true })`
+  - `field_id`-Werte bleiben erhalten (kein Konflikt in anderem Flow)
+  - Warnung bei Sichtbarkeitsbedingungen mit Feldverweisen (`findVisibilityFieldReferences`)
+  - Download der modifizierten Zieldatei via `Blob` + `URL.createObjectURL`
+- **Page Import** (`IMPORT_PAGES` Action):
+  - `deepClonePagePair()` generiert neue Seiten-IDs (`edit-<uuid>`, `view-<uuid>`)
+  - `related_pages` werden automatisch aktualisiert
+  - `field_id`-Werte bleiben erhalten (seiteninternes Binding)
+  - Quelldatei wird mit `normalizeElementTypes` + `ensureUUIDs` normalisiert
+- **Shared Utility**: `src/utils/deepCloneUtils.ts`
+  - `deepCloneElement()`: Rekursiv durch alle Containertypen (Group, Array, ChipGroup, Custom/sub_flows, SingleSelection/other_user_value, FileUIElement)
+  - `deepClonePagePair()`: Klont Edit+View-Seitenpaar mit neuen IDs
+  - `findVisibilityFieldReferences()`: Findet referenzierte `field_name`-Werte in Sichtbarkeitsbedingungen
+  - `findCorrespondingViewPage()`: Findet die zugehörige View-Seite via `related_pages` oder ID-Konvention
+
+### 6. Icon-Auswahl
 - Integrierter IconSelector für Material Design Icons
 - Kategorisierte Anzeige (Haus & Gebäude, Smart Home & HVAC, etc.)
 - Suchfunktion für schnelles Finden
@@ -202,12 +247,18 @@ src/
 ├── components/
 │   ├── DndProvider/
 │   ├── EditorArea/
+│   │   ├── EditorArea.tsx     # Hauptbearbeitungsbereich mit Multi-Selektionsmodus
+│   │   ├── FloatingActionBar.tsx # Schwebendes Aktionspanel für Multi-Selektion
+│   │   ├── WrapInGroupDialog.tsx # Dialog für Gruppentitel/field_id-Eingabe
+│   │   └── ElementTypeDialog.tsx # Dialog für Elementtypauswahl
 │   ├── ElementPalette/
 │   ├── HybridEditor/          # Verbesserte Editor-Komponente
 │   │   ├── HybridEditor.tsx   # Hauptkomponente des verbesserten Editors
 │   │   ├── StructureNavigator.tsx # Hierarchische Anzeige der Elementstruktur
 │   │   ├── EnhancedPropertyEditor.tsx # Verbesserte Eigenschaftsbearbeitung
-│   │   ├── ElementContextView.tsx # Kontextinformationen zum ausgewählten Element
+│   │   ├── ElementContextView.tsx # Kontextinformationen mit Kopier-/Export-Aktionen
+│   │   ├── CopyElementToPageDialog.tsx # Dialog zum Kopieren auf andere Seiten
+│   │   ├── ExportElementToFileDialog.tsx # Dialog zum Export in externe JSON-Dateien
 │   │   ├── EnhancedElementEditorFactory.tsx # Factory für spezialisierte Editoren
 │   │   └── VisibilityLegend.tsx # Legende für Sichtbarkeitsregeln
 │   ├── IconSelector/
@@ -217,7 +268,8 @@ src/
 │   ├── PageNavigator/
 │   │   ├── PageNavigator.tsx  # Hauptkomponente für Seitenverwaltung
 │   │   ├── PageTab.tsx        # Einzelne Seiten-Tabs mit Icon-Unterstützung
-│   │   └── EditPageDialog.tsx # Dialog zur Bearbeitung von Seiteneigenschaften
+│   │   ├── EditPageDialog.tsx # Dialog zur Bearbeitung von Seiteneigenschaften
+│   │   └── ImportPagesDialog.tsx # Dialog zum Import von Seiten aus externen JSON-Dateien
 │   └── PropertyEditor/
 │       ├── common/            # Wiederverwendbare UI-Komponenten
 │       │   ├── TranslatableField.tsx # Mehrsprachige Texteingabe
@@ -253,6 +305,7 @@ src/
     ├── uuidUtils.ts          # UUID-Generierung und -Verwaltung
     ├── normalizeUtils.ts     # Strukturnormalisierung und -validierung
     ├── pathUtils.ts          # Pfadnavigation und -manipulation
+    ├── deepCloneUtils.ts     # Deep-Clone-Utilities für Elemente und Seiten
     └── containerUtils.ts     # Containertyp-Erkennung und -Verwaltung
 ```
 

@@ -10,10 +10,13 @@ import {
   DialogActions,
   Button,
   TextField,
-  Typography
+  Typography,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import {
-  Add as AddIcon
+  Add as AddIcon,
+  FileUpload as FileUploadIcon
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '../../models/listingFlow';
@@ -22,6 +25,7 @@ import { useFieldValues } from '../../context/FieldValuesContext';
 import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 import PageTab from './PageTab';
 import EditPageDialog from './EditPageDialog';
+import ImportPagesDialog from './ImportPagesDialog';
 
 interface PageNavigatorProps {
   pages: Page[];
@@ -37,6 +41,8 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
   const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
   const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [importSuccessMessage, setImportSuccessMessage] = React.useState<string | null>(null);
 
   // HINWEIS: Wir zeigen alle Seiten an, unabhängig von ihrer Visibility-Bedingung
   // Wir verwenden die Visibility-Bedingung nur noch für das Augensymbol, nicht zum Filtern
@@ -80,6 +86,12 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     setOpenNewPageDialog(false);
     setNewPageTitle('');
   };
+
+  const handleImportPages = useCallback((editPages: Page[], viewPages: Page[]) => {
+    dispatch({ type: 'IMPORT_PAGES', payload: { editPages, viewPages } });
+    setImportDialogOpen(false);
+    setImportSuccessMessage(`${editPages.length} Seite(n) erfolgreich importiert.`);
+  }, [dispatch]);
 
   const handleConfirmDelete = () => {
     if (pageToDelete) {
@@ -213,6 +225,47 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           <AddIcon />
         </IconButton>
       </Tooltip>
+
+      <Tooltip title="Seiten aus anderer JSON-Datei importieren">
+        <IconButton
+          onClick={() => setImportDialogOpen(true)}
+          sx={{
+            mx: 0.5,
+            color: '#000000',
+            bgcolor: '#81D4FA',
+            border: '1px solid #000000',
+            '&:hover': {
+              bgcolor: '#4FC3F7',
+            }
+          }}
+        >
+          <FileUploadIcon />
+        </IconButton>
+      </Tooltip>
+
+      {/* Dialog für Seiten importieren */}
+      <ImportPagesDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        onImport={handleImportPages}
+      />
+
+      {/* Erfolgs-Snackbar für Import */}
+      <Snackbar
+        open={!!importSuccessMessage}
+        autoHideDuration={4000}
+        onClose={() => setImportSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setImportSuccessMessage(null)}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {importSuccessMessage}
+        </Alert>
+      </Snackbar>
 
       {/* Dialog für neue Seite */}
       <Dialog open={openNewPageDialog} onClose={handleCloseNewPageDialog}>

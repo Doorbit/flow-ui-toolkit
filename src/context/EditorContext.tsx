@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
-import { ChipGroupUIElement } from '../models/uiElements';
+import { ChipGroupUIElement, GroupUIElement } from '../models/uiElements';
 import { ensureUUIDs } from '../utils/uuidUtils';
 
 interface EditorState {
@@ -12,6 +13,8 @@ interface EditorState {
   isDirty: boolean;
   selectedPageId: string | null; // ID der ausgewählten Seite
   dialogs: { [key: string]: boolean }; // Zustand für verschiedene Dialoge
+  isSelectionMode: boolean; // Selektionsmodus für Multi-Select
+  selectedElementPaths: number[][]; // Array von Pfaden für Multi-Selektion
 }
 
 type Action =
@@ -31,6 +34,13 @@ type Action =
   | { type: 'SELECT_PAGE'; pageId: string }
   | { type: 'MOVE_PAGE'; sourceIndex: number; targetIndex: number }
   | { type: 'TOGGLE_DIALOG'; payload: { dialog: string; open: boolean } } // Neue Action
+  | { type: 'TOGGLE_SELECTION_MODE' } // Selektionsmodus umschalten
+  | { type: 'TOGGLE_MULTI_SELECT'; path: number[]; pageId: string } // Element zur Multi-Selektion hinzufügen/entfernen
+  | { type: 'CLEAR_MULTI_SELECT' } // Multi-Selektion leeren
+  | { type: 'WRAP_IN_GROUP'; payload: { paths: number[][]; groupTitle: string; groupFieldId: string; pageId: string } } // Elemente in Gruppe zusammenfassen
+  | { type: 'UNGROUP'; payload: { path: number[]; pageId: string } } // Gruppierung auflösen
+  | { type: 'IMPORT_PAGES'; payload: { editPages: Page[]; viewPages: Page[] } } // Seiten aus externer Datei importieren
+  | { type: 'COPY_ELEMENT_TO_PAGE'; payload: { targetPageId: string; clonedElement: PatternLibraryElement; position: 'top' | 'bottom' } } // Element auf andere Seite kopieren
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
@@ -43,6 +53,8 @@ const initialState: EditorState = {
   isDirty: false,
   selectedPageId: null,
   dialogs: {}, // Initial leer
+  isSelectionMode: false,
+  selectedElementPaths: [],
 };
 
 export interface EditorContextType {
@@ -640,6 +652,8 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         isDirty: false,
         // Erste Seite als Standard auswählen, wenn verfügbar
         selectedPageId: flowWithUUIDs?.pages_edit.length > 0 ? flowWithUUIDs.pages_edit[0].id : null,
+        isSelectionMode: false,
+        selectedElementPaths: [],
       };
 
     case 'UPDATE_FLOW':
@@ -871,6 +885,8 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         selectedElement: null,
         selectedElementPath: [],
         isDirty: true,
+        isSelectionMode: false,
+        selectedElementPaths: [],
       };
 
     case 'REDO':
@@ -885,6 +901,8 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         selectedElement: null,
         selectedElementPath: [],
         isDirty: true,
+        isSelectionMode: false,
+        selectedElementPaths: [],
       };
 
     case 'ADD_PAGE': {
@@ -974,6 +992,8 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         selectedPageId: action.pageId,
         selectedElement: null,
         selectedElementPath: [],
+        isSelectionMode: false,
+        selectedElementPaths: [],
       };
     }
 
@@ -1066,6 +1086,266 @@ function editorReducer(state: EditorState, action: Action): EditorState {
           ...state.dialogs,
           [action.payload.dialog]: action.payload.open,
         },
+      };
+    }
+
+    case 'TOGGLE_SELECTION_MODE': {
+      const newIsSelectionMode = !state.isSelectionMode;
+      return {
+        ...state,
+        isSelectionMode: newIsSelectionMode,
+        // Beim Deaktivieren des Selektionsmodus die Auswahl leeren
+        selectedElementPaths: newIsSelectionMode ? state.selectedElementPaths : [],
+      };
+    }
+
+    case 'TOGGLE_MULTI_SELECT': {
+      if (!state.currentFlow) return state;
+
+      const pathStr = JSON.stringify(action.path);
+      const existingIndex = state.selectedElementPaths.findIndex(
+        p => JSON.stringify(p) === pathStr
+      );
+
+      let newSelectedPaths: number[][];
+      if (existingIndex >= 0) {
+        // Pfad bereits vorhanden → entfernen (Deselektieren)
+        newSelectedPaths = state.selectedElementPaths.filter((_, i) => i !== existingIndex);
+      } else {
+        // Pfad nicht vorhanden → hinzufügen (Selektieren)
+        newSelectedPaths = [...state.selectedElementPaths, action.path];
+      }
+
+      // Das zuletzt getogglte Element auch als selectedElement setzen
+      const page = state.currentFlow.pages_edit.find(p => p.id === action.pageId);
+      const selectedEl = page ? getElementByPath(page.elements, action.path) : null;
+
+      return {
+        ...state,
+        selectedElementPaths: newSelectedPaths,
+        selectedElement: selectedEl,
+        selectedElementPath: action.path,
+      };
+    }
+
+    case 'CLEAR_MULTI_SELECT': {
+      return {
+        ...state,
+        selectedElementPaths: [],
+      };
+    }
+
+    case 'WRAP_IN_GROUP': {
+      if (!state.currentFlow) return state;
+
+      const { paths, groupTitle, groupFieldId, pageId } = action.payload;
+      if (paths.length < 1) return state;
+
+      const wrapPage = state.currentFlow.pages_edit.find(p => p.id === pageId);
+      if (!wrapPage) return state;
+
+      // Alle Pfade müssen denselben Parent haben (Validierung sollte in App.tsx erfolgen)
+      // Sortiere Pfade nach dem letzten Index aufsteigend für die Extraktion
+      const sortedPaths = [...paths].sort((a, b) => {
+        const lastA = a[a.length - 1];
+        const lastB = b[b.length - 1];
+        return lastA - lastB;
+      });
+
+      // 1. Extrahiere alle Elemente an den gegebenen Pfaden
+      const extractedElements: PatternLibraryElement[] = [];
+      for (const path of sortedPaths) {
+        const element = getElementByPath(wrapPage.elements, path);
+        if (element) {
+          // Deep copy um Immutabilität zu gewährleisten
+          extractedElements.push(JSON.parse(JSON.stringify(element)));
+        }
+      }
+
+      if (extractedElements.length === 0) return state;
+
+      // 2. Erstelle das neue GroupUIElement
+      const newGroupElement: PatternLibraryElement = {
+        element: {
+          pattern_type: 'GroupUIElement',
+          uuid: uuidv4(),
+          required: false,
+          isCollapsible: false,
+          title: { de: groupTitle, en: groupTitle },
+          field_id: { field_name: groupFieldId },
+          elements: extractedElements
+        } as GroupUIElement
+      };
+
+      // 3. Entferne die selektierten Elemente (von hinten nach vorne, um Indizes beizubehalten)
+      const reverseSortedPaths = [...sortedPaths].reverse();
+      let updatedElements = [...wrapPage.elements];
+
+      // Da alle Pfade denselben Parent haben, können wir sie direkt verarbeiten
+      const parentPath = sortedPaths[0].slice(0, -1);
+
+      if (parentPath.length === 0) {
+        // Top-Level: Direkt aus page.elements entfernen
+        const indicesToRemove = reverseSortedPaths.map(p => p[p.length - 1]);
+        for (const idx of indicesToRemove) {
+          updatedElements.splice(idx, 1);
+        }
+
+        // 4. Neues GroupUIElement an der Position des ersten selektierten Elements einfügen
+        const insertIndex = sortedPaths[0][sortedPaths[0].length - 1];
+        updatedElements.splice(insertIndex, 0, newGroupElement);
+      } else {
+        // Verschachtelt: Verwende removeElementAtPath und addElementAtPath
+        for (const path of reverseSortedPaths) {
+          updatedElements = removeElementAtPath(updatedElements, path);
+        }
+
+        // Einfügeposition: Der Pfad des ersten Elements
+        const insertPath = [...sortedPaths[0]];
+        updatedElements = addElementAtPath(updatedElements, insertPath, newGroupElement);
+      }
+
+      // 5. Neuen Flow erstellen
+      const newFlowWithGroup = {
+        ...state.currentFlow,
+        pages_edit: state.currentFlow.pages_edit.map((p: Page) =>
+          p.id === pageId
+            ? { ...p, elements: updatedElements }
+            : p
+        ),
+      };
+
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: newFlowWithGroup,
+        redoStack: [],
+        isDirty: true,
+        selectedElement: null,
+        selectedElementPath: [],
+        isSelectionMode: false,
+        selectedElementPaths: [],
+      };
+    }
+
+    case 'UNGROUP': {
+      if (!state.currentFlow) return state;
+
+      const { path: ungroupPath, pageId: ungroupPageId } = action.payload;
+      if (ungroupPath.length === 0) return state;
+
+      const ungroupPage = state.currentFlow.pages_edit.find(p => p.id === ungroupPageId);
+      if (!ungroupPage) return state;
+
+      // 1. Element an dem Pfad finden
+      const groupElement = getElementByPath(ungroupPage.elements, ungroupPath);
+      if (!groupElement) return state;
+
+      // 2. Prüfen, ob es ein GroupUIElement ist
+      if (groupElement.element.pattern_type !== 'GroupUIElement') return state;
+
+      // 3. Kinder extrahieren (deep copy)
+      const groupChildren: PatternLibraryElement[] = ((groupElement.element as GroupUIElement).elements || [])
+        .map((child: PatternLibraryElement) => JSON.parse(JSON.stringify(child)));
+
+      // 4. Gruppe entfernen und Kinder an derselben Position einfügen
+      const groupIndex = ungroupPath[ungroupPath.length - 1];
+      const parentPath = ungroupPath.slice(0, -1);
+      let ungroupUpdatedElements = [...ungroupPage.elements];
+
+      if (parentPath.length === 0) {
+        // Top-Level: Direkt in page.elements arbeiten
+        ungroupUpdatedElements.splice(groupIndex, 1, ...groupChildren);
+      } else {
+        // Verschachtelt: Gruppe entfernen, dann Kinder einfügen
+        ungroupUpdatedElements = removeElementAtPath(ungroupUpdatedElements, ungroupPath);
+
+        // Kinder einfügen an der Position der ehemaligen Gruppe (von hinten nach vorne)
+        for (let i = groupChildren.length - 1; i >= 0; i--) {
+          ungroupUpdatedElements = addElementAtPath(ungroupUpdatedElements, [...parentPath, groupIndex], groupChildren[i]);
+        }
+      }
+
+      // 5. Neuen Flow erstellen
+      const ungroupNewFlow = {
+        ...state.currentFlow,
+        pages_edit: state.currentFlow.pages_edit.map((p: Page) =>
+          p.id === ungroupPageId
+            ? { ...p, elements: ungroupUpdatedElements }
+            : p
+        ),
+      };
+
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: ungroupNewFlow,
+        redoStack: [],
+        isDirty: true,
+        selectedElement: null,
+        selectedElementPath: [],
+      };
+    }
+
+    case 'IMPORT_PAGES': {
+      if (!state.currentFlow) return state;
+
+      const { editPages: importedEditPages, viewPages: importedViewPages } = action.payload;
+      if (importedEditPages.length === 0) return state;
+
+      const importNewFlow = {
+        ...state.currentFlow,
+        pages_edit: [...state.currentFlow.pages_edit, ...importedEditPages],
+        pages_view: [...state.currentFlow.pages_view, ...importedViewPages],
+      };
+
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: importNewFlow,
+        redoStack: [],
+        selectedPageId: importedEditPages[0].id, // Erste importierte Seite auswählen
+        selectedElement: null,
+        selectedElementPath: [],
+        isDirty: true,
+        isSelectionMode: false,
+        selectedElementPaths: [],
+      };
+    }
+
+    case 'COPY_ELEMENT_TO_PAGE': {
+      if (!state.currentFlow) return state;
+
+      const { targetPageId: copyTargetPageId, clonedElement: copyClonedElement, position: copyPosition } = action.payload;
+
+      // Zielseite finden
+      const copyTargetPageIndex = state.currentFlow.pages_edit.findIndex(p => p.id === copyTargetPageId);
+      if (copyTargetPageIndex === -1) return state;
+
+      const copyTargetPage = state.currentFlow.pages_edit[copyTargetPageIndex];
+      let copyUpdatedElements: PatternLibraryElement[];
+
+      if (copyPosition === 'top') {
+        copyUpdatedElements = [copyClonedElement, ...copyTargetPage.elements];
+      } else {
+        copyUpdatedElements = [...copyTargetPage.elements, copyClonedElement];
+      }
+
+      const copyNewFlow = {
+        ...state.currentFlow,
+        pages_edit: state.currentFlow.pages_edit.map((p: Page, idx: number) =>
+          idx === copyTargetPageIndex
+            ? { ...p, elements: copyUpdatedElements }
+            : p
+        ),
+      };
+
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: copyNewFlow,
+        redoStack: [],
+        isDirty: true,
       };
     }
 

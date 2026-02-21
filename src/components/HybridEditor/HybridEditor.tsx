@@ -12,6 +12,7 @@ import {
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import HomeIcon from '@mui/icons-material/Home';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { useEditor, getElementByPath, getContainerType, getPathContext } from '../../context/EditorContext';
@@ -19,6 +20,8 @@ import ElementHierarchyTree from './ElementHierarchyTree';
 import ElementContextView from './ElementContextView';
 import EnhancedPropertyEditor from './EnhancedPropertyEditor';
 import VisibilityLegend from './VisibilityLegend';
+import FloatingActionBar from '../EditorArea/FloatingActionBar';
+import WrapInGroupDialog from '../EditorArea/WrapInGroupDialog';
 import FolderIcon from '@mui/icons-material/Folder';
 import ViewArrayIcon from '@mui/icons-material/ViewArray';
 import ToggleOnIcon from '@mui/icons-material/ToggleOn';
@@ -81,6 +84,16 @@ interface HybridEditorProps {
   onDropElement?: (type: string, parentPath?: number[]) => void;
   onMoveElement?: (sourceIndex: number, targetIndex: number, parentPath?: number[], sourcePath?: number[]) => void;
   onAddElement?: (type: string, elementPath?: number[]) => void; // Neue einheitliche Funktion für das Hinzufügen von Elementen
+  // Multi-Selektion Props
+  isSelectionMode?: boolean;
+  selectedElementPaths?: number[][];
+  onToggleSelectionMode?: () => void;
+  onMultiSelect?: (path: number[]) => void;
+  onWrapInGroup?: (paths: number[][], groupTitle: string, groupFieldId: string) => void;
+  onClearMultiSelect?: () => void;
+  onUngroup?: (path: number[]) => void;
+  onCopyToPage?: (path: number[]) => void;
+  onExportToFile?: (path: number[]) => void;
 }
 
 const HybridEditor: React.FC<HybridEditorProps> = ({
@@ -92,11 +105,22 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   onAddSubElement,
   onDropElement,
   onMoveElement,
-  onAddElement
+  onAddElement,
+  // Multi-Selektion Props
+  isSelectionMode = false,
+  selectedElementPaths = [],
+  onToggleSelectionMode,
+  onMultiSelect,
+  onWrapInGroup,
+  onClearMultiSelect,
+  onUngroup,
+  onCopyToPage,
+  onExportToFile
 }) => {
   const { state, dispatch } = useEditor();
   const [currentPath, setCurrentPath] = useState<number[]>([]);
   const [currentElements, setCurrentElements] = useState<PatternLibraryElement[]>(elements);
+  const [wrapDialogOpen, setWrapDialogOpen] = useState(false);
   // Definiere den Typ für Breadcrumb-Items
   interface BreadcrumbItem {
     label: string;
@@ -470,6 +494,23 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
         </Box>
 
         <BreadcrumbContainer>
+          <Tooltip title={isSelectionMode ? 'Selektionsmodus deaktivieren' : 'Selektionsmodus aktivieren'}>
+            <IconButton
+              size="small"
+              onClick={onToggleSelectionMode}
+              sx={{
+                mr: 1,
+                color: isSelectionMode ? 'primary.main' : 'action.active',
+                bgcolor: isSelectionMode ? 'primary.light' : 'transparent',
+                '&:hover': {
+                  bgcolor: isSelectionMode ? 'primary.light' : 'action.hover'
+                }
+              }}
+            >
+              <ChecklistIcon />
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title="Zurück">
             <span>
               <IconButton
@@ -576,7 +617,35 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
           onMoveElement={onMoveElement}
           onDrillDown={handleDrillDown}
           onAddElement={handleAddElement} // Neue einheitliche Funktion für das Hinzufügen von Elementen
+          isSelectionMode={isSelectionMode}
+          selectedElementPaths={selectedElementPaths}
+          onMultiSelect={onMultiSelect}
+          onUngroup={onUngroup}
+          onCopyToPage={onCopyToPage}
+          onExportToFile={onExportToFile}
         />
+
+        {/* Schwebender Aktionsbalken für Multi-Selektion */}
+        {isSelectionMode && selectedElementPaths.length >= 1 && onWrapInGroup && onClearMultiSelect && (
+          <FloatingActionBar
+            selectedCount={selectedElementPaths.length}
+            onWrapInGroup={() => setWrapDialogOpen(true)}
+            onClearSelection={onClearMultiSelect}
+          />
+        )}
+
+        {/* Dialog für Gruppe erstellen */}
+        {onWrapInGroup && (
+          <WrapInGroupDialog
+            open={wrapDialogOpen}
+            onClose={() => setWrapDialogOpen(false)}
+            onConfirm={(title, fieldId) => {
+              onWrapInGroup(selectedElementPaths, title, fieldId);
+              setWrapDialogOpen(false);
+            }}
+            selectedCount={selectedElementPaths.length}
+          />
+        )}
       </MiddleColumn>
 
       {/* Rechte Spalte: Eigenschaftspanel */}
