@@ -7,8 +7,13 @@ import {
   TextField,
   Button,
   Box,
-  Alert
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -72,16 +77,35 @@ const WrapInGroupDialog: React.FC<WrapInGroupDialogProps> = ({
             helperText="Der Anzeigename der neuen Gruppe"
           />
 
-          <TextField
-            label="Field ID"
-            value={groupFieldId}
-            onChange={(e) => setGroupFieldId(e.target.value)}
-            fullWidth
-            helperText="Eindeutige Kennung für die Gruppe (auto-generiert)"
-            InputProps={{
-              sx: { fontFamily: 'monospace', fontSize: '0.9rem' }
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '4px !important',
+              '&:before': { display: 'none' },
             }}
-          />
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="body2" color="text.secondary">
+                Erweiterte Einstellungen
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="Field ID"
+                value={groupFieldId}
+                onChange={(e) => setGroupFieldId(e.target.value)}
+                fullWidth
+                size="small"
+                helperText="Eindeutige Kennung für die Gruppe (auto-generiert)"
+                InputProps={{
+                  sx: { fontFamily: 'monospace', fontSize: '0.85rem' }
+                }}
+              />
+            </AccordionDetails>
+          </Accordion>
         </Box>
       </DialogContent>
 

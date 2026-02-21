@@ -4,6 +4,7 @@ import * as Icons from '@mui/icons-material';
 import { getIconPath } from '../../utils/mdiIcons';
 import { Box, Typography } from '@mui/material';
 
+import { logger } from '../../utils/logger';
 interface IconRendererProps {
   iconName: string;
   size?: number;
@@ -24,7 +25,7 @@ const IconRenderer: React.FC<IconRendererProps> = ({ iconName, size = 1, color }
     const IconComponent = (Icons as any)[iconName];
     return IconComponent ? <IconComponent style={{ fontSize: `${size * 24}px`, color }} /> : null;
   } catch (error) {
-    console.warn(`Error rendering icon: ${iconName}`, error);
+    logger.warn(`Error rendering icon: ${iconName}`, error);
     return (
       <Box sx={{ width: 24 * size, height: 24 * size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="caption" color="error">?</Typography>

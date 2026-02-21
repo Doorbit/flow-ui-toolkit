@@ -18,6 +18,7 @@ import { deepCloneElement } from './utils/deepCloneUtils';
 // DndProvider wird jetzt in index.tsx importiert
 // import { DndProvider } from './components/DndProvider';
 import { EditorProvider, useEditor, getElementByPath, getContainerType } from './context/EditorContext';
+import { logger } from './utils/logger';
 import { FieldValuesProvider } from './context/FieldValuesContext';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
@@ -1618,9 +1619,43 @@ const AppContent: React.FC = () => {
   // Copy/Export dialog state
   const [copyToPageDialogState, setCopyToPageDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
   const [exportToFileDialogState, setExportToFileDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
-  const [copySuccessSnackbar, setCopySuccessSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+  const [successSnackbar, setSuccessSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   // Diese Funktion wurde durch handleSaveWorkflowName ersetzt
+
+  // Tastaturkürzel: Ctrl+Z = Undo, Ctrl+Y = Redo, Ctrl+S = Speichern, Escape = Selektion beenden
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Nicht in Input-Feldern, Textareas oder Selects auslösen
+      const target = e.target as HTMLElement;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      // Auch nicht in contenteditable Elementen
+      if (target.isContentEditable) return;
+
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        if (state.undoStack.length > 0) {
+          dispatch({ type: 'UNDO' });
+        }
+      }
+      if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        if (state.redoStack.length > 0) {
+          dispatch({ type: 'REDO' });
+        }
+      }
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+      if (e.key === 'Escape' && state.isSelectionMode) {
+        dispatch({ type: 'TOGGLE_SELECTION_MODE' });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, state.undoStack.length, state.redoStack.length, state.isSelectionMode]);
 
   // Initialisierung mit leerem Flow oder Mock-Daten
   useEffect(() => {
@@ -1630,11 +1665,9 @@ const AppContent: React.FC = () => {
 
   // Handler für das Öffnen der Dokumentation in einem neuen Tab
   const handleOpenDocumentation = () => {
-    // Verwende relative URL für GitHub Pages Kompatibilität
-    const baseUrl = window.location.pathname.includes('/flow-ui-toolkit')
-      ? '/flow-ui-toolkit'
-      : '';
-    window.open(`${baseUrl}/documentation.html`, '_blank');
+    // Nutze process.env.PUBLIC_URL für korrekte Pfade in Produktion und Development
+    const documentationUrl = `${process.env.PUBLIC_URL}/documentation.html`;
+    window.open(documentationUrl, '_blank', 'noopener,noreferrer');
   };
 
 
@@ -1681,7 +1714,7 @@ const AppContent: React.FC = () => {
   const handleAddElement = (type: string, parentPath?: number[]) => {
     if (!state.selectedPageId) return;
 
-    console.log('[AppContent handleAddElement] type:', type, 'parentPath:', parentPath);
+    logger.log('[AppContent handleAddElement] type:', type, 'parentPath:', parentPath);
     const newElement = createElement(type);
 
     if (parentPath && parentPath.length > 0) {
@@ -1691,16 +1724,16 @@ const AppContent: React.FC = () => {
 
       // Verwende die verbesserte getElementByPath-Funktion, um das Ziel-Element zu finden
       const target = getElementByPath(currentPage.elements, parentPath);
-      console.log('[AppContent handleAddElement] Ziel-Element gefunden:', target);
+      logger.log('[AppContent handleAddElement] Ziel-Element gefunden:', target);
 
       if (!target) {
-        console.error('[AppContent handleAddElement] Ziel-Element nicht gefunden für Pfad:', parentPath);
+        logger.error('[AppContent handleAddElement] Ziel-Element nicht gefunden für Pfad:', parentPath);
         return;
       }
 
       // Bestimme den Containertyp des Zielelements
       const containerType = getContainerType(target);
-      console.log('[AppContent handleAddElement] Container-Typ:', containerType);
+      logger.log('[AppContent handleAddElement] Container-Typ:', containerType);
 
       // Prüfe die Verschachtelungsregeln
       if (target.element) {
@@ -1783,7 +1816,7 @@ const AppContent: React.FC = () => {
     // Navigiere zu ChipGroup anhand des Pfads
     let chipGroupObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
     if (!chipGroupObj || !chipGroupObj.element) {
-      console.error('[handleAddToChipGroup] ChipGroup nicht gefunden');
+      logger.error('[handleAddToChipGroup] ChipGroup nicht gefunden');
       return;
     }
 
@@ -1817,7 +1850,7 @@ const AppContent: React.FC = () => {
     // Navigiere zu CustomUIElement anhand des Pfads
     let customElementObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
     if (!customElementObj || !customElementObj.element) {
-      console.error('[handleAddToCustomElement] CustomUIElement nicht gefunden');
+      logger.error('[handleAddToCustomElement] CustomUIElement nicht gefunden');
       return;
     }
 
@@ -1840,7 +1873,7 @@ const AppContent: React.FC = () => {
     // Navigiere zu Subflow anhand des Pfads
     let subflowObj = getElementByPathInObject(updatedFlow.pages_edit[pageIndex].elements, parentPath);
     if (!subflowObj || !subflowObj.element) {
-      console.error('[handleAddToSubflow] Subflow nicht gefunden');
+      logger.error('[handleAddToSubflow] Subflow nicht gefunden');
       return;
     }
 
@@ -1992,6 +2025,7 @@ const AppContent: React.FC = () => {
 
     // Selektion zurücksetzen
     setSelectedElementPath([]);
+    setSuccessSnackbar({ open: true, message: `${paths.length} Elemente wurden zu Gruppe "${groupTitle}" zusammengefasst.` });
   };
 
   /**
@@ -2008,6 +2042,7 @@ const AppContent: React.FC = () => {
       return;
     }
 
+    const groupTitle = (element.element as any).title?.de || 'Gruppe';
     dispatch({
       type: 'UNGROUP',
       payload: { path, pageId: state.selectedPageId }
@@ -2015,6 +2050,7 @@ const AppContent: React.FC = () => {
 
     // Selektion zurücksetzen
     setSelectedElementPath([]);
+    setSuccessSnackbar({ open: true, message: `Gruppe "${groupTitle}" wurde aufgelöst.` });
   };
 
   // ==================== Copy to Page / Export to File ====================
@@ -2049,7 +2085,7 @@ const AppContent: React.FC = () => {
 
     setCopyToPageDialogState({ open: false, elementPath: [] });
     const elementTitle = (element.element as any).title?.de || (element.element as any).field_id?.field_name || 'Element';
-    setCopySuccessSnackbar({ open: true, message: `"${elementTitle}" wurde erfolgreich kopiert.` });
+    setSuccessSnackbar({ open: true, message: `"${elementTitle}" wurde erfolgreich kopiert.` });
   };
 
   /**
@@ -2084,6 +2120,10 @@ const AppContent: React.FC = () => {
   const handleRemoveElement = (path: number[]) => {
     if (!state.selectedPageId) return;
 
+    // Element-Titel vor dem Entfernen ermitteln
+    const elementToRemove = currentPage ? getElementByPath(currentPage.elements, path) : null;
+    const removedTitle = elementToRemove ? ((elementToRemove.element as any).title?.de || (elementToRemove.element as any).field_id?.field_name || 'Element') : 'Element';
+
     if (path.length === 1) {
       // Element auf oberster Ebene entfernen
       dispatch({
@@ -2104,6 +2144,7 @@ const AppContent: React.FC = () => {
     if (JSON.stringify(selectedElementPath) === JSON.stringify(path)) {
       setSelectedElementPath([]);
     }
+    setSuccessSnackbar({ open: true, message: `"${removedTitle}" wurde gelöscht.` });
   };
 
   /**
@@ -2145,6 +2186,8 @@ const AppContent: React.FC = () => {
         pageId: state.selectedPageId
       });
     }
+    const elTitle = (elementToDuplicate.element as any).title?.de || (elementToDuplicate.element as any).field_id?.field_name || 'Element';
+    setSuccessSnackbar({ open: true, message: `"${elTitle}" wurde dupliziert.` });
   };
 
   // Datei-Handler
@@ -2296,6 +2339,7 @@ const AppContent: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      setSuccessSnackbar({ open: true, message: `Flow "${state.currentFlow!.id || 'listing-flow'}" wurde erfolgreich gespeichert.` });
     });
   };
 
@@ -2358,12 +2402,12 @@ const AppContent: React.FC = () => {
           onCopyToPage={handleCopyToPage}
           onExportToFile={handleExportToFile}
           onAddSubElement={(parentPath, type) => {
-            console.log('[AppContent onAddSubElement] parentPath:', parentPath, 'type:', type);
+            logger.log('[AppContent onAddSubElement] parentPath:', parentPath, 'type:', type);
             handleAddElement(type || 'TextUIElement', parentPath);
           }}
           onDropElement={handleAddElement}
           onAddElement={(type, elementPath) => {
-            console.log('[AppContent onAddElement] type:', type, 'elementPath:', elementPath);
+            logger.log('[AppContent onAddElement] type:', type, 'elementPath:', elementPath);
             handleAddElement(type || 'TextUIElement', elementPath);
           }}
           onMoveElement={(sourceIndex, targetIndex, targetParentPath, sourcePath) => {
@@ -2479,20 +2523,20 @@ const AppContent: React.FC = () => {
         }
       />
 
-      {/* Snackbar für Copy-Erfolgsmeldungen */}
+      {/* Snackbar für Erfolgsmeldungen (allgemein) */}
       <Snackbar
-        open={copySuccessSnackbar.open}
+        open={successSnackbar.open}
         autoHideDuration={4000}
-        onClose={() => setCopySuccessSnackbar({ open: false, message: '' })}
+        onClose={() => setSuccessSnackbar({ open: false, message: '' })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
-          onClose={() => setCopySuccessSnackbar({ open: false, message: '' })}
+          onClose={() => setSuccessSnackbar({ open: false, message: '' })}
           severity="success"
           variant="filled"
           sx={{ width: '100%' }}
         >
-          {copySuccessSnackbar.message}
+          {successSnackbar.message}
         </Alert>
       </Snackbar>
     </AppContainer>

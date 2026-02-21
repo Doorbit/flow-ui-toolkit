@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Dialog,
   DialogTitle,
@@ -141,7 +142,7 @@ const IconSelector: React.FC<IconSelectorProps> = ({
         </Box>
       );
     } catch (error) {
-      console.warn(`Error rendering icon: ${iconName}`, error);
+      logger.warn(`Error rendering icon: ${iconName}`, error);
       return (
         <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography variant="caption" color="error">!</Typography>

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
 import { ChipGroupUIElement, GroupUIElement } from '../models/uiElements';
 import { ensureUUIDs } from '../utils/uuidUtils';
+import { logger } from '../utils/logger';
 
 interface EditorState {
   currentFlow: ListingFlow | null;
@@ -117,7 +118,7 @@ export interface PathContext {
 }
 
 export const getPathContext = (elements: PatternLibraryElement[], path: number[]): PathContext => {
-  console.log('[getPathContext] path:', path);
+  logger.log('[getPathContext] path:', path);
 
   // Standardwerte für den Pfadkontext
   const defaultContext: PathContext = {
@@ -183,13 +184,13 @@ export const getPathContext = (elements: PatternLibraryElement[], path: number[]
 export const getSubElements = (element: PatternLibraryElement): PatternLibraryElement[] => {
   if (!element || !element.element) return [];
 
-  console.log('[getSubElements] Element:', element.element.pattern_type || (element.element as any).type || 'unknown');
+  logger.log('[getSubElements] Element:', element.element.pattern_type || (element.element as any).type || 'unknown');
 
   // Für Subflow-Objekte (die als parentElement übergeben werden, wenn currentPath auf sie zeigt)
   // Ein Subflow-Objekt selbst hat keinen pattern_type, aber einen 'type' (z.B. 'POI')
   // und enthält 'elements'.
   if (!element.element.pattern_type && (element.element as any).type) {
-    console.log('[getSubElements] Subflow erkannt, type:', (element.element as any).type);
+    logger.log('[getSubElements] Subflow erkannt, type:', (element.element as any).type);
     // Die Kinder eines Subflow-Objekts sind dessen 'elements'-Array.
     const elementsInSubFlow = (element.element as any).elements || [];
     // Anmerkung: sub_elements wird hier nicht berücksichtigt, um konsistent mit getChildElements zu sein
@@ -200,17 +201,17 @@ export const getSubElements = (element: PatternLibraryElement): PatternLibraryEl
   switch (element.element.pattern_type) {
     case 'GroupUIElement':
     case 'ArrayUIElement':
-      console.log('[getSubElements] Group/Array erkannt, elements:', ((element.element as any).elements || []).length);
+      logger.log('[getSubElements] Group/Array erkannt, elements:', ((element.element as any).elements || []).length);
       return ((element.element as any).elements || []).map(ensurePatternLibraryElement);
     case 'ChipGroupUIElement':
       // Chips sind BooleanUIElements, müssen aber als PatternLibraryElement behandelt werden
-      console.log('[getSubElements] ChipGroup erkannt, chips:', ((element.element as any).chips || []).length);
+      logger.log('[getSubElements] ChipGroup erkannt, chips:', ((element.element as any).chips || []).length);
       return ((element.element as any).chips || []).map((chip: any) => ensurePatternLibraryElement(chip));
     case 'CustomUIElement':
       // Wenn ein CustomUIElement das parentElement ist, sind seine "Kinder" im Kontext des Drilldowns
       // zunächst seine sub_flows. Das Navigieren IN einen Subflow (um dessen Elemente anzuzeigen)
       // wird dadurch gehandhabt, dass getElementByPath das Subflow-Objekt als neues parentElement liefert.
-      console.log('[getSubElements] CustomUIElement erkannt, prüfe auf sub_flows und elements');
+      logger.log('[getSubElements] CustomUIElement erkannt, prüfe auf sub_flows und elements');
       if ((element.element as any).sub_flows) {
         return ((element.element as any).sub_flows || []).map(ensurePatternLibraryElement);
       }
@@ -259,7 +260,7 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
   const element = elements[index];
   if (restPath.length === 0) return element;
 
-  console.log('[getElementByPath] Navigiere zu Element:',
+  logger.log('[getElementByPath] Navigiere zu Element:',
     element.element.pattern_type || (element.element as any).type || 'unknown',
     'restPath:', restPath);
 
@@ -271,17 +272,17 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
       const subFlowIndex = restPath[0];
       const subFlows = (element.element as any).sub_flows || [];
 
-      console.log('[getElementByPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex, 'subFlows.length:', subFlows.length);
+      logger.log('[getElementByPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex, 'subFlows.length:', subFlows.length);
 
       if (subFlowIndex < subFlows.length) {
         if (restPath.length === 1) {
           // Wir wollen das SubFlow-Objekt selbst zurückgeben
-          console.log('[getElementByPath] Gebe SubFlow-Objekt zurück');
+          logger.log('[getElementByPath] Gebe SubFlow-Objekt zurück');
           return ensurePatternLibraryElement(subFlows[subFlowIndex]);
         } else {
           // Wir wollen ein Element innerhalb des SubFlows zurückgeben
           const subFlowElement = ensurePatternLibraryElement(subFlows[subFlowIndex]);
-          console.log('[getElementByPath] Navigiere in SubFlow:', (subFlowElement.element as any).type || 'unknown');
+          logger.log('[getElementByPath] Navigiere in SubFlow:', (subFlowElement.element as any).type || 'unknown');
 
           // Hier verwenden wir getSubElements für das SubFlow-Element, um seine Unterelemente zu finden
           const subFlowChildElements = getSubElements(subFlowElement);
@@ -294,19 +295,19 @@ export const getElementByPath = (elements: PatternLibraryElement[], path: number
 
     // Spezielle Behandlung für ChipGroupUIElement mit chips
     else if (element.element.pattern_type === 'ChipGroupUIElement' && (element.element as any).chips) {
-      console.log('[getElementByPath] ChipGroupUIElement mit chips erkannt');
+      logger.log('[getElementByPath] ChipGroupUIElement mit chips erkannt');
       // Hier müssen wir sicherstellen, dass die chips korrekt als PatternLibraryElements behandelt werden
       return getElementByPath(subElements, restPath);
     }
 
     // Standardbehandlung für andere Containertypen
     else {
-      console.log('[getElementByPath] Standard-Container erkannt, navigiere zu Unterelementen');
+      logger.log('[getElementByPath] Standard-Container erkannt, navigiere zu Unterelementen');
       return getElementByPath(subElements, restPath);
     }
   }
 
-  console.log('[getElementByPath] Keine Unterelemente gefunden oder ungültiger Pfad');
+  logger.log('[getElementByPath] Keine Unterelemente gefunden oder ungültiger Pfad');
   return null;
 };
 
@@ -347,7 +348,7 @@ const updateElementAtPath = (
 
     // Für ChipGroupUIElement mit chips-Array
     if (element.element.pattern_type === 'ChipGroupUIElement') {
-      console.log('updateElementAtPath für ChipGroup:', element);
+      logger.log('updateElementAtPath für ChipGroup:', element);
       const chipElements = ((element.element as any).chips || []).map((chip: any) => ({
         element: chip
       }));
@@ -355,7 +356,7 @@ const updateElementAtPath = (
 
       // Extrahiere die BooleanUIElements aus den PatternLibraryElements zurück
       const updatedChips = updatedChipElements.map((chipElement: any) => chipElement.element);
-      console.log('Aktualisierte Chips:', updatedChips);
+      logger.log('Aktualisierte Chips:', updatedChips);
 
       return {
         ...element,
@@ -380,23 +381,23 @@ const addElementAtPath = (
   path: number[],
   newElement: PatternLibraryElement
 ): PatternLibraryElement[] => {
-  console.log('[addElementAtPath] path:', path, 'newElement.pattern_type:', newElement.element.pattern_type);
+  logger.log('[addElementAtPath] path:', path, 'newElement.pattern_type:', newElement.element.pattern_type);
 
   if (path.length === 0) {
     // Hinzufügen am Ende der Liste
-    console.log('[addElementAtPath] Füge Element am Ende der Liste hinzu');
+    logger.log('[addElementAtPath] Füge Element am Ende der Liste hinzu');
     return [...elements, newElement];
   }
 
   const [index, ...restPath] = path;
   if (index > elements.length) {
-    console.log('[addElementAtPath] Index außerhalb des gültigen Bereichs');
+    logger.log('[addElementAtPath] Index außerhalb des gültigen Bereichs');
     return elements;
   }
 
   if (restPath.length === 0) {
     // Element an dieser Stelle einfügen
-    console.log('[addElementAtPath] Füge Element an Position', index, 'ein');
+    logger.log('[addElementAtPath] Füge Element an Position', index, 'ein');
     const result = [...elements];
     result.splice(index, 0, newElement);
     return result;
@@ -405,7 +406,7 @@ const addElementAtPath = (
   return elements.map((element, i) => {
     if (i !== index) return element;
 
-    console.log('[addElementAtPath] Navigiere zu Element:',
+    logger.log('[addElementAtPath] Navigiere zu Element:',
       element.element.pattern_type || (element.element as any).type || 'unknown');
 
     // Spezielle Behandlung für CustomUIElement mit sub_flows
@@ -413,11 +414,11 @@ const addElementAtPath = (
       const subFlowIndex = restPath[0];
       const subFlows = [...((element.element as any).sub_flows || [])];
 
-      console.log('[addElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
+      logger.log('[addElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
 
       // Wenn wir direkt in einen sub_flow einfügen wollen
       if (restPath.length === 1) {
-        console.log('[addElementAtPath] Füge neuen sub_flow hinzu');
+        logger.log('[addElementAtPath] Füge neuen sub_flow hinzu');
         // Hier fügen wir einen neuen sub_flow hinzu
         subFlows.splice(subFlowIndex, 0, newElement.element);
 
@@ -432,7 +433,7 @@ const addElementAtPath = (
 
       // Wenn wir in einen bestehenden sub_flow einfügen wollen
       if (subFlowIndex < subFlows.length) {
-        console.log('[addElementAtPath] Füge Element in bestehenden sub_flow ein');
+        logger.log('[addElementAtPath] Füge Element in bestehenden sub_flow ein');
         const subFlow = subFlows[subFlowIndex];
 
         // Konvertiere den sub_flow zu einem PatternLibraryElement
@@ -463,7 +464,7 @@ const addElementAtPath = (
     // In die Tiefe gehen für GroupUIElement oder ArrayUIElement
     else if (element.element.pattern_type === 'GroupUIElement' ||
         element.element.pattern_type === 'ArrayUIElement') {
-      console.log('[addElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
+      logger.log('[addElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
       const subElements = [...((element.element as any).elements || [])];
       const updatedSubElements = addElementAtPath(subElements, restPath, newElement);
 
@@ -478,10 +479,10 @@ const addElementAtPath = (
 
     // Für ChipGroupUIElement mit chips-Array
     else if (element.element.pattern_type === 'ChipGroupUIElement') {
-      console.log('[addElementAtPath] ChipGroup erkannt, verarbeite chips');
+      logger.log('[addElementAtPath] ChipGroup erkannt, verarbeite chips');
       // Wenn wir ein Element zu einer ChipGroup hinzufügen, muss es ein BooleanUIElement sein
       if (newElement.element.pattern_type !== 'BooleanUIElement') {
-        console.error('Nur BooleanUIElements können zu ChipGroups hinzugefügt werden');
+        logger.error('Nur BooleanUIElements können zu ChipGroups hinzugefügt werden');
         return element;
       }
 
@@ -505,7 +506,7 @@ const addElementAtPath = (
       };
     }
 
-    console.log('[addElementAtPath] Kein unterstützter Containertyp gefunden');
+    logger.log('[addElementAtPath] Kein unterstützter Containertyp gefunden');
     return element;
   });
 };
@@ -518,26 +519,26 @@ const removeElementAtPath = (
   elements: PatternLibraryElement[],
   path: number[]
 ): PatternLibraryElement[] => {
-  console.log('[removeElementAtPath] path:', path);
+  logger.log('[removeElementAtPath] path:', path);
 
   if (path.length === 0) return elements;
 
   const [index, ...restPath] = path;
   if (index >= elements.length) {
-    console.log('[removeElementAtPath] Index außerhalb des gültigen Bereichs');
+    logger.log('[removeElementAtPath] Index außerhalb des gültigen Bereichs');
     return elements;
   }
 
   if (restPath.length === 0) {
     // Element an dieser Stelle entfernen
-    console.log('[removeElementAtPath] Entferne Element an Position', index);
+    logger.log('[removeElementAtPath] Entferne Element an Position', index);
     return elements.filter((_, i) => i !== index);
   }
 
   return elements.map((element, i) => {
     if (i !== index) return element;
 
-    console.log('[removeElementAtPath] Navigiere zu Element:',
+    logger.log('[removeElementAtPath] Navigiere zu Element:',
       element.element.pattern_type || (element.element as any).type || 'unknown');
 
     // Spezielle Behandlung für CustomUIElement mit sub_flows
@@ -545,11 +546,11 @@ const removeElementAtPath = (
       const subFlowIndex = restPath[0];
       const subFlows = [...((element.element as any).sub_flows || [])];
 
-      console.log('[removeElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
+      logger.log('[removeElementAtPath] CustomUIElement mit sub_flows erkannt, subFlowIndex:', subFlowIndex);
 
       // Wenn wir einen sub_flow entfernen wollen
       if (restPath.length === 1) {
-        console.log('[removeElementAtPath] Entferne sub_flow');
+        logger.log('[removeElementAtPath] Entferne sub_flow');
         // Entferne den sub_flow
         const updatedSubFlows = subFlows.filter((_, i) => i !== subFlowIndex);
 
@@ -564,7 +565,7 @@ const removeElementAtPath = (
 
       // Wenn wir ein Element innerhalb eines sub_flows entfernen wollen
       if (subFlowIndex < subFlows.length) {
-        console.log('[removeElementAtPath] Entferne Element aus sub_flow');
+        logger.log('[removeElementAtPath] Entferne Element aus sub_flow');
         const subFlow = subFlows[subFlowIndex];
 
         // Konvertiere den sub_flow zu einem PatternLibraryElement
@@ -595,7 +596,7 @@ const removeElementAtPath = (
     // In die Tiefe gehen für GroupUIElement oder ArrayUIElement
     else if (element.element.pattern_type === 'GroupUIElement' ||
         element.element.pattern_type === 'ArrayUIElement') {
-      console.log('[removeElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
+      logger.log('[removeElementAtPath] Group/Array erkannt, navigiere zu Unterelementen');
       const subElements = [...((element.element as any).elements || [])];
       const updatedSubElements = removeElementAtPath(subElements, restPath);
 
@@ -610,7 +611,7 @@ const removeElementAtPath = (
 
     // Für ChipGroupUIElement mit chips-Array
     else if (element.element.pattern_type === 'ChipGroupUIElement') {
-      console.log('[removeElementAtPath] ChipGroup erkannt, verarbeite chips');
+      logger.log('[removeElementAtPath] ChipGroup erkannt, verarbeite chips');
       // Konvertiere die chips zu PatternLibraryElements für die Verarbeitung
       const chipElements = ((element.element as ChipGroupUIElement).chips || []).map(chip => ({
         element: chip
@@ -631,7 +632,7 @@ const removeElementAtPath = (
       };
     }
 
-    console.log('[removeElementAtPath] Kein unterstützter Containertyp gefunden');
+    logger.log('[removeElementAtPath] Kein unterstützter Containertyp gefunden');
     return element;
   });
 };

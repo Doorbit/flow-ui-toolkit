@@ -7,7 +7,8 @@ import {
   Link,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  Chip
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -20,6 +21,7 @@ import ElementHierarchyTree from './ElementHierarchyTree';
 import ElementContextView from './ElementContextView';
 import EnhancedPropertyEditor from './EnhancedPropertyEditor';
 import VisibilityLegend from './VisibilityLegend';
+import { logger } from '../../utils/logger';
 import FloatingActionBar from '../EditorArea/FloatingActionBar';
 import WrapInGroupDialog from '../EditorArea/WrapInGroupDialog';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -131,20 +133,20 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([{ label: 'Hauptebene', path: [], containerType: 'root' }]);
 
   useEffect(() => {
-    console.log('[HybridEditor useEffect] Triggered. selectedElementPath:', selectedElementPath, 'currentPath:', currentPath);
+    logger.log('[HybridEditor useEffect] Triggered. selectedElementPath:', selectedElementPath, 'currentPath:', currentPath);
 
     // Da selectedElementPath einen Default-Wert von [] hat, sollte es immer ein Array sein.
     // Wir prüfen die Länge, um zwischen Hauptebenen-Auswahl und spezifischer Element-Auswahl zu unterscheiden.
     if (selectedElementPath.length === 0) {
       // Fall: Hauptebene ist ausgewählt (oder keine spezifische Auswahl)
       if (JSON.stringify([]) !== JSON.stringify(currentPath)) {
-        console.log('[HybridEditor useEffect] Hauptebene ausgewählt: Setze currentPath auf [].');
+        logger.log('[HybridEditor useEffect] Hauptebene ausgewählt: Setze currentPath auf [].');
         setCurrentPath([]);
       }
     } else {
       // Fall: Ein spezifisches Element ist ausgewählt (selectedElementPath hat Länge > 0)
       const parentOfSelected = selectedElementPath.slice(0, -1);
-      console.log('[HybridEditor useEffect] Spezifisches Element ausgewählt. parentOfSelected:', parentOfSelected);
+      logger.log('[HybridEditor useEffect] Spezifisches Element ausgewählt. parentOfSelected:', parentOfSelected);
 
       // Wenn currentPath NICHT identisch zu selectedElementPath ist:
       // Dies bedeutet, dass die Auswahl (selectedElementPath) nicht das Ergebnis eines direkten Drilldowns
@@ -153,19 +155,19 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
       // In diesem Fall soll der ElementContextView den Elternkontext des ausgewählten Elements anzeigen.
       if (JSON.stringify(currentPath) !== JSON.stringify(selectedElementPath)) {
         if (JSON.stringify(parentOfSelected) !== JSON.stringify(currentPath)) {
-          console.log('[HybridEditor useEffect] Auswahl extern/anderer Zweig: Setze currentPath auf parentOfSelected:', parentOfSelected);
+          logger.log('[HybridEditor useEffect] Auswahl extern/anderer Zweig: Setze currentPath auf parentOfSelected:', parentOfSelected);
           setCurrentPath(parentOfSelected);
         } else {
           // currentPath ist bereits der parentOfSelected.
           // z.B. currentPath = [0], selectedElementPath = [0,1]. parentOfSelected ist [0].
           // Keine Änderung an currentPath nötig.
-          console.log('[HybridEditor useEffect] Auswahl Kind im aktuellen Kontext: currentPath bleibt (ist parentOfSelected). currentPath:', currentPath);
+          logger.log('[HybridEditor useEffect] Auswahl Kind im aktuellen Kontext: currentPath bleibt (ist parentOfSelected). currentPath:', currentPath);
         }
       } else {
         // currentPath IST identisch zu selectedElementPath.
         // Dies geschieht direkt nach einem handleDrillDown, wo beide auf denselben Pfad gesetzt wurden.
         // currentPath soll so bleiben, damit die Kinder des gedrillten Elements angezeigt werden.
-        console.log('[HybridEditor useEffect] Nach Drilldown: currentPath ist selectedElementPath. currentPath bleibt. currentPath:', currentPath);
+        logger.log('[HybridEditor useEffect] Nach Drilldown: currentPath ist selectedElementPath. currentPath bleibt. currentPath:', currentPath);
       }
     }
   }, [selectedElementPath, currentPath]);
@@ -312,7 +314,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
       }
     }
 
-    console.log('[HybridEditor updateBreadcrumbs] Neue Breadcrumb-Items:', items);
+    logger.log('[HybridEditor updateBreadcrumbs] Neue Breadcrumb-Items:', items);
     setBreadcrumbItems(items);
   }, [currentPath, elements, getElementLabel]); // getElementByPath ist eine importierte Funktion, keine lokale Abhängigkeit
 
@@ -325,7 +327,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   // Handler für "Tiefer gehen" in ein Element
   const handleDrillDown = (path: number[]) => {
-    console.log('[HybridEditor handleDrillDown] path:', path);
+    logger.log('[HybridEditor handleDrillDown] path:', path);
     setCurrentPath(path);
 
     // Aktualisiere auch das ausgewählte Element
@@ -334,7 +336,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   // Handler für die Navigation zu einem Element (für StructureNavigator)
   const handleNavigateToElement = (path: number[]) => {
-    console.log('[HybridEditor handleNavigateToElement] path:', path);
+    logger.log('[HybridEditor handleNavigateToElement] path:', path);
     // Aktualisiere den aktuellen Pfad
     setCurrentPath(path);
     // Aktualisiere auch das ausgewählte Element
@@ -345,42 +347,42 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   const handleGoBack = () => {
     if (currentPath.length > 0) {
       const newPath = currentPath.slice(0, -1);
-      console.log('[HybridEditor handleGoBack] newPath:', newPath);
+      logger.log('[HybridEditor handleGoBack] newPath:', newPath);
       setCurrentPath(newPath);
     }
   };
-  console.log('[HybridEditor Render] selectedElementPath (prop):', selectedElementPath, 'currentPath (state):', currentPath);
+  logger.log('[HybridEditor Render] selectedElementPath (prop):', selectedElementPath, 'currentPath (state):', currentPath);
   // Einheitliche Funktion für das Hinzufügen von Elementen, die den currentPath und Pfadkontext korrekt berücksichtigt
   const handleAddElement = React.useCallback((type: string, elementPath?: number[]) => {
-    console.log('[HybridEditor handleAddElement] type:', type, 'elementPath:', elementPath, 'currentPath:', currentPath);
+    logger.log('[HybridEditor handleAddElement] type:', type, 'elementPath:', elementPath, 'currentPath:', currentPath);
 
     // Wenn elementPath null ist, verwenden wir currentPath
     const targetPath = elementPath || currentPath;
 
     // Bestimme den Pfadkontext für den Zielpfad
     const pathContext = elements.length > 0 ? getPathContext(elements, targetPath) : null;
-    console.log('[HybridEditor handleAddElement] pathContext:', pathContext);
+    logger.log('[HybridEditor handleAddElement] pathContext:', pathContext);
 
     // Wenn die externe onAddElement-Funktion verfügbar ist, verwenden wir diese
     if (onAddElement) {
       // Wichtig: Wenn elementPath gleich currentPath ist, bedeutet das, dass wir ein Element auf der aktuellen Ebene hinzufügen wollen
       // In diesem Fall müssen wir sicherstellen, dass das Element auch wirklich auf der aktuellen Ebene hinzugefügt wird
       if (elementPath && JSON.stringify(elementPath) === JSON.stringify(currentPath)) {
-        console.log('[HybridEditor handleAddElement] Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+        logger.log('[HybridEditor handleAddElement] Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
         onAddElement(type, currentPath);
       } else {
-        console.log('[HybridEditor handleAddElement] Verwende externe onAddElement-Funktion');
+        logger.log('[HybridEditor handleAddElement] Verwende externe onAddElement-Funktion');
 
         // Wenn wir einen Pfadkontext haben, berücksichtigen wir den Containertyp
         if (pathContext && pathContext.isValid) {
-          console.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
+          logger.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
 
           // Spezielle Behandlung für verschiedene Containertypen
           switch (pathContext.containerType) {
             case 'chipgroup':
               // Bei ChipGroup immer ein BooleanUIElement hinzufügen
               if (type !== 'BooleanUIElement') {
-                console.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
+                logger.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
                 onAddElement('BooleanUIElement', elementPath);
                 return;
               }
@@ -389,14 +391,14 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
             case 'custom':
               // Bei CustomUIElement mit sub_flows spezielle Behandlung für CustomUIElement_*
               if (type.startsWith('CustomUIElement_')) {
-                console.log('[HybridEditor handleAddElement] Spezielle Behandlung für CustomUIElement_* in CustomUIElement');
+                logger.log('[HybridEditor handleAddElement] Spezielle Behandlung für CustomUIElement_* in CustomUIElement');
                 // Hier könnten wir weitere spezielle Logik hinzufügen
               }
               break;
 
             case 'subflow':
               // Bei Subflow spezielle Behandlung
-              console.log('[HybridEditor handleAddElement] Spezielle Behandlung für Subflow');
+              logger.log('[HybridEditor handleAddElement] Spezielle Behandlung für Subflow');
               // Hier könnten wir weitere spezielle Logik hinzufügen
               break;
           }
@@ -410,14 +412,14 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     // Fallback auf die alten Funktionen, wenn onAddElement nicht verfügbar ist
     // Fall 1: Kein elementPath angegeben - Element auf der aktuellen Navigationsebene hinzufügen
     if (!elementPath || elementPath.length === 0) {
-      console.log('[HybridEditor handleAddElement] Fall 1: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+      logger.log('[HybridEditor handleAddElement] Fall 1: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
       if (onDropElement) {
         onDropElement(type, currentPath);
       }
     }
     // Fall 1b: elementPath ist gleich currentPath - Element auf der aktuellen Navigationsebene hinzufügen
     else if (JSON.stringify(elementPath) === JSON.stringify(currentPath)) {
-      console.log('[HybridEditor handleAddElement] Fall 1b: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
+      logger.log('[HybridEditor handleAddElement] Fall 1b: Element auf aktueller Ebene hinzufügen, currentPath:', currentPath);
       if (onDropElement) {
         onDropElement(type, currentPath);
       }
@@ -425,25 +427,25 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     // Fall 2: elementPath ist ein Index innerhalb der aktuellen Ansicht - Unterelement hinzufügen
     else if (elementPath.length === 1 && currentPath.length > 0) {
       const fullPath = [...currentPath, elementPath[0]];
-      console.log('[HybridEditor handleAddElement] Fall 2: Unterelement hinzufügen, fullPath:', fullPath);
+      logger.log('[HybridEditor handleAddElement] Fall 2: Unterelement hinzufügen, fullPath:', fullPath);
       if (onAddSubElement) {
         onAddSubElement(fullPath, type);
       }
     }
     // Fall 3: elementPath ist ein vollständiger Pfad - direkt verwenden
     else {
-      console.log('[HybridEditor handleAddElement] Fall 3: Vollständigen Pfad verwenden, elementPath:', elementPath);
+      logger.log('[HybridEditor handleAddElement] Fall 3: Vollständigen Pfad verwenden, elementPath:', elementPath);
 
       // Wenn wir einen Pfadkontext haben, berücksichtigen wir den Containertyp
       if (pathContext && pathContext.isValid && onAddSubElement) {
-        console.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
+        logger.log('[HybridEditor handleAddElement] Containertyp:', pathContext.containerType);
 
         // Spezielle Behandlung für verschiedene Containertypen
         switch (pathContext.containerType) {
           case 'chipgroup':
             // Bei ChipGroup immer ein BooleanUIElement hinzufügen
             if (type !== 'BooleanUIElement') {
-              console.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
+              logger.log('[HybridEditor handleAddElement] Erzwinge BooleanUIElement für ChipGroup');
               onAddSubElement(elementPath, 'BooleanUIElement');
               return;
             }
@@ -459,7 +461,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
 
   // Wrapper-Funktion für onAddSubElement, die den currentPath berücksichtigt
   const handleAddSubElement = React.useCallback((parentPath: number[], type?: string) => {
-    console.log('[HybridEditor handleAddSubElement] parentPath:', parentPath, 'currentPath:', currentPath, 'type:', type);
+    logger.log('[HybridEditor handleAddSubElement] parentPath:', parentPath, 'currentPath:', currentPath, 'type:', type);
 
     // Wir verwenden jetzt die einheitliche handleAddElement-Funktion
     if (type) {
@@ -494,22 +496,32 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
         </Box>
 
         <BreadcrumbContainer>
-          <Tooltip title={isSelectionMode ? 'Selektionsmodus deaktivieren' : 'Selektionsmodus aktivieren'}>
-            <IconButton
+          {isSelectionMode ? (
+            <Chip
+              icon={<ChecklistIcon />}
+              label="Selektion aktiv"
+              color="primary"
+              variant="filled"
               size="small"
+              onDelete={onToggleSelectionMode}
               onClick={onToggleSelectionMode}
-              sx={{
-                mr: 1,
-                color: isSelectionMode ? 'primary.main' : 'action.active',
-                bgcolor: isSelectionMode ? 'primary.light' : 'transparent',
-                '&:hover': {
-                  bgcolor: isSelectionMode ? 'primary.light' : 'action.hover'
-                }
-              }}
-            >
-              <ChecklistIcon />
-            </IconButton>
-          </Tooltip>
+              sx={{ mr: 1, fontWeight: 'bold' }}
+            />
+          ) : (
+            <Tooltip title="Selektionsmodus aktivieren (Elemente für Gruppierung auswählen)">
+              <IconButton
+                size="small"
+                onClick={onToggleSelectionMode}
+                sx={{
+                  mr: 1,
+                  color: 'action.active',
+                  '&:hover': { bgcolor: 'action.hover' }
+                }}
+              >
+                <ChecklistIcon />
+              </IconButton>
+            </Tooltip>
+          )}
 
           <Tooltip title="Zurück">
             <span>
@@ -659,7 +671,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
           onNavigateToElement={handleNavigateToElement}
           onUpdate={(updatedElement) => {
             if (!state.selectedPageId || !selectedElementPath || selectedElementPath.length === 0) {
-              console.error('Kein Element ausgewählt oder keine Seite ausgewählt');
+              logger.error('Kein Element ausgewählt oder keine Seite ausgewählt');
               return;
             }
 
@@ -816,7 +828,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                             sub_elements: updatedSubElementsArray
                           };
                         } else {
-                          console.warn('Subflow hat weder elements noch sub_elements:', subFlows[subFlowIndex]);
+                          logger.warn('Subflow hat weder elements noch sub_elements:', subFlows[subFlowIndex]);
                         }
                       }
                     }
@@ -1008,7 +1020,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
               flow: updatedFlow
             });
 
-            console.log('Element aktualisiert:', updatedElement);
+            logger.log('Element aktualisiert:', updatedElement);
           }}
         />
       </RightColumn>

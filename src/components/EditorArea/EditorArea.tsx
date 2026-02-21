@@ -27,6 +27,7 @@ import {
   AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
 import { PatternLibraryElement } from '../../models/listingFlow';
+import { logger } from '../../utils/logger';
 import { UIElement, GroupUIElement } from '../../models/uiElements';
 import { useEditor, getElementByPath } from '../../context/EditorContext'; // useEditor importieren
 import { useFieldValues } from '../../context/FieldValuesContext';
@@ -376,7 +377,7 @@ const ElementDropZone: React.FC<{
     if (parentPath &&
         elements[parentPath[0]]?.element.pattern_type === 'ChipGroupUIElement' &&
         item.element.element.pattern_type !== 'BooleanUIElement') {
-      console.log('Nur Boolean-Elemente können in ChipGroups abgelegt werden');
+      logger.log('Nur Boolean-Elemente können in ChipGroups abgelegt werden');
       return;
     }
 
@@ -392,9 +393,9 @@ const ElementDropZone: React.FC<{
     const isTargetChipGroup = parentPath &&
       elements[parentPath[0]]?.element.pattern_type === 'ChipGroupUIElement';
 
-    console.log('Drag source path:', sourcePath);
-    console.log('Drag target parent path:', targetParentPath, 'target index:', targetIndex);
-    console.log('Source in ChipGroup:', isSourceInChipGroup, 'Target is ChipGroup:', isTargetChipGroup);
+    logger.log('Drag source path:', sourcePath);
+    logger.log('Drag target parent path:', targetParentPath, 'target index:', targetIndex);
+    logger.log('Source in ChipGroup:', isSourceInChipGroup, 'Target is ChipGroup:', isTargetChipGroup);
 
     // Hier übergeben wir nun den vollständigen Quellpfad an die App.tsx
     onMoveElement(sourceIndex, targetIndex, parentPath, sourcePath);

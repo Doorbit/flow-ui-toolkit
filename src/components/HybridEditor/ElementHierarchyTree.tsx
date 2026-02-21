@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import {
   List,
@@ -9,10 +9,15 @@ import {
   IconButton,
   Box,
   Tooltip,
-  Badge
+  Badge,
+  TextField,
+  InputAdornment,
+  Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -152,6 +157,41 @@ const getElementIcon = (elementType: string) => {
   }
 };
 
+/**
+ * Prüft rekursiv, ob ein Element oder eines seiner Kinder dem Suchbegriff entspricht.
+ */
+const elementMatchesSearch = (element: PatternLibraryElement, searchTerm: string): boolean => {
+  if (!searchTerm) return true;
+  const lower = searchTerm.toLowerCase();
+
+  // Prüfe Titel (de + en)
+  const titleDe = element.element?.title?.de?.toLowerCase() || '';
+  const titleEn = element.element?.title?.en?.toLowerCase() || '';
+  const fieldName = (element.element as any)?.field_id?.field_name?.toLowerCase() || '';
+  const patternType = element.element?.pattern_type?.toLowerCase() || '';
+
+  if (titleDe.includes(lower) || titleEn.includes(lower) || fieldName.includes(lower) || patternType.includes(lower)) {
+    return true;
+  }
+
+  // Prüfe rekursiv Kinder
+  const children = getSubElements(element);
+  return children.some(child => elementMatchesSearch(child, searchTerm));
+};
+
+/**
+ * Prüft ob ein Element direkt (nicht über Kinder) dem Suchbegriff entspricht.
+ */
+const elementDirectlyMatches = (element: PatternLibraryElement, searchTerm: string): boolean => {
+  if (!searchTerm) return false;
+  const lower = searchTerm.toLowerCase();
+  const titleDe = element.element?.title?.de?.toLowerCase() || '';
+  const titleEn = element.element?.title?.en?.toLowerCase() || '';
+  const fieldName = (element.element as any)?.field_id?.field_name?.toLowerCase() || '';
+  const patternType = element.element?.pattern_type?.toLowerCase() || '';
+  return titleDe.includes(lower) || titleEn.includes(lower) || fieldName.includes(lower) || patternType.includes(lower);
+};
+
 // Rekursive Komponente für Baumknoten
 const TreeNode: React.FC<{
   element: PatternLibraryElement;
@@ -161,7 +201,8 @@ const TreeNode: React.FC<{
   onSelectElement: (path: number[]) => void;
   onDrillDown: (path: number[]) => void;
   currentPath: number[];
-  isLastChildInLevel: boolean; // Neue Prop
+  isLastChildInLevel: boolean;
+  searchTerm: string;
 }> = ({
   element,
   path,
@@ -170,7 +211,8 @@ const TreeNode: React.FC<{
   onSelectElement,
   onDrillDown,
   currentPath,
-  isLastChildInLevel
+  isLastChildInLevel,
+  searchTerm
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [manuallyToggled, setManuallyToggled] = useState(false); // Track manual user interaction
@@ -244,15 +286,32 @@ const TreeNode: React.FC<{
     }
   }, [isInCurrentPath]);
 
+  // Auto-expand wenn ein Kind den Suchbegriff trifft
+  const hasSearchMatch = searchTerm ? elementMatchesSearch(element, searchTerm) : false;
+  const isDirectMatch = searchTerm ? elementDirectlyMatches(element, searchTerm) : false;
+
+  React.useEffect(() => {
+    if (searchTerm && hasSearchMatch && hasActualChildren && !isDirectMatch) {
+      // Expandiere, wenn ein Kind den Suchbegriff trifft
+      setExpanded(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, hasSearchMatch, hasActualChildren]);
+
+  // Wenn Suchbegriff aktiv ist und dieses Element (oder Kinder) nicht passt, nicht rendern
+  if (searchTerm && !hasSearchMatch) {
+    return null;
+  }
 
   return (
     <>
       <TreeItem
         depth={depth}
         isSelected={isSelected}
-        isLastChild={isLastChildInLevel} // Prop für Styling der Linie
-        hasChildren={hasActualChildren} // Prop für Styling der Linie
+        isLastChild={isLastChildInLevel}
+        hasChildren={hasActualChildren}
         onClick={() => onSelectElement(path)}
+        sx={isDirectMatch ? { backgroundColor: 'rgba(25, 118, 210, 0.08)', fontWeight: 'bold' } : undefined}
       >
         <TreeItemContent>
           {hasActualChildren ? (
@@ -352,7 +411,8 @@ const TreeNode: React.FC<{
                 onSelectElement={onSelectElement}
                 onDrillDown={onDrillDown}
                 currentPath={currentPath}
-                isLastChildInLevel={index === children.length - 1} // Übergebe isLastChild
+                isLastChildInLevel={index === children.length - 1}
+                searchTerm={searchTerm}
               />
             ))}
           </List>
@@ -369,22 +429,68 @@ const ElementHierarchyTree: React.FC<ElementHierarchyTreeProps> = ({
   onDrillDown,
   currentPath
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const matchCount = useMemo(() => {
+    if (!searchTerm) return 0;
+    return elements.filter(el => elementMatchesSearch(el, searchTerm)).length;
+  }, [elements, searchTerm]);
+
   return (
-    <List component="nav" aria-label="element hierarchy" dense sx={{ p: 0 }}>
-      {elements.map((element, index) => (
-        <TreeNode
-          key={element.element.uuid || index}
-          element={element}
-          path={[index]}
-          depth={0}
-          selectedPath={selectedPath}
-          onSelectElement={onSelectElement}
-          onDrillDown={onDrillDown}
-          currentPath={currentPath}
-          isLastChildInLevel={index === elements.length - 1} // Übergebe isLastChild für Top-Level
+    <Box>
+      {/* Suchfeld */}
+      <Box sx={{ px: 1, pt: 1, pb: 0.5 }}>
+        <TextField
+          size="small"
+          fullWidth
+          placeholder="Element suchen..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setSearchTerm('')} aria-label="Suche leeren">
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              fontSize: '0.8rem'
+            }
+          }}
         />
-      ))}
-    </List>
+        {searchTerm && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {matchCount === 0 ? 'Keine Treffer' : `${matchCount} Treffer`}
+          </Typography>
+        )}
+      </Box>
+
+      <List component="nav" aria-label="element hierarchy" dense sx={{ p: 0 }}>
+        {elements.map((element, index) => (
+          <TreeNode
+            key={element.element.uuid || index}
+            element={element}
+            path={[index]}
+            depth={0}
+            selectedPath={selectedPath}
+            onSelectElement={onSelectElement}
+            onDrillDown={onDrillDown}
+            currentPath={currentPath}
+            isLastChildInLevel={index === elements.length - 1}
+            searchTerm={searchTerm}
+          />
+        ))}
+      </List>
+    </Box>
   );
 };
 

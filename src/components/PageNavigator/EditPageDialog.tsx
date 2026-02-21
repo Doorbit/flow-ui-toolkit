@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import {
   Dialog,
   DialogTitle,
@@ -206,7 +207,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
 
   // Handler für den Toggle der Sichtbarkeitsregel
   const handleVisibilityToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Toggle clicked:", event.target.checked);
+    logger.log("Toggle clicked:", event.target.checked);
 
     if (event.target.checked) {
       // Erstelle eine einfache Sichtbarkeitsregel mit einem gültigen Feldnamen, falls verfügbar
@@ -289,7 +290,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
     }
 
     // Fallback für alte Material UI Icons (sollte nicht mehr vorkommen)
-    console.warn(`Non-MDI icon found: ${icon}. Please use MDI icons instead.`);
+    logger.warn(`Non-MDI icon found: ${icon}. Please use MDI icons instead.`);
     return null;
   };
 

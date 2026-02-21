@@ -173,20 +173,28 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: '#F0F2F4' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: '#F0F2F4', gap: 1, px: 1 }}>
       <Tabs
-        value={selectedPageId || (visiblePages.length > 0 ? visiblePages[0].id : false)}
+        value={
+          selectedPageId && visiblePages.some(p => p.id === selectedPageId)
+            ? selectedPageId
+            : (visiblePages.length > 0 ? visiblePages[0].id : false)
+        }
         onChange={handlePageChange}
         variant="scrollable"
         scrollButtons="auto"
+        allowScrollButtonsMobile
         sx={{
-          flex: 1,
+          flexGrow: 1,
+          minWidth: 0, // Erlaubt Schrumpfen unter Flex-Kontext
           '& .MuiTabs-indicator': {
             backgroundColor: '#009F64',
           },
           '& .MuiTab-root': {
             color: '#000000 !important',
             fontWeight: 500,
+            maxWidth: 180, // Verhindert extrem breite Tabs
+            minWidth: 100,
             '&.Mui-selected': {
               color: '#009F64 !important',
             }
@@ -209,11 +217,12 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
         ))}
       </Tabs>
 
+      {/* Fixierte Buttons RECHTS (immer sichtbar) */}
       <Tooltip title="Neue Seite hinzufügen">
         <IconButton
           onClick={handleAddPage}
           sx={{
-            mx: 1,
+            flexShrink: 0,
             color: '#000000',
             bgcolor: '#43E77F',
             border: '1px solid #000000',
@@ -230,7 +239,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
         <IconButton
           onClick={() => setImportDialogOpen(true)}
           sx={{
-            mx: 0.5,
+            flexShrink: 0,
             color: '#000000',
             bgcolor: '#81D4FA',
             border: '1px solid #000000',

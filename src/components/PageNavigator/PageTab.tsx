@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Tab, IconButton, Tooltip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Tab, Tooltip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon, MoreVert as MoreVertIcon, DragIndicator as DragIndicatorIcon } from '@mui/icons-material';
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
@@ -168,9 +168,16 @@ const PageTab: React.FC<PageTabProps> = ({
       <Tab
         value={page.id}
         label={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#000000' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#000000', maxWidth: '100%' }}>
             {renderIcon()}
-            <span style={{ color: '#000000', fontWeight: 500 }}>{page.title?.de || page.id}</span>
+            <span style={{ 
+              color: '#000000', 
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '120px'
+            }}>{page.title?.de || page.id}</span>
             {/* Zeige Sichtbarkeitssymbol nur wenn tatsächlich eine Bedingung vorliegt */}
             {page.visibility_condition && (
               <Tooltip title="Diese Seite hat eine bedingte Sichtbarkeitsregel, die bestimmt, wann sie angezeigt wird">
@@ -199,26 +206,40 @@ const PageTab: React.FC<PageTabProps> = ({
             opacity: 1,
           },
         }}
+        title={page.title?.de || page.id} // Tooltip zeigt vollständigen Namen
         iconPosition="end"
         icon={
           !isLastPage ? (
             <Tooltip title="Seitenaktionen">
-              <IconButton
-                size="small"
+              <Box
+                component="span"
                 className="page-menu-icon"
-                onClick={handleMenuOpen}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleMenuOpen(e as any);
+                }}
                 sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  p: 0.5,
+                  borderRadius: '50%',
                   opacity: 0,
                   transition: 'opacity 0.2s',
                   color: '#000000',
+                  minWidth: 28,
+                  minHeight: 28,
                   '&:hover': {
                     opacity: 1,
-                    color: '#009F64'
+                    color: '#009F64',
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   }
                 }}
+                aria-label="Seitenaktionen"
               >
                 <MoreVertIcon fontSize="small" />
-              </IconButton>
+              </Box>
             </Tooltip>
           ) : undefined
         }
