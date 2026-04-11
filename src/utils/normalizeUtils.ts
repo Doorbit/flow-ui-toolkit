@@ -252,7 +252,7 @@ const normalizeElement = (element: any, ensureFieldId: boolean = true): any => {
 
   // Stelle sicher, dass title vorhanden ist
   if (!element.title) {
-    element.title = { de: `Neues ${patternType}`, en: `New ${patternType}` };
+    element.title = { de: '', en: '' };
   } else if (typeof element.title === 'string') {
     // Wenn title ein String ist, konvertiere es zu einem Objekt
     const titleText = element.title;
