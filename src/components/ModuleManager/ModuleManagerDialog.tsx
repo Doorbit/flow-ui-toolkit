@@ -21,6 +21,7 @@ import {
   Divider,
   Stack,
   Alert,
+  Tooltip,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -29,6 +30,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
 import { TabbedTranslatableFields } from '../PropertyEditor/common/TabbedTranslatableFields';
@@ -45,6 +47,33 @@ interface ModuleManagerDialogProps {
 }
 
 const SLUG_PATTERN = /^[a-z0-9_]+$/;
+
+// Erklärtexte (Tooltips) — fassen das mentale Modell zusammen
+const MODULE_INFO =
+  'Module sind optionale, pro Projekt zuschaltbare Bausteine. Hier definierst du sie und ordnest ' +
+  'Seiten/Elemente per „Modul-Zuordnung" zu. Ob ein Modul in einem konkreten Projekt aktiv ist ' +
+  '(Feld module_<id>_active), entscheidet der Energieberater zur Laufzeit in der doorbit-App — nicht hier. ' +
+  'Dieser Editor legt nur die Vorlage und den Standard fest (siehe „Bei Projektanlage vorausgewählt").';
+
+const ARTIFACT_INFO =
+  'CATALOG-Modul-Artefakt = der Modul-Inhalt als eigenständige, flow-förmige JSON-Datei ' +
+  '(modul-getaggte Seiten + Modul-Eintrag + Version). „Exportieren" erzeugt diese Datei, die portal über ' +
+  'flowModule(id) nachlädt und versioniert offline cacht; „Importieren" führt so eine Datei in den aktuellen ' +
+  'Flow ein. Nur für CATALOG relevant — INLINE-Module stecken im Basis-Flow und brauchen kein Artefakt.';
+
+const DELIVERY_INFO =
+  'INLINE: Modul steckt direkt im Basis-Flow, sofort einsatzbereit. ' +
+  'CATALOG: Modul wird als separates, versioniertes Artefakt ausgeliefert und von portal bei Bedarf nachgeladen.';
+
+const DEFAULT_ACTIVE_INFO =
+  'Nur der Standard bei Projektanlage. Das tatsächliche An/Aus pro Projekt setzt der Energieberater ' +
+  'zur Laufzeit in der doorbit-App (module_<id>_active) — nicht in diesem Editor.';
+
+const InfoTip: React.FC<{ text: string }> = ({ text }) => (
+  <Tooltip title={text}>
+    <InfoOutlinedIcon fontSize="small" sx={{ color: 'action.active', cursor: 'help' }} />
+  </Tooltip>
+);
 
 const emptyModule = (): Module => ({
   id: '',
@@ -169,7 +198,12 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen}>
-        <DialogTitle>Module verwalten</DialogTitle>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            Module verwalten
+            <InfoTip text={MODULE_INFO} />
+          </Box>
+        </DialogTitle>
         <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Module sind optionale, pro Projekt aktivierbare Bausteine. Seiten und Elemente werden
@@ -230,14 +264,15 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
                         <IconButton size="small" onClick={() => handleOpenEdit(module)} aria-label="Bearbeiten">
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleExportArtifact(module.id)}
-                          aria-label="Als Artefakt exportieren"
-                          title="Als CATALOG-Artefakt exportieren"
-                        >
-                          <FileDownloadIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title={ARTIFACT_INFO}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleExportArtifact(module.id)}
+                            aria-label="Als CATALOG-Artefakt exportieren"
+                          >
+                            <FileDownloadIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <IconButton
                           size="small"
                           color="error"
@@ -258,9 +293,11 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
             <Button startIcon={<AddIcon />} onClick={handleOpenAdd}>
               Modul hinzufügen
             </Button>
-            <Button startIcon={<FileUploadIcon />} onClick={handleImportArtifact}>
-              Artefakt importieren
-            </Button>
+            <Tooltip title={ARTIFACT_INFO}>
+              <Button startIcon={<FileUploadIcon />} onClick={handleImportArtifact}>
+                Artefakt importieren
+              </Button>
+            </Tooltip>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -323,32 +360,38 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
               fullWidth
             />
 
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={!!editModule.default_active}
-                  onChange={e => setEditModule({ ...editModule, default_active: e.target.checked })}
-                />
-              }
-              label="Bei Projektanlage vorausgewählt"
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!!editModule.default_active}
+                    onChange={e => setEditModule({ ...editModule, default_active: e.target.checked })}
+                  />
+                }
+                label="Bei Projektanlage vorausgewählt"
+              />
+              <InfoTip text={DEFAULT_ACTIVE_INFO} />
+            </Box>
 
             <Divider />
 
-            <FormControl size="small" fullWidth>
-              <InputLabel id="module-delivery-label">Auslieferung</InputLabel>
-              <Select
-                labelId="module-delivery-label"
-                label="Auslieferung"
-                value={editModule.delivery || 'INLINE'}
-                onChange={e =>
-                  setEditModule({ ...editModule, delivery: e.target.value as 'INLINE' | 'CATALOG' })
-                }
-              >
-                <MenuItem value="INLINE">INLINE (im Flow enthalten)</MenuItem>
-                <MenuItem value="CATALOG">CATALOG (separat nachladbar)</MenuItem>
-              </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel id="module-delivery-label">Auslieferung</InputLabel>
+                <Select
+                  labelId="module-delivery-label"
+                  label="Auslieferung"
+                  value={editModule.delivery || 'INLINE'}
+                  onChange={e =>
+                    setEditModule({ ...editModule, delivery: e.target.value as 'INLINE' | 'CATALOG' })
+                  }
+                >
+                  <MenuItem value="INLINE">INLINE (im Flow enthalten)</MenuItem>
+                  <MenuItem value="CATALOG">CATALOG (separat nachladbar)</MenuItem>
+                </Select>
+              </FormControl>
+              <InfoTip text={DELIVERY_INFO} />
+            </Box>
 
             {isCatalog && (
               <TextField
