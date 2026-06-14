@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
 import WorkflowNameDialog from './components/WorkflowNameDialog/WorkflowNameDialog';
+import ModuleManagerDialog from './components/ModuleManager/ModuleManagerDialog';
 
 import Navigation from './components/Navigation/Navigation';
 // Wir verwenden jetzt den HybridEditor anstelle dieser Komponenten
@@ -1615,6 +1616,7 @@ const AppContent: React.FC = () => {
   const { state, dispatch } = useEditor();
   const [selectedElementPath, setSelectedElementPath] = useState<number[]>([]);
   const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
+  const [showModuleManager, setShowModuleManager] = useState<boolean>(false);
   const [groupErrorSnackbar, setGroupErrorSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
   // Copy/Export dialog state
   const [copyToPageDialogState, setCopyToPageDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
@@ -2361,6 +2363,7 @@ const AppContent: React.FC = () => {
           onUndo={() => dispatch({ type: 'UNDO' })}
           onRedo={() => dispatch({ type: 'REDO' })}
           onEditWorkflowName={handleEditWorkflowName}
+          onEditModules={() => setShowModuleManager(true)}
           onOpenDocumentation={handleOpenDocumentation}
           workflowName={state.currentFlow?.name || "Workflow"}
         />
@@ -2372,6 +2375,12 @@ const AppContent: React.FC = () => {
           onClose={() => setShowWorkflowNameDialog(false)}
           onSave={handleSaveWorkflowName}
           isFirstTime={false}
+        />
+
+        {/* Modul-Katalog-Manager */}
+        <ModuleManagerDialog
+          open={showModuleManager}
+          onClose={() => setShowModuleManager(false)}
         />
 
         {/* Seitennavigation */}

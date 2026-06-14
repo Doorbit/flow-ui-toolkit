@@ -224,6 +224,124 @@ describe('EditorContext', () => {
   });
 });
 
+// Tests für den Modul-Katalog (Modulare Flows, Phase 2)
+const ModuleTestComponent = () => {
+  const { state, dispatch } = useContext(EditorContext)!;
+
+  const taggedElement = {
+    pattern_type: 'TextUIElement',
+    type: 'PARAGRAPH',
+    text: { de: 'Modul-Element' },
+    required: false,
+    module_id: 'heizlast',
+  } as any;
+
+  const moduleFlow = {
+    id: 'mod-flow',
+    'url-key': 'mod',
+    name: 'Modul Flow',
+    title: { de: 'Modul Flow', en: 'Module Flow' },
+    icon: 'mdiFileOutline',
+    pages_edit: [
+      {
+        id: 'page-1',
+        pattern_type: 'Page',
+        title: { de: 'Seite 1', en: 'Page 1' },
+        module_id: 'heizlast',
+        elements: [{ element: taggedElement }],
+      },
+    ],
+    pages_view: [],
+  };
+
+  const modules = state.currentFlow?.modules ?? [];
+  const page = state.currentFlow?.pages_edit[0];
+  const firstElement = page?.elements[0]?.element as any;
+
+  return (
+    <div>
+      <div data-testid="module-count">{modules.length}</div>
+      <div data-testid="first-module-default-active">{String(modules[0]?.default_active ?? 'none')}</div>
+      <div data-testid="page-module-id">{page?.module_id ?? 'none'}</div>
+      <div data-testid="element-module-id">{firstElement?.module_id ?? 'none'}</div>
+      <div data-testid="can-undo">{state.undoStack.length > 0 ? 'can-undo' : 'cannot-undo'}</div>
+
+      <button data-testid="set-flow-btn" onClick={() => dispatch({ type: 'SET_FLOW', flow: moduleFlow })}>Set</button>
+      <button
+        data-testid="add-module-btn"
+        onClick={() =>
+          dispatch({
+            type: 'ADD_MODULE',
+            module: { id: 'heizlast', name: { de: 'Heizlast' }, description: { de: '' }, default_active: false, delivery: 'INLINE' },
+          })
+        }
+      >
+        Add
+      </button>
+      <button
+        data-testid="update-module-btn"
+        onClick={() => dispatch({ type: 'UPDATE_MODULE', moduleId: 'heizlast', updates: { default_active: true } })}
+      >
+        Update
+      </button>
+      <button data-testid="remove-module-btn" onClick={() => dispatch({ type: 'REMOVE_MODULE', moduleId: 'heizlast' })}>
+        Remove
+      </button>
+      <button data-testid="undo-btn" onClick={() => dispatch({ type: 'UNDO' })}>Undo</button>
+    </div>
+  );
+};
+
+describe('EditorContext - Modul-Katalog', () => {
+  const renderModuleTest = () =>
+    render(
+      <EditorProvider>
+        <ModuleTestComponent />
+      </EditorProvider>
+    );
+
+  test('ADD_MODULE fügt ein Modul zum Katalog hinzu', () => {
+    renderModuleTest();
+    fireEvent.click(screen.getByTestId('set-flow-btn'));
+    expect(screen.getByTestId('module-count')).toHaveTextContent('0');
+    fireEvent.click(screen.getByTestId('add-module-btn'));
+    expect(screen.getByTestId('module-count')).toHaveTextContent('1');
+  });
+
+  test('UPDATE_MODULE ändert ein Feld des Moduls', () => {
+    renderModuleTest();
+    fireEvent.click(screen.getByTestId('set-flow-btn'));
+    fireEvent.click(screen.getByTestId('add-module-btn'));
+    expect(screen.getByTestId('first-module-default-active')).toHaveTextContent('false');
+    fireEvent.click(screen.getByTestId('update-module-btn'));
+    expect(screen.getByTestId('first-module-default-active')).toHaveTextContent('true');
+  });
+
+  test('REMOVE_MODULE entfernt das Modul und bereinigt referenzierende module_id (Page + Element)', () => {
+    renderModuleTest();
+    fireEvent.click(screen.getByTestId('set-flow-btn'));
+    fireEvent.click(screen.getByTestId('add-module-btn'));
+    // Vorbedingung: Page und Element sind getaggt
+    expect(screen.getByTestId('page-module-id')).toHaveTextContent('heizlast');
+    expect(screen.getByTestId('element-module-id')).toHaveTextContent('heizlast');
+
+    fireEvent.click(screen.getByTestId('remove-module-btn'));
+    expect(screen.getByTestId('module-count')).toHaveTextContent('0');
+    expect(screen.getByTestId('page-module-id')).toHaveTextContent('none');
+    expect(screen.getByTestId('element-module-id')).toHaveTextContent('none');
+  });
+
+  test('Undo nach ADD_MODULE stellt den Vorzustand wieder her', () => {
+    renderModuleTest();
+    fireEvent.click(screen.getByTestId('set-flow-btn'));
+    fireEvent.click(screen.getByTestId('add-module-btn'));
+    expect(screen.getByTestId('module-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('can-undo')).toHaveTextContent('can-undo');
+    fireEvent.click(screen.getByTestId('undo-btn'));
+    expect(screen.getByTestId('module-count')).toHaveTextContent('0');
+  });
+});
+
 // Tests für getElementByPath
 describe('getElementByPath', () => {
   const deepTextElement: TextUIElement = {

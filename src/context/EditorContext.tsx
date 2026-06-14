@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { ListingFlow, Page, PatternLibraryElement } from '../models/listingFlow';
+import { ListingFlow, Module, Page, PatternLibraryElement } from '../models/listingFlow';
 import { ChipGroupUIElement, GroupUIElement } from '../models/uiElements';
 import { ensureUUIDs } from '../utils/uuidUtils';
 import { logger } from '../utils/logger';
@@ -42,6 +42,9 @@ type Action =
   | { type: 'UNGROUP'; payload: { path: number[]; pageId: string } } // Gruppierung auflösen
   | { type: 'IMPORT_PAGES'; payload: { editPages: Page[]; viewPages: Page[] } } // Seiten aus externer Datei importieren
   | { type: 'COPY_ELEMENT_TO_PAGE'; payload: { targetPageId: string; clonedElement: PatternLibraryElement; position: 'top' | 'bottom' } } // Element auf andere Seite kopieren
+  | { type: 'ADD_MODULE'; module: Module } // Modul zum Katalog hinzufügen
+  | { type: 'UPDATE_MODULE'; moduleId: string; updates: Partial<Module> } // Modul bearbeiten (bei id-Änderung werden Referenzen mit-migriert)
+  | { type: 'REMOVE_MODULE'; moduleId: string } // Modul entfernen und referenzierende module_id bereinigen
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
@@ -637,6 +640,87 @@ const removeElementAtPath = (
   });
 };
 
+/**
+ * Wendet eine Transformation auf das `module_id` eines Elements und rekursiv aller
+ * verschachtelten Elemente an (Group/Array/Custom.elements, Custom/Page.sub_flows[].elements,
+ * ChipGroup.chips). Gibt `undefined` zurück = `module_id` wird entfernt.
+ */
+const transformElementModuleId = (
+  ple: PatternLibraryElement,
+  fn: (moduleId: string | undefined) => string | undefined
+): PatternLibraryElement => {
+  const el: any = { ...ple.element };
+
+  const newModuleId = fn(el.module_id);
+  if (newModuleId === undefined) {
+    delete el.module_id;
+  } else {
+    el.module_id = newModuleId;
+  }
+
+  if (Array.isArray(el.elements)) {
+    el.elements = el.elements.map((child: PatternLibraryElement) => transformElementModuleId(child, fn));
+  }
+
+  if (Array.isArray(el.sub_flows)) {
+    el.sub_flows = el.sub_flows.map((sf: any) => ({
+      ...sf,
+      elements: Array.isArray(sf.elements)
+        ? sf.elements.map((child: PatternLibraryElement) => transformElementModuleId(child, fn))
+        : sf.elements,
+    }));
+  }
+
+  if (Array.isArray(el.chips)) {
+    el.chips = el.chips.map((chip: any) => {
+      const c = { ...chip };
+      const nm = fn(c.module_id);
+      if (nm === undefined) {
+        delete c.module_id;
+      } else {
+        c.module_id = nm;
+      }
+      return c;
+    });
+  }
+
+  return { element: el };
+};
+
+/**
+ * Wendet eine module_id-Transformation auf eine Seitenliste an: auf die Seite selbst
+ * und rekursiv auf alle (verschachtelten) Elemente und sub_flows. Immutable.
+ */
+const transformPagesModuleId = (
+  pages: Page[],
+  fn: (moduleId: string | undefined) => string | undefined
+): Page[] =>
+  pages.map(page => {
+    const p: any = { ...page };
+
+    const newModuleId = fn(p.module_id);
+    if (newModuleId === undefined) {
+      delete p.module_id;
+    } else {
+      p.module_id = newModuleId;
+    }
+
+    if (Array.isArray(p.elements)) {
+      p.elements = p.elements.map((child: PatternLibraryElement) => transformElementModuleId(child, fn));
+    }
+
+    if (Array.isArray(p.sub_flows)) {
+      p.sub_flows = p.sub_flows.map((sf: any) => ({
+        ...sf,
+        elements: Array.isArray(sf.elements)
+          ? sf.elements.map((child: PatternLibraryElement) => transformElementModuleId(child, fn))
+          : sf.elements,
+      }));
+    }
+
+    return p as Page;
+  });
+
 function editorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'SET_FLOW':
@@ -665,6 +749,67 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         redoStack: [],
         isDirty: true,
       };
+
+    case 'ADD_MODULE': {
+      if (!state.currentFlow) return state;
+      const newFlow: ListingFlow = {
+        ...state.currentFlow,
+        modules: [...(state.currentFlow.modules ?? []), action.module],
+      };
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: newFlow,
+        redoStack: [],
+        isDirty: true,
+      };
+    }
+
+    case 'UPDATE_MODULE': {
+      if (!state.currentFlow) return state;
+      const { moduleId, updates } = action;
+      const updatedModules = (state.currentFlow.modules ?? []).map(m =>
+        m.id === moduleId ? { ...m, ...updates } : m
+      );
+      let newFlow: ListingFlow = { ...state.currentFlow, modules: updatedModules };
+
+      // Bei id-Änderung referenzierende module_id über alle Seiten/Elemente mit-migrieren
+      if (updates.id && updates.id !== moduleId) {
+        const rename = (mid: string | undefined) => (mid === moduleId ? updates.id! : mid);
+        newFlow = {
+          ...newFlow,
+          pages_edit: transformPagesModuleId(newFlow.pages_edit, rename),
+          pages_view: transformPagesModuleId(newFlow.pages_view, rename),
+        };
+      }
+
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: newFlow,
+        redoStack: [],
+        isDirty: true,
+      };
+    }
+
+    case 'REMOVE_MODULE': {
+      if (!state.currentFlow) return state;
+      const { moduleId } = action;
+      const clear = (mid: string | undefined) => (mid === moduleId ? undefined : mid);
+      const newFlow: ListingFlow = {
+        ...state.currentFlow,
+        modules: (state.currentFlow.modules ?? []).filter(m => m.id !== moduleId),
+        pages_edit: transformPagesModuleId(state.currentFlow.pages_edit, clear),
+        pages_view: transformPagesModuleId(state.currentFlow.pages_view, clear),
+      };
+      return {
+        ...state,
+        undoStack: [...state.undoStack, state.currentFlow],
+        currentFlow: newFlow,
+        redoStack: [],
+        isDirty: true,
+      };
+    }
 
     case 'SELECT_ELEMENT':
       return {
