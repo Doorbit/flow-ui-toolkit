@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Tab, Tooltip, Box, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon, MoreVert as MoreVertIcon, DragIndicator as DragIndicatorIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, AccountTree as AccountTreeIcon, MoreVert as MoreVertIcon, DragIndicator as DragIndicatorIcon, Extension as ModuleIcon } from '@mui/icons-material';
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
 import { Page } from '../../models/listingFlow';
@@ -193,6 +193,15 @@ const PageTab: React.FC<PageTabProps> = ({
                 <AccountTreeIcon
                   fontSize="small"
                   color="success"
+                  sx={{ ml: 0.5, opacity: 0.7 }}
+                />
+              </Tooltip>
+            )}
+            {(page as any).module_id && (
+              <Tooltip title={`Modul: ${(page as any).module_id}`}>
+                <ModuleIcon
+                  fontSize="small"
+                  color="info"
                   sx={{ ml: 0.5, opacity: 0.7 }}
                 />
               </Tooltip>

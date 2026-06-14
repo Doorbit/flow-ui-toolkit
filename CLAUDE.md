@@ -72,7 +72,7 @@ ListingFlow { id, url-key, name, title, icon, modules?, pages_edit[], pages_view
 
 ## Modulare Flows (Kontext)
 
-portal unterstützt seit Juni 2026 **Module**: Ein Flow kann einen `modules`-Katalog deklarieren; Seiten/Gruppen/Elemente werden per `module_id` einem Modul zugeordnet und sind nur sichtbar, wenn das Projekt das Modul aktiviert hat (`module_<id>_active === true`). Module werden **INLINE** (im Basis-Flow) oder **CATALOG** (separates, nachladbares, versioniertes Flow-Artefakt) ausgeliefert. Der Toolkit muss dieses Authoring abbilden — Detailplan in `plans/modulare-flows-upgrade.md`.
+portal unterstützt seit Juni 2026 **Module**: Ein Flow kann einen `modules`-Katalog deklarieren; Seiten/Gruppen/Elemente werden per `module_id` einem Modul zugeordnet und sind nur sichtbar, wenn das Projekt das Modul aktiviert hat (`module_<id>_active === true`). Module werden **INLINE** (im Basis-Flow) oder **CATALOG** (separates, nachladbares, versioniertes Flow-Artefakt) ausgeliefert. Der Toolkit bildet dieses Authoring ab: Modul-Katalog-Manager (Button „Module"), `module_id`-Zuordnung in Property-Editor & Seiten-Dialog, Badges, Validierung verwaister Zuordnungen und Export/Import einzelner CATALOG-Artefakte. Umsetzungsstand & Details: `plans/modulare-flows-upgrade.md`.
 
 ## Tests
 
