@@ -2,6 +2,23 @@
 
 > Ziel: Den Visual-Editor so erweitern, dass er die neue **Modulare-Flows**-Fähigkeit von `portal-applications` authoren kann, und gleichzeitig die sonstige **Schema-Drift** toolkit↔portal schließen. UX/UI produktreif, mit Blick auf eine künftige Integration des Toolkits in portal-applications.
 
+## Umsetzungsstand (Stand 2026-06-14)
+
+| Phase | Inhalt | Status |
+|---|---|---|
+| 0 | Schema als Vertrag (AJV lässt neue Felder zu / Round-Trip) | ✅ (durch Round-Trip-Erhalt abgedeckt) |
+| 1 | Typmodell (`modules`, `Module`, `module_id`, flow-`version`) | ✅ |
+| 2 | Modul-Katalog-Manager (CRUD + Referenz-Integrität) | ✅ |
+| 3 | `module_id`-Tagging an Seiten & Elementen | ✅ |
+| 4 | Visuelle Kennzeichnung (Badge an Element-Karten **und** Page-Tabs) | ✅ |
+| 5 | Referenzielle Validierung (verwaiste `module_id`) | ✅ |
+| 6 | Import/Export-Round-Trip (`modules`/`module_id` überleben) | ✅ |
+| 7 | CATALOG-Modul-Artefakte exportieren/importieren | ✅ |
+| 8 | Schema-Drift-Abgleich (`ContactUIElement`, SubFlow-Typen, `DateUIElement 'YMDT'`) | ✅ |
+| 9 | Produkt-UX-Politur + Vorbereitung portal-Integration | teilweise (Kern-UX umgesetzt; tiefe CRA/Craco-Entkopplung als Future Work) |
+
+Offen / Future Work: optionaler Modul-Filter/Highlight + Legende; Entkopplung des Editor-Kerns von CRA/Craco für die spätere Einbettung in die Vue-PWA.
+
 ## Hintergrund
 
 `portal-applications` rendert seine gesamte Erfassungs-UI aus Flow-JSON (`ListingFlow` → `pages_edit`/`pages_view` → `elements` → UIElement-Typen; `CustomUIElement.sub_flows`; `visibility_condition`). Der Toolkit erzeugt genau dieses JSON.

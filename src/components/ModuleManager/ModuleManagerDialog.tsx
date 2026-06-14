@@ -27,13 +27,17 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
 import { TabbedTranslatableFields } from '../PropertyEditor/common/TabbedTranslatableFields';
 import IconField from '../PropertyEditor/common/IconField';
 import { useEditor } from '../../context/EditorContext';
-import { Module } from '../../models/listingFlow';
+import { Module, ListingFlow } from '../../models/listingFlow';
 import { danglingModuleIds } from '../../utils/moduleValidation';
+import { extractModuleArtifact, mergeModuleArtifact } from '../../utils/moduleArtifact';
+import { transformFlowForExport } from '../../utils/uuidUtils';
 
 interface ModuleManagerDialogProps {
   open: boolean;
@@ -114,6 +118,46 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
     setConfirmDeleteId(null);
   };
 
+  // Exportiert ein Modul als eigenständiges CATALOG-Artefakt (flow-förmige JSON).
+  const handleExportArtifact = (moduleId: string) => {
+    const artifact = extractModuleArtifact(state.currentFlow, moduleId);
+    if (!artifact) return;
+    const json = JSON.stringify(transformFlowForExport(artifact), null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${moduleId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Importiert ein Modul-Artefakt und führt es in den aktuellen Flow zusammen.
+  const handleImportArtifact = () => {
+    if (!state.currentFlow) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const artifact = JSON.parse(event.target?.result as string) as ListingFlow;
+          const merged = mergeModuleArtifact(state.currentFlow!, artifact);
+          dispatch({ type: 'UPDATE_FLOW', flow: merged });
+        } catch {
+          // Ungültige Datei – still ignorieren (Fehleranzeige erfolgt über bestehende Mechanismen)
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   const renderModuleIcon = (iconName?: string) => {
     if (!iconName || !iconName.startsWith('mdi')) return null;
     const path = getIconPath(iconName);
@@ -188,6 +232,14 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
                         </IconButton>
                         <IconButton
                           size="small"
+                          onClick={() => handleExportArtifact(module.id)}
+                          aria-label="Als Artefakt exportieren"
+                          title="Als CATALOG-Artefakt exportieren"
+                        >
+                          <FileDownloadIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
                           color="error"
                           onClick={() => setConfirmDeleteId(module.id)}
                           aria-label="Löschen"
@@ -202,9 +254,14 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
             </Stack>
           )}
 
-          <Button startIcon={<AddIcon />} onClick={handleOpenAdd} sx={{ mt: 2 }}>
-            Modul hinzufügen
-          </Button>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+            <Button startIcon={<AddIcon />} onClick={handleOpenAdd}>
+              Modul hinzufügen
+            </Button>
+            <Button startIcon={<FileUploadIcon />} onClick={handleImportArtifact}>
+              Artefakt importieren
+            </Button>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Schließen</Button>
