@@ -36,6 +36,7 @@ import { getIconPath } from '../../utils/mdiIcons';
 import { TabbedTranslatableFields } from '../PropertyEditor/common/TabbedTranslatableFields';
 import IconField from '../PropertyEditor/common/IconField';
 import { useEditor } from '../../context/EditorContext';
+import { useFeedback } from '../../context/FeedbackContext';
 import { Module, ListingFlow } from '../../models/listingFlow';
 import { danglingModuleIds } from '../../utils/moduleValidation';
 import { extractModuleArtifact, mergeModuleArtifact } from '../../utils/moduleArtifact';
@@ -94,6 +95,7 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { state, dispatch } = useEditor();
+  const { showSuccess, showError } = useFeedback();
 
   const modules = state.currentFlow?.modules ?? [];
   const dangling = danglingModuleIds(state.currentFlow);
@@ -138,11 +140,14 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
       dispatch({ type: 'UPDATE_MODULE', moduleId: editingId, updates: moduleToSave });
     }
     setEditorOpen(false);
+    showSuccess(`Modul „${moduleToSave.id}" gespeichert.`);
   };
 
   const handleConfirmDelete = () => {
     if (confirmDeleteId) {
-      dispatch({ type: 'REMOVE_MODULE', moduleId: confirmDeleteId });
+      const deletedId = confirmDeleteId;
+      dispatch({ type: 'REMOVE_MODULE', moduleId: deletedId });
+      showSuccess(`Modul „${deletedId}" gelöscht.`);
     }
     setConfirmDeleteId(null);
   };
@@ -150,7 +155,10 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   // Exportiert ein Modul als eigenständiges CATALOG-Artefakt (flow-förmige JSON).
   const handleExportArtifact = (moduleId: string) => {
     const artifact = extractModuleArtifact(state.currentFlow, moduleId);
-    if (!artifact) return;
+    if (!artifact) {
+      showError(`Modul „${moduleId}" konnte nicht als Artefakt exportiert werden.`);
+      return;
+    }
     const json = JSON.stringify(transformFlowForExport(artifact), null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -161,6 +169,7 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    showSuccess(`Modul „${moduleId}" als Artefakt exportiert.`);
   };
 
   // Importiert ein Modul-Artefakt und führt es in den aktuellen Flow zusammen.
@@ -176,10 +185,14 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
       reader.onload = (event) => {
         try {
           const artifact = JSON.parse(event.target?.result as string) as ListingFlow;
+          if (!artifact || !Array.isArray(artifact.modules) || artifact.modules.length === 0) {
+            throw new Error('Datei enthält keinen Modul-Katalog (modules[]).');
+          }
           const merged = mergeModuleArtifact(state.currentFlow!, artifact);
           dispatch({ type: 'UPDATE_FLOW', flow: merged });
-        } catch {
-          // Ungültige Datei – still ignorieren (Fehleranzeige erfolgt über bestehende Mechanismen)
+          showSuccess(`Modul-Artefakt „${artifact.modules[0].id}" importiert.`);
+        } catch (err) {
+          showError('Artefakt konnte nicht importiert werden: ' + (err instanceof Error ? err.message : 'ungültige Datei'));
         }
       };
       reader.readAsText(file);

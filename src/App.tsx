@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, ThemeProvider, createTheme, Box, Snackbar, Alert } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
 import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
@@ -21,6 +21,7 @@ import { deepCloneElement } from './utils/deepCloneUtils';
 import { EditorProvider, useEditor, getElementByPath, getContainerType } from './context/EditorContext';
 import { logger } from './utils/logger';
 import { FieldValuesProvider } from './context/FieldValuesContext';
+import { FeedbackProvider, useFeedback } from './context/FeedbackContext';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
@@ -1634,11 +1635,13 @@ const AppContent: React.FC = () => {
   const [selectedElementPath, setSelectedElementPath] = useState<number[]>([]);
   const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
   const [showModuleManager, setShowModuleManager] = useState<boolean>(false);
-  const [groupErrorSnackbar, setGroupErrorSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+  const { showSuccess, showWarning, showError, confirm } = useFeedback();
+  // Shims auf das zentrale Feedback-System — halten die bestehenden Aufrufstellen kompatibel
+  const setGroupErrorSnackbar = (s: { open: boolean; message: string }) => { if (s.open) showWarning(s.message); };
+  const setSuccessSnackbar = (s: { open: boolean; message: string }) => { if (s.open) showSuccess(s.message); };
   // Copy/Export dialog state
   const [copyToPageDialogState, setCopyToPageDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
   const [exportToFileDialogState, setExportToFileDialogState] = useState<{ open: boolean; elementPath: number[] }>({ open: false, elementPath: [] });
-  const [successSnackbar, setSuccessSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   // Diese Funktion wurde durch handleSaveWorkflowName ersetzt
 
@@ -1761,7 +1764,7 @@ const AppContent: React.FC = () => {
         const { allowed, message } = isElementAllowedInParent(elementType, parentType);
 
         if (!allowed) {
-          alert(message);
+          showError(message);
           return;
         }
       }
@@ -2210,8 +2213,14 @@ const AppContent: React.FC = () => {
   };
 
   // Datei-Handler
-  const handleNew = () => {
-    if (window.confirm('Möchten Sie einen neuen Flow erstellen? Ungespeicherte Änderungen gehen verloren.')) {
+  const handleNew = async () => {
+    const ok = await confirm({
+      title: 'Neuen Flow erstellen?',
+      message: 'Ungespeicherte Änderungen gehen verloren.',
+      confirmLabel: 'Neu erstellen',
+      destructive: true,
+    });
+    if (ok) {
       dispatch({ type: 'SET_FLOW', flow: emptyFlow });
       setSelectedElementPath([]);
       // Die selectedPageId wird automatisch in der SET_FLOW Aktion gesetzt
@@ -2267,19 +2276,30 @@ const AppContent: React.FC = () => {
       const file = target.files?.[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
           try {
             const json = JSON.parse(event.target?.result as string);
-            // Importiere die normalizeElementTypes-Funktion
-            import('./utils/normalizeUtils').then(({ normalizeElementTypes }) => {
-              // Normalisiere die Elementtypen, bevor der Flow gesetzt wird
-              const normalizedJson = normalizeElementTypes(json);
-              dispatch({ type: 'SET_FLOW', flow: normalizedJson });
-              setSelectedElementPath([]);
-              // Die selectedPageId wird automatisch in der SET_FLOW Aktion gesetzt
-            });
+            // Vor dem Ersetzen eines nicht-leeren Flows um Bestätigung bitten (Datenverlust-Schutz)
+            const hasContent = !!state.currentFlow &&
+              ((state.currentFlow.pages_edit?.length ?? 0) > 0 || (state.currentFlow.pages_view?.length ?? 0) > 0);
+            if (hasContent) {
+              const ok = await confirm({
+                title: 'Flow ersetzen?',
+                message: 'Der aktuelle Flow wird durch die geöffnete Datei ersetzt. Ungespeicherte Änderungen gehen verloren.',
+                confirmLabel: 'Ersetzen',
+                destructive: true,
+              });
+              if (!ok) return;
+            }
+            // Normalisiere die Elementtypen, bevor der Flow gesetzt wird
+            const { normalizeElementTypes } = await import('./utils/normalizeUtils');
+            const normalizedJson = normalizeElementTypes(json);
+            dispatch({ type: 'SET_FLOW', flow: normalizedJson });
+            setSelectedElementPath([]);
+            showSuccess('Flow erfolgreich geöffnet.');
+            // Die selectedPageId wird automatisch in der SET_FLOW Aktion gesetzt
           } catch (error) {
-            alert('Ungültiges JSON-Format: ' + error);
+            showError('Ungültiges JSON-Format: ' + error);
           }
         };
         reader.readAsText(file);
@@ -2292,7 +2312,7 @@ const AppContent: React.FC = () => {
     if (!state.currentFlow) return;
 
     // Importiere die Validierungsfunktion
-    import('./utils/fileElementValidator').then(({ validateAllFileUIElements }) => {
+    import('./utils/fileElementValidator').then(async ({ validateAllFileUIElements }) => {
       // Validiere alle FileUIElements in pages_edit
       const editValidationResults = validateAllFileUIElements(
         state.currentFlow!.pages_edit.flatMap(page => page.elements || [])
@@ -2324,7 +2344,7 @@ const AppContent: React.FC = () => {
           message += '\n⚠️ Die JSON-Datei kann im Zielsystem NICHT korrekt dargestellt werden!\n\n';
           message += 'Möchten Sie trotzdem fortfahren?';
 
-          if (!window.confirm(message)) {
+          if (!(await confirm({ title: 'Validierungsfehler', message, confirmLabel: 'Trotzdem fortfahren', destructive: true }))) {
             return;
           }
         } else if (warnings.length > 0) {
@@ -2338,7 +2358,7 @@ const AppContent: React.FC = () => {
           });
           message += '\nMöchten Sie trotzdem fortfahren?';
 
-          if (!window.confirm(message)) {
+          if (!(await confirm({ title: 'Warnungen', message, confirmLabel: 'Trotzdem fortfahren' }))) {
             return;
           }
         }
@@ -2496,23 +2516,6 @@ const AppContent: React.FC = () => {
         </Box>
       )}
       */}
-      {/* Snackbar für Gruppierungs-Fehlermeldungen */}
-      <Snackbar
-        open={groupErrorSnackbar.open}
-        autoHideDuration={5000}
-        onClose={() => setGroupErrorSnackbar({ open: false, message: '' })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setGroupErrorSnackbar({ open: false, message: '' })}
-          severity="warning"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {groupErrorSnackbar.message}
-        </Alert>
-      </Snackbar>
-
       {/* Copy to Page Dialog */}
       <CopyElementToPageDialog
         open={copyToPageDialogState.open}
@@ -2549,22 +2552,6 @@ const AppContent: React.FC = () => {
         }
       />
 
-      {/* Snackbar für Erfolgsmeldungen (allgemein) */}
-      <Snackbar
-        open={successSnackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSuccessSnackbar({ open: false, message: '' })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSuccessSnackbar({ open: false, message: '' })}
-          severity="success"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {successSnackbar.message}
-        </Alert>
-      </Snackbar>
     </AppContainer>
     </FieldValuesProvider>
   );
@@ -2578,7 +2565,9 @@ const App: React.FC = () => {
         <EditorProvider>
           <SubflowProvider>
             <UserPreferencesProvider>
-              <AppContent />
+              <FeedbackProvider>
+                <AppContent />
+              </FeedbackProvider>
             </UserPreferencesProvider>
           </SubflowProvider>
         </EditorProvider>
