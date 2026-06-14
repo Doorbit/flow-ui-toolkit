@@ -483,8 +483,8 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
               </FormHelperText>
             </FormControl>
 
-            {/* Modul-Zuordnung (nur wenn der Flow Module deklariert) */}
-            {(state.currentFlow?.modules?.length ?? 0) > 0 && (
+            {/* Modul-Zuordnung (wenn der Flow Module deklariert oder die Seite bereits getaggt ist) */}
+            {((state.currentFlow?.modules?.length ?? 0) > 0 || moduleId) && (
               <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
                 <InputLabel id="page-module-select-label">Modul-Zuordnung</InputLabel>
                 <Select
@@ -502,6 +502,10 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                       {module.name?.de || module.name?.en || module.id}
                     </MenuItem>
                   ))}
+                  {moduleId &&
+                    !(state.currentFlow?.modules ?? []).some((m) => m.id === moduleId) && (
+                      <MenuItem value={moduleId}>{`⚠ Unbekannt: ${moduleId}`}</MenuItem>
+                    )}
                 </Select>
                 <FormHelperText>
                   Seite nur sichtbar, wenn das zugeordnete Modul aktiv ist.

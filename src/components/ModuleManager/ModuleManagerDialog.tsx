@@ -20,6 +20,7 @@ import {
   InputLabel,
   Divider,
   Stack,
+  Alert,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -32,6 +33,7 @@ import { TabbedTranslatableFields } from '../PropertyEditor/common/TabbedTransla
 import IconField from '../PropertyEditor/common/IconField';
 import { useEditor } from '../../context/EditorContext';
 import { Module } from '../../models/listingFlow';
+import { danglingModuleIds } from '../../utils/moduleValidation';
 
 interface ModuleManagerDialogProps {
   open: boolean;
@@ -61,6 +63,7 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   const { state, dispatch } = useEditor();
 
   const modules = state.currentFlow?.modules ?? [];
+  const dangling = danglingModuleIds(state.currentFlow);
 
   // Editor-Sub-Dialog (Anlegen/Bearbeiten)
   const [editorOpen, setEditorOpen] = useState(false);
@@ -129,6 +132,16 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
             später per Modul-Zuordnung einem Modul zugewiesen und sind nur sichtbar, wenn das Projekt
             das Modul aktiviert hat.
           </Typography>
+
+          {dangling.length > 0 && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {dangling.length === 1
+                ? 'Eine Modul-Zuordnung verweist auf ein nicht (mehr) vorhandenes Modul: '
+                : 'Mehrere Modul-Zuordnungen verweisen auf nicht (mehr) vorhandene Module: '}
+              <strong>{dangling.join(', ')}</strong>. Lege die fehlenden Module an oder entferne die
+              Zuordnung an den betroffenen Seiten/Elementen.
+            </Alert>
+          )}
 
           {modules.length === 0 ? (
             <Box

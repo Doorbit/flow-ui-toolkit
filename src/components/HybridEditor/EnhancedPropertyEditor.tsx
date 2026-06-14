@@ -192,8 +192,8 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
             </FormField>
           )}
 
-          {/* Modul-Zuordnung (nur wenn der Flow Module deklariert) */}
-          {modules.length > 0 && (
+          {/* Modul-Zuordnung (wenn der Flow Module deklariert oder dieses Element bereits getaggt ist) */}
+          {(modules.length > 0 || (element.element as any).module_id) && (
             <FormField>
               <FormControl fullWidth size="small">
                 <InputLabel id="module-id-select-label">Modul-Zuordnung</InputLabel>
@@ -211,6 +211,12 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
                       {module.name?.de || module.name?.en || module.id}
                     </MenuItem>
                   ))}
+                  {(element.element as any).module_id &&
+                    !modules.some((m) => m.id === (element.element as any).module_id) && (
+                      <MenuItem value={(element.element as any).module_id}>
+                        {`⚠ Unbekannt: ${(element.element as any).module_id}`}
+                      </MenuItem>
+                    )}
                 </Select>
                 <FormHelperText>
                   Element nur sichtbar, wenn das zugeordnete Modul aktiv ist.
