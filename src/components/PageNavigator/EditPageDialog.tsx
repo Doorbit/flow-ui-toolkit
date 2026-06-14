@@ -62,6 +62,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const [titleEn, setTitleEn] = useState(page.title?.en || '');
   const [icon, setIcon] = useState(page.icon || '');
   const [layout, setLayout] = useState(page.layout || (isEditPage ? '2_COL_RIGHT_FILL' : '2_COL_RIGHT_WIDER'));
+  const [moduleId, setModuleId] = useState(page.module_id || '');
   const [iconSelectorOpen, setIconSelectorOpen] = useState(false);
   const [visibilityCondition, setVisibilityCondition] = useState<VisibilityCondition | undefined>(page.visibility_condition);
   const [builderCondition, setBuilderCondition] = useState<BuilderCondition | undefined>(toBuilderFormat(page.visibility_condition));
@@ -253,6 +254,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
       },
       icon: icon,
       layout: layout,
+      module_id: moduleId || undefined,
       visibility_condition: visibilityCondition
     };
 
@@ -481,7 +483,31 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
               </FormHelperText>
             </FormControl>
 
-
+            {/* Modul-Zuordnung (nur wenn der Flow Module deklariert) */}
+            {(state.currentFlow?.modules?.length ?? 0) > 0 && (
+              <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
+                <InputLabel id="page-module-select-label">Modul-Zuordnung</InputLabel>
+                <Select
+                  labelId="page-module-select-label"
+                  id="page-module-select"
+                  value={moduleId}
+                  label="Modul-Zuordnung"
+                  onChange={(e) => setModuleId(e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>— Kein Modul —</em>
+                  </MenuItem>
+                  {(state.currentFlow?.modules ?? []).map((module) => (
+                    <MenuItem key={module.id} value={module.id}>
+                      {module.name?.de || module.name?.en || module.id}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  Seite nur sichtbar, wenn das zugeordnete Modul aktiv ist.
+                </FormHelperText>
+              </FormControl>
+            )}
 
             {/* Icon-Auswahl */}
             <Typography variant="subtitle1" gutterBottom>

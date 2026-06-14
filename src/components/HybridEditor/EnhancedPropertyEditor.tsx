@@ -6,7 +6,12 @@ import {
   Typography,
   TextField,
   Tabs,
-  Tab
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText
 } from '@mui/material';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -18,7 +23,7 @@ import { PatternLibraryElement } from '../../models/listingFlow';
 import { VisibilityConditionEditor } from '../PropertyEditor/editors/VisibilityConditionEditor';
 import StructureNavigator from './StructureNavigator';
 import EnhancedElementEditorFactory from './EnhancedElementEditorFactory';
-import { getContainerType } from '../../context/EditorContext';
+import { getContainerType, useEditor } from '../../context/EditorContext';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
@@ -96,6 +101,8 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
   selectedElementPath
 }) => {
   const [activeTab, setActiveTab] = useState<string>('general');
+  const { state } = useEditor();
+  const modules = state.currentFlow?.modules ?? [];
 
   // Handler für Tab-Wechsel
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -123,6 +130,15 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
 
   // Die Handler für Auswahlfelder und Schalter werden nicht mehr benötigt,
   // da diese Funktionalität jetzt in den spezialisierten Editor-Komponenten implementiert ist.
+
+  // Handler für die Modul-Zuordnung (module_id)
+  const handleModuleIdChange = (value: string) => {
+    if (!element) return;
+    onUpdate({
+      ...element,
+      element: { ...element.element, module_id: value || undefined } as any,
+    });
+  };
 
   // Handler für Änderungen an der Visibility Condition
   const handleVisibilityConditionChange = (condition: any) => {
@@ -173,6 +189,33 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
                 variant="outlined"
                 size="small"
               />
+            </FormField>
+          )}
+
+          {/* Modul-Zuordnung (nur wenn der Flow Module deklariert) */}
+          {modules.length > 0 && (
+            <FormField>
+              <FormControl fullWidth size="small">
+                <InputLabel id="module-id-select-label">Modul-Zuordnung</InputLabel>
+                <Select
+                  labelId="module-id-select-label"
+                  label="Modul-Zuordnung"
+                  value={(element.element as any).module_id || ''}
+                  onChange={(e) => handleModuleIdChange(e.target.value as string)}
+                >
+                  <MenuItem value="">
+                    <em>— Kein Modul —</em>
+                  </MenuItem>
+                  {modules.map((module) => (
+                    <MenuItem key={module.id} value={module.id}>
+                      {module.name?.de || module.name?.en || module.id}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  Element nur sichtbar, wenn das zugeordnete Modul aktiv ist.
+                </FormHelperText>
+              </FormControl>
             </FormField>
           )}
 

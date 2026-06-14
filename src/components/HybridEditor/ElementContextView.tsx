@@ -719,6 +719,15 @@ const DraggableElementCard: React.FC<{
                   backgroundColor: 'rgba(0, 0, 0, 0.05)'
                 }}
               />
+              {(element.element as any).module_id && (
+                <Chip
+                  size="small"
+                  color="info"
+                  variant="outlined"
+                  label={`Modul: ${(element.element as any).module_id}`}
+                  sx={{ height: '20px', fontSize: '0.6rem' }}
+                />
+              )}
             </Box>
 
             {/* Bedingte Anzeige von ID-Feldern basierend auf dem Elementtyp */}

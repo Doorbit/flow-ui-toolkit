@@ -8,6 +8,7 @@ import {
   Undo as UndoIcon,
   Redo as RedoIcon,
   Edit as EditIcon,
+  Extension as ModulesIcon,
   HelpOutline as HelpIcon
 } from '@mui/icons-material';
 
@@ -20,6 +21,7 @@ interface NavigationProps {
   onUndo: () => void;
   onRedo: () => void;
   onEditWorkflowName: () => void;
+  onEditModules: () => void;
   onOpenDocumentation?: () => void;
   workflowName: string;
 }
@@ -56,6 +58,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onUndo,
   onRedo,
   onEditWorkflowName,
+  onEditModules,
   onOpenDocumentation,
   workflowName
 }) => {
@@ -119,6 +122,15 @@ const Navigation: React.FC<NavigationProps> = ({
               }}
             >
               {workflowName || "Workflow"}
+            </Button>
+          </Tooltip>
+          <Tooltip title="Module verwalten">
+            <Button
+              variant="outlined"
+              startIcon={<ModulesIcon />}
+              onClick={onEditModules}
+            >
+              Module
             </Button>
           </Tooltip>
         </LeftActions>
