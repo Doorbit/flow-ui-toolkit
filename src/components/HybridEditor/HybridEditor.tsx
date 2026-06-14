@@ -36,11 +36,15 @@ const EditorContainer = styled(Box)`
   display: flex;
   flex: 1;
   height: calc(100vh - 120px); /* Abzüglich Navigation und PageNavigator */
-  overflow: hidden;
+  /* Desktop-first: auf schmalen Viewports horizontal scrollen statt die Spalten
+     unbrauchbar zu quetschen (Spalten haben Mindestbreiten). */
+  overflow-x: auto;
+  overflow-y: hidden;
 `;
 
 const LeftColumn = styled.div`
-  width: 260px; // Erhöht um 10px
+  flex: 0 0 260px;
+  min-width: 220px;
   height: 100%;
   overflow-y: auto;
   background-color: #F0F2F4;
@@ -50,7 +54,8 @@ const LeftColumn = styled.div`
 `;
 
 const MiddleColumn = styled.div`
-  width: calc((100% - 260px) / 2); // Anpassung an neue Breite der LeftColumn
+  flex: 1 1 0;
+  min-width: 320px;
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
@@ -60,7 +65,8 @@ const MiddleColumn = styled.div`
 `;
 
 const RightColumn = styled.div`
-  width: calc((100% - 260px) / 2); // Anpassung an neue Breite der LeftColumn
+  flex: 1 1 0;
+  min-width: 320px;
   height: 100%;
   overflow-y: auto;
   background-color: #F8FAFC;

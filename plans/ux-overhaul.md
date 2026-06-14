@@ -30,8 +30,8 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
   - **Datenverlust-Schutz**: „Datei öffnen" fragt bei nicht-leerem Flow nach Bestätigung.
   - **Bugfix**: stiller `catch` beim Modul-Artefakt-Import → Fehler-Toast + Validierung; Erfolgs-Toasts für Modul-CRUD/Import/Export.
 - [ ] **F2 — Theme-Tokens**: hardcodierte Farben (`#009F64`, `#43E77F`), Spacing, Font-Sizes in Theme-Tokens; Komponenten auf `primary.main` etc. umstellen. (`App.tsx` Theme, dann breit)
-- [ ] **F3 — Shared `DialogBase`**: einheitliche Titel/Actions, `fullScreen` auf Mobile, Fokus-Rückgabe, `aria`-Labels; Dialoge migrieren (`PageNavigator`, `WorkflowNameDialog`, Import/Export-Dialoge — `ModuleManagerDialog`/`EditPageDialog` haben fullScreen bereits).
-- [ ] **F4 — Desktop-first Layout-Toleranz** in `HybridEditor.tsx:35–69` (min-width + sauberer Umgang unterhalb der Breakpoints).
+- [x] **F3 — Shared `DialogBase`** *(PR #10)*: einheitliche Titel/Actions, automatisches `fullScreen` auf kleinen Screens, Fokus auf Primär-Aktion, `aria-labelledby`. `components/common/DialogBase.tsx`; `WorkflowNameDialog` migriert. Weitere Dialoge folgen schrittweise.
+- [x] **F4 — Desktop-first Layout-Toleranz** *(PR #10)*: `HybridEditor` nutzt Flex + Mindestbreiten; bei schmalen Viewports horizontal scrollen statt Spalten unbrauchbar quetschen.
 
 ## Phase 1 — Sicherheit & Korrektheit
 - [ ] Löschen mit Bestätigung für Elemente (`App.tsx handleRemoveElement`) — nutzt `confirm()`.
