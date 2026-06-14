@@ -129,6 +129,11 @@ const Navigation: React.FC<NavigationProps> = ({
               variant="outlined"
               startIcon={<ModulesIcon />}
               onClick={onEditModules}
+              sx={{
+                color: 'white',
+                borderColor: 'rgba(255,255,255,0.7)',
+                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.12)' }
+              }}
             >
               Module
             </Button>
