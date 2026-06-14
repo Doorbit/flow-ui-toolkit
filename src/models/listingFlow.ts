@@ -12,6 +12,34 @@ export interface ListingFlow {
   icon: string;
   pages_edit: Page[];
   pages_view: Page[];
+  // Optionaler Modul-Katalog dieses Flows. Fehlt er / leer = keine Module (heutiges Verhalten).
+  // Aktiviert wird ein Modul über das Boolean-Feld `module_<id>_active`; mit `module_id`
+  // getaggte Seiten/Elemente sind nur sichtbar, wenn ihr Modul aktiv ist.
+  modules?: Module[];
+  // Semver-artige Version des Flow-Artefakts. Relevant für CATALOG-Modul-Artefakte
+  // (eigenständige flow-förmige JSONs), damit veraltete Caches erkannt werden.
+  version?: string;
+}
+
+// Ein optional pro Projekt aktivierbares Modul eines Flows (z. B. ISFP, Heizlast,
+// Hydraulischer Abgleich). Bündelt zusätzliche Seiten/Felder, die ein Projekt bei Bedarf
+// — auch nachträglich — aktivieren kann.
+export interface Module {
+  // Stabile id; Aktivierungs-Feld eines Projekts heißt `module_<id>_active`.
+  id: string;
+  // Anzeigename des Moduls (übersetzt).
+  name: TranslatableString;
+  // Kurzbeschreibung für den Auswahl-/Katalog-Dialog (übersetzt).
+  description: TranslatableString;
+  // mdi-Icon-Name für die Modul-Darstellung.
+  icon?: string;
+  // Wenn true, ist das Modul bei der Projektanlage vorausgewählt.
+  default_active?: boolean;
+  // Auslieferungsart: INLINE (im Flow enthalten, Default) oder CATALOG
+  // (separates Artefakt, nachladbar und offline-cachebar).
+  delivery?: 'INLINE' | 'CATALOG';
+  // Semver-artige Version des Modul-Artefakts. Nur für CATALOG-Module gesetzt.
+  version?: string;
 }
 
 export interface Page {
@@ -29,6 +57,10 @@ export interface Page {
   sub_flows?: SubFlow[];
   related_custom_ui_element_id?: string;
   type?: string;
+  // Markiert diese Seite als Teil des Moduls mit dieser id (→ ListingFlow.modules[].id).
+  // Die Seite ist dann nur sichtbar, wenn das Modul aktiv ist (`module_<id>_active === true`).
+  // null/absent = gehört zu keinem Modul (immer sichtbar).
+  module_id?: string;
 }
 
 export interface SubFlow {
@@ -52,6 +84,11 @@ export interface UIElementBase {
   tree_level?: number;
   display_position?: 'LEFT' | 'RIGHT';
   display_variant?: 'DEFAULT' | 'FULLSCREEN';
+  // Markiert dieses Element (und seinen Teilbaum) als Teil des Moduls mit dieser id
+  // (→ ListingFlow.modules[].id). Sichtbarkeit wird automatisch an die Modul-Aktivierung
+  // (Feld `module_<id>_active`) gekoppelt. null/absent = modul-unabhängig (immer sichtbar).
+  // Gilt via Vererbung für alle UIElement-Typen inkl. GroupUIElement.
+  module_id?: string;
 }
 
 export interface UIElementEdit extends UIElementBase {

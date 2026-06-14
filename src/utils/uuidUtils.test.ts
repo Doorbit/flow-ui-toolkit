@@ -405,4 +405,63 @@ describe('uuidUtils', () => {
       expect(mockedUuidv4).toHaveBeenCalled();
     });
   });
+
+  describe('Modulare Flows: modules & module_id', () => {
+    it('erhält modules, flow-version und module_id (Page + Element) beim Export-Round-Trip und strippt nur uuid', () => {
+      const element: StringUIElement = {
+        pattern_type: 'StringUIElement',
+        type: 'TEXT',
+        required: false,
+        field_id: { field_name: 'heizlast_result' },
+        uuid: 'el-uuid',
+        module_id: 'heizlast',
+      };
+
+      const page: Page = {
+        pattern_type: 'Page',
+        id: 'page-heizlast',
+        module_id: 'heizlast',
+        elements: [{ element }],
+      };
+      (page as any).uuid = 'page-uuid';
+
+      const flow: ListingFlow = {
+        id: 'esg',
+        'url-key': 'esg',
+        name: 'ESG',
+        title: { de: 'ESG', en: 'ESG' },
+        icon: 'mdiFileOutline',
+        version: '1.2.3',
+        modules: [
+          {
+            id: 'heizlast',
+            name: { de: 'Heizlast', en: 'Heat load' },
+            description: { de: 'Heizlast-Modul', en: 'Heat load module' },
+            icon: 'mdiHeatingCoil',
+            default_active: false,
+            delivery: 'CATALOG',
+            version: '1.0.0',
+          },
+        ],
+        pages_edit: [page],
+        pages_view: [],
+      };
+
+      const exported = transformFlowForExport(flow);
+
+      // Modul-Katalog + flow-version bleiben unverändert erhalten
+      expect(exported.modules).toEqual(flow.modules);
+      expect(exported.version).toBe('1.2.3');
+
+      // module_id überlebt auf Page und Element
+      const exportedPage = exported.pages_edit[0];
+      expect(exportedPage.module_id).toBe('heizlast');
+      const exportedElement = exportedPage.elements[0].element as StringUIElement;
+      expect(exportedElement.module_id).toBe('heizlast');
+
+      // uuid wird gestrippt
+      expect((exportedPage as any).uuid).toBeUndefined();
+      expect(exportedElement.uuid).toBeUndefined();
+    });
+  });
 });
