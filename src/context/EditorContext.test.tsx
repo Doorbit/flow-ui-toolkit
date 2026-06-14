@@ -342,6 +342,61 @@ describe('EditorContext - Modul-Katalog', () => {
   });
 });
 
+// Tests für Page-Tagging (module_id) via UPDATE_PAGE inkl. View-Page-Sync
+const PageModuleTestComponent = () => {
+  const { state, dispatch } = useContext(EditorContext)!;
+
+  const flow = {
+    id: 'f',
+    'url-key': 'f',
+    name: 'F',
+    title: { de: 'F', en: 'F' },
+    icon: 'mdiFileOutline',
+    pages_edit: [{ id: 'edit-1', pattern_type: 'CustomUIElement', title: { de: 'Edit' }, elements: [] }],
+    pages_view: [{ id: 'view-1', pattern_type: 'CustomUIElement', title: { de: 'View' }, elements: [] }],
+  };
+
+  const editPage = state.currentFlow?.pages_edit.find(p => p.id === 'edit-1');
+  const viewPage = state.currentFlow?.pages_view.find(p => p.id === 'view-1');
+
+  return (
+    <div>
+      <div data-testid="edit-module-id">{editPage?.module_id ?? 'none'}</div>
+      <div data-testid="view-module-id">{viewPage?.module_id ?? 'none'}</div>
+      <button data-testid="set-flow-btn" onClick={() => dispatch({ type: 'SET_FLOW', flow })}>Set</button>
+      <button
+        data-testid="tag-page-btn"
+        onClick={() =>
+          dispatch({
+            type: 'UPDATE_PAGE',
+            page: { id: 'edit-1', pattern_type: 'CustomUIElement', title: { de: 'Edit' }, elements: [], module_id: 'heizlast' },
+          })
+        }
+      >
+        Tag
+      </button>
+    </div>
+  );
+};
+
+describe('EditorContext - Page-Tagging (module_id)', () => {
+  test('UPDATE_PAGE setzt module_id auf Edit-Seite und synchronisiert es auf die View-Seite', () => {
+    render(
+      <EditorProvider>
+        <PageModuleTestComponent />
+      </EditorProvider>
+    );
+
+    fireEvent.click(screen.getByTestId('set-flow-btn'));
+    expect(screen.getByTestId('edit-module-id')).toHaveTextContent('none');
+    expect(screen.getByTestId('view-module-id')).toHaveTextContent('none');
+
+    fireEvent.click(screen.getByTestId('tag-page-btn'));
+    expect(screen.getByTestId('edit-module-id')).toHaveTextContent('heizlast');
+    expect(screen.getByTestId('view-module-id')).toHaveTextContent('heizlast');
+  });
+});
+
 // Tests für getElementByPath
 describe('getElementByPath', () => {
   const deepTextElement: TextUIElement = {

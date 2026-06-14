@@ -1203,6 +1203,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
               short_title: action.page.short_title,
               icon: action.page.icon,
               // layout wird NICHT übernommen – View-Pages haben ihr eigenes Layout (2_COL_RIGHT_WIDER)
+              module_id: action.page.module_id,
               visibility_condition: action.page.visibility_condition
             };
           }
