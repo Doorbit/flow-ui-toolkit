@@ -15,7 +15,8 @@ export type UIElement =
   | KeyValueListUIElement
   | ImageGalleryUIElement
   | FieldTextUIElement
-  | TableUIElement;
+  | TableUIElement
+  | ContactUIElement;
 
 export interface TextUIElement extends UIElementEdit {
   pattern_type: 'TextUIElement';
@@ -89,7 +90,7 @@ export interface NumberUIElement extends UIElementEdit {
 export interface DateUIElement extends UIElementEdit {
   pattern_type: 'DateUIElement';
   field_id: FieldId;
-  type: 'Y' | 'YM' | 'YMD';
+  type: 'Y' | 'YM' | 'YMD' | 'YMDT';
   minimum?: string;
   maximum?: string;
   default_value?: string;
@@ -129,8 +130,29 @@ export interface CustomUIElement extends UIElementEdit {
   sub_flows?: SubFlow[];
 }
 
+// SubFlow-Typen müssen mit portal-applications übereinstimmen
+// (customers/schema/readme.md). 'SLAB' ist ein Legacy-Wert und bleibt aus
+// Kompatibilitätsgründen erhalten.
+export type SubFlowType =
+  | 'POI_PHOTO'
+  | 'POI'
+  | 'ROOM'
+  | 'ROOM_GROUP'
+  | 'WINDOW'
+  | 'WINDOW_GROUP'
+  | 'DOOR'
+  | 'DOOR_GROUP'
+  | 'WALL'
+  | 'WALL_GROUP'
+  | 'WALL_EVEBI'
+  | 'ROOF_AREA'
+  | 'FLOOR'
+  | 'FLOOR_SLAB'
+  | 'BUILDING'
+  | 'SLAB';
+
 export interface SubFlow {
-  type: 'SLAB' | 'WINDOW' | 'DOOR' | 'WALL' | 'ROOM' | 'ROOM_GROUP' | 'POI' | 'POI_PHOTO';
+  type: SubFlowType;
   elements: any[]; // PatternLibraryElement[]
 }
 
@@ -190,4 +212,21 @@ export interface TableUIElement extends UIElementEdit {
 export interface TableColumn {
   header: TranslatableString;
   field_value: { field_id: FieldId };
+}
+
+/**
+ * Zeigt eine Kontakt-/Identitäts-Karte an (z. B. den zuständigen Energieberater).
+ * Entspricht ContactUIElement aus portal-applications (REST/Customer-JSON, snake_case).
+ */
+export interface ContactUIElement extends UIElementEdit {
+  pattern_type: 'ContactUIElement';
+  // Feld, das die anzuzeigende Identität referenziert.
+  field_value?: { field_id: FieldId };
+  // Welche Identität angezeigt wird.
+  identity_type: 'USER_ID' | 'EDITOR_ID' | 'BILLING_GROUP_ID' | string;
+  // Was von der Identität angezeigt wird.
+  show_name?: boolean;
+  show_picture?: boolean;
+  show_details?: boolean;
+  preferred_position?: string;
 }

@@ -40,7 +40,8 @@ import {
   KeyValueListUIElement,
   ImageGalleryUIElement,
   FieldTextUIElement,
-  TableUIElement
+  TableUIElement,
+  ContactUIElement
 } from './models/uiElements';
 
 const theme = createTheme({
@@ -1590,6 +1591,22 @@ const createElement = (type: string): PatternLibraryElement => {
             en: 'Table'
           }
         } as TableUIElement
+      };
+
+    case 'ContactUIElement':
+      return {
+        element: {
+          pattern_type: 'ContactUIElement',
+          required: false,
+          identity_type: 'USER_ID',
+          show_name: true,
+          show_picture: true,
+          show_details: false,
+          title: {
+            de: 'Kontakt',
+            en: 'Contact'
+          }
+        } as ContactUIElement
       };
 
     default:

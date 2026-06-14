@@ -464,4 +464,39 @@ describe('uuidUtils', () => {
       expect(exportedElement.uuid).toBeUndefined();
     });
   });
+
+  describe('Schema-Drift: ContactUIElement', () => {
+    it('erhält ContactUIElement-Felder beim Export-Round-Trip', () => {
+      const contact: any = {
+        pattern_type: 'ContactUIElement',
+        required: false,
+        identity_type: 'USER_ID',
+        show_name: true,
+        show_picture: true,
+        show_details: false,
+        field_value: { field_id: { field_name: 'advisor_id' } },
+        title: { de: 'Berater', en: 'Advisor' },
+      };
+
+      const flow: ListingFlow = {
+        id: 'c',
+        'url-key': 'c',
+        name: 'C',
+        title: { de: 'C', en: 'C' },
+        icon: 'mdiFileOutline',
+        pages_edit: [
+          { pattern_type: 'Page', id: 'p1', title: { de: 'P1', en: 'P1' }, elements: [{ element: contact }] },
+        ],
+        pages_view: [],
+      };
+
+      const exported = transformFlowForExport(flow);
+      const el = exported.pages_edit[0].elements[0].element as any;
+      expect(el.pattern_type).toBe('ContactUIElement');
+      expect(el.identity_type).toBe('USER_ID');
+      expect(el.show_name).toBe(true);
+      expect(el.field_value).toEqual({ field_id: { field_name: 'advisor_id' } });
+      expect(el.uuid).toBeUndefined();
+    });
+  });
 });

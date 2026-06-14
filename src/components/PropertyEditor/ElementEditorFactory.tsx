@@ -8,7 +8,8 @@ import {
   StringElementEditor,
   GroupElementEditor,
   ArrayElementEditor,
-  CustomElementEditor
+  CustomElementEditor,
+  ContactElementEditor
 } from './editors';
 import ChipGroupEditor from './editors/ChipGroupEditor';
 import SingleSelectionElementEditorEnhanced from './editors/SingleSelectionElementEditorEnhanced';
@@ -80,6 +81,9 @@ export const ElementEditorFactory: React.FC<ElementEditorFactoryProps> = ({ elem
 
     case 'CustomUIElement':
       return <CustomElementEditor element={element} onUpdate={onUpdate} />;
+
+    case 'ContactUIElement':
+      return <ContactElementEditor element={element} onUpdate={onUpdate} />;
 
     default:
       return (
