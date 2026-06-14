@@ -19,7 +19,8 @@ import {
   Apartment as AdminBoundaryIcon,
   PhotoLibrary as ImageGalleryIcon,
   TextSnippet as FieldTextIcon,
-  TableChart as TableIcon
+  TableChart as TableIcon,
+  ContactMail as ContactIcon
 } from '@mui/icons-material';
 
 const PaletteContainer = styled(Paper)`
@@ -105,7 +106,8 @@ const elements: ElementType[] = [
   // View-Modus-spezifische Elemente
   { type: 'ImageGalleryUIElement', label: 'Bildergalerie (View)', icon: <ImageGalleryIcon />, category: 'view' },
   { type: 'FieldTextUIElement', label: 'Feldtext (View)', icon: <FieldTextIcon />, category: 'view' },
-  { type: 'TableUIElement', label: 'Tabelle (View)', icon: <TableIcon />, category: 'view' }
+  { type: 'TableUIElement', label: 'Tabelle (View)', icon: <TableIcon />, category: 'view' },
+  { type: 'ContactUIElement', label: 'Kontakt (View)', icon: <ContactIcon />, category: 'view' }
 ];
 
 // Implementierung mit Drag-and-Drop

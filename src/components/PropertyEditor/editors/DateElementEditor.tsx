@@ -78,6 +78,8 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
         return 'Format: YYYY-MM (z.B. 2023-01)';
       case 'YMD':
         return 'Format: YYYY-MM-DD (z.B. 2023-01-15)';
+      case 'YMDT':
+        return 'Format: YYYY-MM-DDTHH:mm (z.B. 2023-01-15T14:30)';
       default:
         return 'Format abhängig vom gewählten Typ';
     }
@@ -94,6 +96,8 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
         return 'month';
       case 'YMD':
         return 'date';
+      case 'YMDT':
+        return 'datetime-local';
       default:
         return 'text';
     }
@@ -182,6 +186,7 @@ const DateElementEditor: React.FC<DateElementEditorProps> = ({ element, onUpdate
               <MenuItem value="Y">Jahr</MenuItem>
               <MenuItem value="YM">Jahr &amp; Monat</MenuItem>
               <MenuItem value="YMD">Datum (Jahr-Monat-Tag)</MenuItem>
+              <MenuItem value="YMDT">Datum &amp; Uhrzeit</MenuItem>
             </Select>
             <FormHelperText>
               {getHelperTextForDateType(dateElement.type || 'Y')}

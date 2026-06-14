@@ -10,3 +10,4 @@ export { default as StringElementEditor } from './StringElementEditor';
 export { default as GroupElementEditor } from './GroupElementEditor';
 export { default as ArrayElementEditor } from './ArrayElementEditor';
 export { default as CustomElementEditor } from './CustomElementEditor';
+export { default as ContactElementEditor } from './ContactElementEditor';
