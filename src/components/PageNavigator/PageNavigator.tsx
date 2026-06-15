@@ -12,7 +12,12 @@ import {
   TextField,
   Typography,
   Snackbar,
-  Alert
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -27,6 +32,8 @@ import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 import PageTab from './PageTab';
 import EditPageDialog from './EditPageDialog';
 import ImportPagesDialog from './ImportPagesDialog';
+import LayoutPreview from './LayoutPreview';
+import { SUPPORTED_PAGE_LAYOUTS, layoutForPersistence } from './pageLayouts';
 import { tokens } from '../../theme/tokens';
 
 interface PageNavigatorProps {
@@ -40,6 +47,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   const { confirm, showWarning } = useFeedback();
   const [openNewPageDialog, setOpenNewPageDialog] = React.useState(false);
   const [newPageTitle, setNewPageTitle] = React.useState('');
+  const [newPageLayout, setNewPageLayout] = React.useState<string>('2_COL_RIGHT_FILL');
   const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
   const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
@@ -68,6 +76,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   const handleCloseNewPageDialog = () => {
     setOpenNewPageDialog(false);
     setNewPageTitle('');
+    setNewPageLayout('2_COL_RIGHT_FILL');
   };
 
   const handleCreateNewPage = () => {
@@ -77,15 +86,14 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     const newPage: Page = {
       pattern_type: 'CustomUIElement',
       id: pageId,
-      layout: '2_COL_RIGHT_FILL', // Default-Layout für Edit-Seiten
+      layout: layoutForPersistence(newPageLayout), // gewähltes Layout (Standard = kein Feld)
       title: { de: pageTitleDe, en: pageTitleEn },
       short_title: { de: pageTitleDe, en: pageTitleEn }, // short_title wird mit title synchronisiert
       elements: []
     };
 
     dispatch({ type: 'ADD_PAGE', page: newPage });
-    setOpenNewPageDialog(false);
-    setNewPageTitle('');
+    handleCloseNewPageDialog();
   };
 
   const handleImportPages = useCallback((editPages: Page[], viewPages: Page[]) => {
@@ -274,7 +282,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
       </Snackbar>
 
       {/* Dialog für neue Seite */}
-      <Dialog open={openNewPageDialog} onClose={handleCloseNewPageDialog}>
+      <Dialog open={openNewPageDialog} onClose={handleCloseNewPageDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Neue Seite erstellen</DialogTitle>
         <DialogContent>
           <TextField
@@ -288,6 +296,40 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
             value={newPageTitle}
             onChange={(e) => setNewPageTitle(e.target.value)}
           />
+
+          {/* Layout-Auswahl mit Vorschau bereits bei der Anlage */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              alignItems: 'flex-start',
+              mt: 2,
+              flexDirection: { xs: 'column', sm: 'row' }
+            }}
+          >
+            <FormControl fullWidth margin="dense" sx={{ flex: 1, mt: 0 }}>
+              <InputLabel id="new-page-layout-label">Layout</InputLabel>
+              <Select
+                labelId="new-page-layout-label"
+                id="new-page-layout"
+                value={newPageLayout}
+                label="Layout"
+                onChange={(e) => setNewPageLayout(e.target.value)}
+              >
+                {SUPPORTED_PAGE_LAYOUTS.map((opt) => (
+                  <MenuItem key={opt.value || 'standard'} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                {SUPPORTED_PAGE_LAYOUTS.find((o) => o.value === newPageLayout)?.description}
+              </FormHelperText>
+            </FormControl>
+            <Box sx={{ flexShrink: 0, pt: { xs: 0, sm: 1 } }}>
+              <LayoutPreview layout={newPageLayout} />
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseNewPageDialog}>Abbrechen</Button>
