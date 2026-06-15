@@ -34,14 +34,16 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 - [x] **F4 — Desktop-first Layout-Toleranz** *(PR #10)*: `HybridEditor` nutzt Flex + Mindestbreiten; bei schmalen Viewports horizontal scrollen statt Spalten unbrauchbar quetschen.
 
 ## Phase 1 — Sicherheit & Korrektheit
-- [ ] Löschen mit Bestätigung für Elemente (`App.tsx handleRemoveElement`) — nutzt `confirm()`.
-- [ ] AJV-/Schema-Fehler inline sichtbar machen (`SchemaContext` + ungenutzte `ValidationHelper.tsx`).
-- [ ] Restliche `alert/confirm`-Reste in Dialogen auf Feedback-System umstellen.
+- [x] Löschen mit Bestätigung — **war bereits vorhanden** (Element via `ElementContextView`, Seite, Modul). Befund der Review-Agenten war ungenau.
+- [x] **Confirm-Konsolidierung** *(PR #11)*: Seiten- & Modul-Lösch-Dialoge auf das einheitliche `confirm()` umgestellt; „letzte Seite"-Sperre gibt jetzt Feedback. ElementContextView **bewusst aufgeschoben** (1087-Zeilen-Datei, bestehender Dialog gut inkl. Kind-Warnung).
+- [~] AJV-/Schema-Fehler inline: **blockiert** — `SchemaContext`-Schema ist eine unvollständige Teilmenge (fehlende Typen: String, Table, KeyValueList, ImageGallery, FieldText) → würde gültige Flows fälschlich als ungültig melden. Voraussetzung: Schema zuerst ans volle Modell angleichen (eigene Aufgabe, Schema-Sync-Regel).
+- [x] Restliche `alert/confirm`-Reste auf Feedback-System — erledigt mit F1 (#9).
 
 ## Phase 2 — Orientierung & Navigation
 - [ ] „Auswählen" vs. „Drill-down" entkoppeln/visuell trennen; `selectedElementPath`↔`currentPath` vereinfachen (`HybridEditor.tsx`, `ElementHierarchyTree.tsx:362–387`).
 - [ ] Empty States + Erstkontakt-Onboarding (3-Spalten-Modell; leere Mitte mit CTA).
-- [ ] Accessibility: `aria-label`, Fokus-Management, Kontraste, semantische Landmarks, Keyboard-Shortcuts-Hilfe.
+- [ ] Accessibility: `aria-label`, Fokus-Management, Kontraste, semantische Landmarks.
+- [x] **Keyboard-Shortcuts-Hilfe** *(PR #11)*: Dialog (via DialogBase) listet die vorhandenen, bislang undokumentierten Shortcuts (Strg+Z/Y/S, Esc); Tastatur-Icon in der Toolbar.
 
 ## Phase 3 — Auffindbarkeit & Effizienz
 - [ ] Palette: Suche/Filter + Tooltips je Typ; Palette sichtbar im Layout (`ElementPalette.tsx`).
