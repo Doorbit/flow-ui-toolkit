@@ -17,6 +17,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import SearchIcon from '@mui/icons-material/Search';
 import Icon from '@mdi/react';
 import { getCategorizedIcons, getIconPath, getMdiIconNames } from '../../utils/mdiIcons';
+import { tokens } from '../../theme/tokens';
 
 // Kategorisierung der Icons basierend auf MDI-Icons
 const ICON_CATEGORIES = getCategorizedIcons();
@@ -223,10 +224,10 @@ const IconSelector: React.FC<IconSelectorProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: 1,
-                    border: currentIcon === iconName ? '2px solid #1976d2' : '1px solid transparent',
+                    border: currentIcon === iconName ? `2px solid ${tokens.accentBlue.main}` : '1px solid transparent',
                     '&:hover': {
                       backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                      border: '1px solid #1976d2'
+                      border: `1px solid ${tokens.accentBlue.main}`
                     }
                   }}
                 >

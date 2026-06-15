@@ -38,6 +38,7 @@ import { useEditor } from '../../context/EditorContext';
 import VisibilityConditionBuilder from '../HybridEditor/VisibilityConditionBuilder';
 import { toBuilderFormat, fromBuilderFormat, BuilderCondition } from '../../utils/visibilityConverters';
 import { transformEditPageToViewPage } from '../../utils/viewModeTransformer';
+import { tokens } from '../../theme/tokens';
 
 interface EditPageDialogProps {
   open: boolean;
@@ -314,12 +315,12 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                 expandIcon={<ExpandMoreIcon />}
                 sx={{
                   backgroundColor: !!visibilityCondition
-                    ? '#e3f2fd'
-                    : (childElementsHaveVisibilityConditions ? '#fff8e1' : 'inherit'),
+                    ? tokens.accentBlue.bg
+                    : (childElementsHaveVisibilityConditions ? tokens.status.warningBg : 'inherit'),
                   '&:hover': {
                     backgroundColor: !!visibilityCondition
-                      ? '#bbdefb'
-                      : (childElementsHaveVisibilityConditions ? '#ffecb3' : '#f5f5f5')
+                      ? tokens.accentBlue.border
+                      : (childElementsHaveVisibilityConditions ? tokens.status.warningBorder : tokens.surface.subtle)
                   }
                 }}
               >
@@ -528,7 +529,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
                 sx={{
                   width: 48,
                   height: 48,
-                  border: '1px solid #ddd',
+                  border: `1px solid ${tokens.neutral.border}`,
                   borderRadius: 1,
                   display: 'flex',
                   alignItems: 'center',

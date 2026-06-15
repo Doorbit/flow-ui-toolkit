@@ -65,6 +65,7 @@ import { arePathsEqual } from '../../utils/pathUtils';
 import { isElementAllowedInParent, resolvePatternType } from '../../utils/nestingRules';
 import { getContainerType } from '../../context/EditorContext';
 import { logger } from '../../utils/logger';
+import { tokens } from '../../theme/tokens';
 
 const ContextViewContainer = styled(Box)`
   padding: 1rem;
@@ -74,13 +75,13 @@ const ContextViewContainer = styled(Box)`
 
 const ElementCard = styled(Card)<{ $isSelected: boolean }>`
   margin-bottom: 1rem;
-  border: 1px solid ${props => props.$isSelected ? '#009F64' : '#E0E0E0'};
+  border: 1px solid ${props => props.$isSelected ? tokens.brand.green : tokens.neutral.border};
   border-radius: 8px;
   transition: all 0.2s ease;
   position: relative;
 
   &:hover {
-    border-color: ${props => props.$isSelected ? '#009F64' : '#009F64'};
+    border-color: ${props => props.$isSelected ? tokens.brand.green : tokens.brand.green};
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 `;
@@ -93,16 +94,16 @@ const ElementHeader = styled(Box)<ElementHeaderProps>`
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  background-color: ${props => props.color || '#F8FAFC'};
+  background-color: ${props => props.color || tokens.surface.appBg};
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid ${tokens.neutral.border};
 `;
 
 const ElementTitle = styled(Typography)`
   font-weight: 500;
   flex-grow: 1;
-  color: #2A2E3F;
+  color: ${tokens.text.primary};
 `;
 
 const ElementContent = styled(CardContent)`
@@ -112,7 +113,7 @@ const ElementContent = styled(CardContent)`
 const ElementActions = styled(CardActions)`
   padding: 0.5rem;
   justify-content: flex-end;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
 `;
 
 const EmptyState = styled(Box)`
@@ -121,21 +122,21 @@ const EmptyState = styled(Box)`
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  border: 2px dashed #E0E0E0;
+  border: 2px dashed ${tokens.neutral.border};
   border-radius: 8px;
   margin-top: 1rem;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
   text-align: center;
 `;
 
 const AddElementButton = styled(Button)`
   margin-top: 1rem;
-  background-color: #43E77F;
-  color: #000000;
-  border: 1px solid #000000;
+  background-color: ${tokens.brand.greenBright};
+  color: ${tokens.neutral.black};
+  border: 1px solid ${tokens.neutral.black};
 
   &:hover {
-    background-color: #35D870;
+    background-color: ${tokens.brand.greenBrightStrong};
   }
 `;
 
@@ -218,7 +219,7 @@ const getElementColor = (elementType: string | undefined) => {
   } else if (elementType === 'ChipGroupUIElement') {
     return 'rgba(63, 81, 181, 0.05)';
   }
-  return '#F8FAFC';
+  return tokens.surface.appBg;
 };
 
 // Hilfsfunktion zum Ermitteln, ob ein Element Unterelemente haben kann
@@ -625,10 +626,10 @@ const DraggableElementCard: React.FC<{
           opacity: isDragging ? 0.4 : 1,
           cursor: isContainer && elementHasChildren ? 'pointer' : 'default',
           ...(isOver ? {
-            borderTop: '3px solid #009F64',
+            borderTop: `3px solid ${tokens.brand.green}`,
           } : {}),
           ...(isSelectionMode && isCardMultiSelected ? {
-            outline: '2px solid #1976d2',
+            outline: `2px solid ${tokens.accentBlue.main}`,
             outlineOffset: '1px',
             backgroundColor: 'rgba(25, 118, 210, 0.04)'
           } : {}),
@@ -877,19 +878,19 @@ const DraggableElementCard: React.FC<{
                 variant="contained"
                 sx={{
                   backgroundColor:
-                    containerType === 'group' ? '#009F64' :
-                    containerType === 'array' ? '#F05B29' :
-                    containerType === 'chipgroup' ? '#3F51B5' :
-                    containerType === 'custom' ? '#009F64' :
-                    containerType === 'subflow' ? '#009F64' :
-                    '#009F64',
-                  color: '#fff',
+                    containerType === 'group' ? tokens.brand.green :
+                    containerType === 'array' ? tokens.brand.orange :
+                    containerType === 'chipgroup' ? tokens.accentIndigo.main :
+                    containerType === 'custom' ? tokens.brand.green :
+                    containerType === 'subflow' ? tokens.brand.green :
+                    tokens.brand.green,
+                  color: tokens.surface.paper,
                   '&:hover': {
                     backgroundColor:
-                      containerType === 'group' ? '#008555' :
-                      containerType === 'array' ? '#D04E24' :
-                      containerType === 'chipgroup' ? '#303F9F' :
-                      '#008555',
+                      containerType === 'group' ? tokens.brand.greenPressed :
+                      containerType === 'array' ? tokens.brand.orangePressed :
+                      containerType === 'chipgroup' ? tokens.accentIndigo.dark :
+                      tokens.brand.greenPressed,
                   }
                 }}
               >
@@ -915,8 +916,8 @@ const DraggableElementCard: React.FC<{
                 color="warning"
                 variant="outlined"
                 sx={{
-                  borderColor: '#ED6C02',
-                  color: '#ED6C02',
+                  borderColor: tokens.status.warning,
+                  color: tokens.status.warning,
                 }}
               >
                 Gruppierung auflösen
@@ -1167,7 +1168,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
       {elements.length > 0 ? (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" color="#2A2E3F">
+            <Typography variant="h6" color={tokens.text.primary}>
               Elemente in dieser Ebene
             </Typography>
 
@@ -1180,11 +1181,11 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
                 setElementTypeDialogOpen(true);
               }}
               sx={{
-                bgcolor: '#43E77F',
-                color: '#000000',
-                border: '1px solid #000000',
+                bgcolor: tokens.brand.greenBright,
+                color: tokens.neutral.black,
+                border: `1px solid ${tokens.neutral.black}`,
                 '&:hover': {
-                  bgcolor: '#35D870',
+                  bgcolor: tokens.brand.greenBrightStrong,
                 }
               }}
             >

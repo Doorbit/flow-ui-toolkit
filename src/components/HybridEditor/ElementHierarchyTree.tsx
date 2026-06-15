@@ -39,13 +39,14 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
 import { getSubElements, getContainerType } from '../../context/EditorContext'; // Importiere getSubElements und getContainerType
+import { tokens } from '../../theme/tokens';
 
 const LINE_COLOR = 'rgba(0, 0, 0, 0.23)'; // Farbe für die Verbindungslinien, ähnlich wie Divider
 
 const TreeItem = styled(ListItem)<{ depth: number; isSelected: boolean; isLastChild?: boolean; hasChildren?: boolean }>`
   padding-left: ${props => props.depth * 20 + 8}px; // Erhöhte Einrückung
   background-color: ${props => props.isSelected ? 'rgba(0, 159, 100, 0.1)' : 'transparent'};
-  border-left: ${props => props.isSelected ? '3px solid #009F64' : '3px solid transparent'};
+  border-left: ${props => props.isSelected ? `3px solid ${tokens.brand.green}` : '3px solid transparent'};
   position: relative; // Für Pseudoelemente
 
   // Vertikale Linie von oben zum aktuellen Element
@@ -105,7 +106,7 @@ const TreeItemText = styled(ListItemText)`
 
   .MuiListItemText-primary {
     font-size: 0.875rem;
-    color: #2A2E3F;
+    color: ${tokens.text.primary};
     font-weight: ${props => props.primary === 'true' ? 'bold' : 'normal'};
     white-space: nowrap;
     overflow: hidden;
@@ -229,10 +230,10 @@ const TreeNode: React.FC<{
 
   // Bestimme den Container-Typ des Elements
   const containerType = React.useMemo(() => getContainerType(element), [element]);
-  const containerColor = containerType === 'array' ? '#F05B29' :
-                         containerType === 'chipgroup' ? '#3F51B5' : '#009F64';
-  const containerColorDark = containerType === 'array' ? '#D04E24' :
-                             containerType === 'chipgroup' ? '#303F9F' : '#008555';
+  const containerColor = containerType === 'array' ? tokens.brand.orange :
+                         containerType === 'chipgroup' ? tokens.accentIndigo.main : tokens.brand.green;
+  const containerColorDark = containerType === 'array' ? tokens.brand.orangePressed :
+                             containerType === 'chipgroup' ? tokens.accentIndigo.dark : tokens.brand.greenPressed;
 
   // Bestimme, ob das Element eine Visibility Condition hat
   const hasVisibilityCondition = () => {
@@ -388,7 +389,7 @@ const TreeNode: React.FC<{
                 }}
                 sx={{
                   ml: 'auto',
-                  color: isCurrentContext ? '#fff' : containerColor,
+                  color: isCurrentContext ? tokens.surface.paper : containerColor,
                   ...(isCurrentContext ? {
                     bgcolor: containerColor,
                     '&:hover': { bgcolor: containerColorDark },

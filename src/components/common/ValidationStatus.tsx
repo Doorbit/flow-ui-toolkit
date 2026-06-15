@@ -7,6 +7,7 @@ import { useEditor } from '../../context/EditorContext';
 import { useSchema } from '../../context/SchemaContext';
 import DialogBase from './DialogBase';
 import ValidationHelper, { ValidationMessage } from '../PropertyEditor/common/ValidationHelper';
+import { tokens } from '../../theme/tokens';
 
 /**
  * Wandelt AJV-Fehler in lesbare Validierungsmeldungen um. Filtert das if/then-Wrapper-
@@ -59,7 +60,7 @@ const ValidationStatus: React.FC = () => {
         icon={<CheckCircleOutlineIcon />}
         label="Gültig"
         aria-label="Flow ist schema-gültig"
-        sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', '& .MuiChip-icon': { color: '#7CFFB2' } }}
+        sx={{ color: tokens.surface.paper, borderColor: 'rgba(255,255,255,0.5)', '& .MuiChip-icon': { color: tokens.brand.greenBrightSoft } }}
       />
     );
   }

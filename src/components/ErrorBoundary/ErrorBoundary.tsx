@@ -1,11 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button, Typography, Box, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens';
 
 const ErrorContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  backgroundColor: '#fff8f8',
-  border: '1px solid #ffcdd2',
+  backgroundColor: tokens.status.errorBg,
+  border: `1px solid ${tokens.status.errorBorder}`,
   borderRadius: theme.shape.borderRadius,
   maxWidth: '800px',
   marginLeft: 'auto',

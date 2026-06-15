@@ -23,6 +23,7 @@ import {
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { Page } from '../../models/listingFlow';
+import { tokens } from '../../theme/tokens';
 
 interface CopyElementToPageDialogProps {
   open: boolean;
@@ -69,13 +70,13 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
       PaperProps={{ sx: { minHeight: 350 } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <FileCopyIcon sx={{ color: '#009F64' }} />
+        <FileCopyIcon sx={{ color: tokens.brand.green }} />
         Element auf andere Seite kopieren
       </DialogTitle>
 
       <DialogContent dividers>
         {/* Element-Info */}
-        <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F8FAFC', borderRadius: 1, border: '1px solid #E0E0E0' }}>
+        <Box sx={{ mb: 2, p: 1.5, bgcolor: tokens.surface.appBg, borderRadius: 1, border: `1px solid ${tokens.neutral.border}` }}>
           <Typography variant="subtitle2" color="text.secondary">
             Element: <strong>{elementTitle}</strong>
           </Typography>
@@ -86,7 +87,7 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
           Zielseite auswählen:
         </Typography>
 
-        <List dense sx={{ maxHeight: 250, overflow: 'auto', border: '1px solid #E0E0E0', borderRadius: 1, mb: 2 }}>
+        <List dense sx={{ maxHeight: 250, overflow: 'auto', border: `1px solid ${tokens.neutral.border}`, borderRadius: 1, mb: 2 }}>
           {pages.map((page) => {
             const isSelected = selectedPageId === page.id;
             const isCurrent = page.id === currentPageId;
@@ -112,8 +113,8 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
                       disableRipple
                       size="small"
                       sx={{
-                        color: '#009F64',
-                        '&.Mui-checked': { color: '#009F64' },
+                        color: tokens.brand.green,
+                        '&.Mui-checked': { color: tokens.brand.green },
                       }}
                     />
                   </ListItemIcon>
@@ -126,7 +127,7 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
                             label="aktuelle Seite"
                             size="small"
                             variant="outlined"
-                            sx={{ fontSize: '0.65rem', height: 18, color: '#666' }}
+                            sx={{ fontSize: '0.65rem', height: 18, color: tokens.neutral.muted }}
                           />
                         )}
                       </Box>
@@ -163,12 +164,12 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
           >
             <FormControlLabel
               value="top"
-              control={<Radio size="small" sx={{ color: '#009F64', '&.Mui-checked': { color: '#009F64' } }} />}
+              control={<Radio size="small" sx={{ color: tokens.brand.green, '&.Mui-checked': { color: tokens.brand.green } }} />}
               label={<Typography variant="body2">Am Anfang der Seite</Typography>}
             />
             <FormControlLabel
               value="bottom"
-              control={<Radio size="small" sx={{ color: '#009F64', '&.Mui-checked': { color: '#009F64' } }} />}
+              control={<Radio size="small" sx={{ color: tokens.brand.green, '&.Mui-checked': { color: tokens.brand.green } }} />}
               label={<Typography variant="body2">Am Ende der Seite</Typography>}
             />
           </RadioGroup>
@@ -185,9 +186,9 @@ const CopyElementToPageDialog: React.FC<CopyElementToPageDialogProps> = ({
           disabled={!selectedPageId}
           startIcon={<FileCopyIcon />}
           sx={{
-            bgcolor: '#009F64',
-            '&:hover': { bgcolor: '#008755' },
-            '&.Mui-disabled': { bgcolor: '#E0E0E0' },
+            bgcolor: tokens.brand.green,
+            '&:hover': { bgcolor: tokens.brand.greenHoverAlt },
+            '&.Mui-disabled': { bgcolor: tokens.neutral.border },
           }}
         >
           Kopieren

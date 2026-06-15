@@ -27,6 +27,7 @@ import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 import PageTab from './PageTab';
 import EditPageDialog from './EditPageDialog';
 import ImportPagesDialog from './ImportPagesDialog';
+import { tokens } from '../../theme/tokens';
 
 interface PageNavigatorProps {
   pages: Page[];
@@ -169,7 +170,7 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: '#F0F2F4', gap: 1, px: 1 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: tokens.surface.subtleAlt, gap: 1, px: 1 }}>
       <Tabs
         value={
           selectedPageId && visiblePages.some(p => p.id === selectedPageId)
@@ -184,15 +185,15 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           flexGrow: 1,
           minWidth: 0, // Erlaubt Schrumpfen unter Flex-Kontext
           '& .MuiTabs-indicator': {
-            backgroundColor: '#009F64',
+            backgroundColor: tokens.brand.green,
           },
           '& .MuiTab-root': {
-            color: '#000000 !important',
+            color: `${tokens.neutral.black} !important`,
             fontWeight: 500,
             maxWidth: 180, // Verhindert extrem breite Tabs
             minWidth: 100,
             '&.Mui-selected': {
-              color: '#009F64 !important',
+              color: `${tokens.brand.green} !important`,
             }
           }
         }}
@@ -219,11 +220,11 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           onClick={handleAddPage}
           sx={{
             flexShrink: 0,
-            color: '#000000',
-            bgcolor: '#43E77F',
-            border: '1px solid #000000',
+            color: tokens.neutral.black,
+            bgcolor: tokens.brand.greenBright,
+            border: `1px solid ${tokens.neutral.black}`,
             '&:hover': {
-              bgcolor: '#35D870',
+              bgcolor: tokens.brand.greenBrightStrong,
             }
           }}
         >
@@ -236,11 +237,11 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
           onClick={() => setImportDialogOpen(true)}
           sx={{
             flexShrink: 0,
-            color: '#000000',
-            bgcolor: '#81D4FA',
-            border: '1px solid #000000',
+            color: tokens.neutral.black,
+            bgcolor: tokens.accentBlue.lightSoft,
+            border: `1px solid ${tokens.neutral.black}`,
             '&:hover': {
-              bgcolor: '#4FC3F7',
+              bgcolor: tokens.accentBlue.light,
             }
           }}
         >

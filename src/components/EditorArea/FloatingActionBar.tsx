@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import ClearIcon from '@mui/icons-material/Clear';
+import { tokens } from '../../theme/tokens';
 
 interface FloatingActionBarProps {
   selectedCount: number;
@@ -35,11 +36,11 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
         px: 3,
         py: 1.5,
         borderRadius: 3,
-        backgroundColor: '#fff',
-        border: '1px solid #E0E0E0',
+        backgroundColor: tokens.surface.paper,
+        border: `1px solid ${tokens.neutral.border}`,
       }}
     >
-      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976D2', whiteSpace: 'nowrap' }}>
+      <Typography variant="body2" sx={{ fontWeight: 600, color: tokens.accentBlue.main, whiteSpace: 'nowrap' }}>
         {selectedCount} {selectedCount === 1 ? 'Element' : 'Elemente'} ausgewählt
       </Typography>
 
@@ -50,8 +51,8 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
           startIcon={<GroupWorkIcon />}
           onClick={onWrapInGroup}
           sx={{
-            backgroundColor: '#009F64',
-            '&:hover': { backgroundColor: '#007A4D' },
+            backgroundColor: tokens.brand.green,
+            '&:hover': { backgroundColor: tokens.brand.greenDeep },
             textTransform: 'none',
             whiteSpace: 'nowrap',
           }}

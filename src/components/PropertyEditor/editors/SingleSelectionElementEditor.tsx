@@ -19,6 +19,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { SingleSelectionUIElement, StringUIElement } from '../../../models/uiElements';
 import { v4 as uuidv4 } from 'uuid';
 import IconField from '../common/IconField';
+import { tokens } from '../../../theme/tokens';
 
 interface SingleSelectionElementEditorProps {
   element: SingleSelectionUIElement;
@@ -188,7 +189,7 @@ export const SingleSelectionElementEditor: React.FC<SingleSelectionElementEditor
       <Typography variant="subtitle2" gutterBottom>Optionen</Typography>
 
       {element.options?.map((option, index) => (
-        <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+        <Box key={index} sx={{ mb: 2, p: 2, border: `1px solid ${tokens.neutral.border}`, borderRadius: 1 }}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
             <Box sx={{ width: '25%' }}>
               <TextField

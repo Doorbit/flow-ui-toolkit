@@ -58,17 +58,18 @@ import ChipGroupEditor from './editors/ChipGroupEditor';
 import SubflowNavigator from './common/SubflowNavigator';
 import { TranslatableField } from './common/TranslatableField';
 import IconField from './common/IconField';
+import { tokens } from '../../theme/tokens';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
   height: 100%;
   padding: 1rem;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   border-radius: 0;
-  border-left: 1px solid #E0E0E0;
+  border-left: 1px solid ${tokens.neutral.border};
 `;
 
 const Form = styled.form`
@@ -80,7 +81,7 @@ const Form = styled.form`
 const SectionTitle = styled(Typography)`
   font-weight: 500;
   margin-top: 1rem;
-  color: #009F64;
+  color: ${tokens.brand.green};
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(0, 159, 100, 0.1);
 `;
@@ -1276,9 +1277,9 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           sx={{
-            backgroundColor: !!visibilityCondition ? '#e3f2fd' : 'inherit',
+            backgroundColor: !!visibilityCondition ? tokens.accentBlue.bg : 'inherit',
             '&:hover': {
-              backgroundColor: !!visibilityCondition ? '#bbdefb' : '#f5f5f5'
+              backgroundColor: !!visibilityCondition ? tokens.accentBlue.border : tokens.surface.subtle
             }
           }}
         >
@@ -2251,7 +2252,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
   if (!element) {
     return (
       <PropertyEditorContainer>
-        <Typography variant="subtitle1" sx={{ padding: 2, textAlign: 'center', color: '#666' }}>
+        <Typography variant="subtitle1" sx={{ padding: 2, textAlign: 'center', color: tokens.neutral.muted }}>
           Kein Element ausgewählt
         </Typography>
       </PropertyEditorContainer>
@@ -2267,9 +2268,9 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           sx={{
-            backgroundColor: !!visibilityCondition ? '#e3f2fd' : 'inherit',
+            backgroundColor: !!visibilityCondition ? tokens.accentBlue.bg : 'inherit',
             '&:hover': {
-              backgroundColor: !!visibilityCondition ? '#bbdefb' : '#f5f5f5'
+              backgroundColor: !!visibilityCondition ? tokens.accentBlue.border : tokens.surface.subtle
             }
           }}
         >
@@ -3053,7 +3054,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
               <Typography variant="subtitle2" gutterBottom>
                 Vorschau:
               </Typography>
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+              <Paper sx={{ p: 2, bgcolor: tokens.surface.subtle, borderRadius: 1 }}>
                 {textElement.type === 'HEADING' ? (
                   <Typography variant="h5" gutterBottom>
                     {textElement.text?.de || 'Überschrift'}
@@ -3211,7 +3212,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
             <Typography variant="subtitle2" gutterBottom>Spalten</Typography>
 
             {columns.map((col, idx) => (
-              <Box key={idx} sx={{ mb: 2, p: 1.5, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+              <Box key={idx} sx={{ mb: 2, p: 1.5, border: `1px solid ${tokens.neutral.border}`, borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary">Spalte {idx + 1}</Typography>
                 <TextField
                   label="Kopfzeile (Deutsch)"

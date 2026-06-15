@@ -4,12 +4,13 @@ import { Paper, Typography, Box } from '@mui/material';
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { CommonPropertiesEditor } from './CommonPropertiesEditor';
 import { ElementEditorFactory } from './ElementEditorFactory';
+import { tokens } from '../../theme/tokens';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
   height: 100%;
   padding: 1rem;
-  background-color: #f5f5f5;
+  background-color: ${tokens.surface.subtle};
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -33,7 +34,7 @@ export const RefactoredPropertyEditor: React.FC<PropertyEditorProps> = ({ elemen
   if (!element) {
     return (
       <PropertyEditorContainer>
-        <Typography variant="subtitle1" sx={{ padding: 2, textAlign: 'center', color: '#666' }}>
+        <Typography variant="subtitle1" sx={{ padding: 2, textAlign: 'center', color: tokens.neutral.muted }}>
           Kein Element ausgewählt
         </Typography>
       </PropertyEditorContainer>

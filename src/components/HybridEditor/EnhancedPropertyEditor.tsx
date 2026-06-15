@@ -24,27 +24,28 @@ import { VisibilityConditionEditor } from '../PropertyEditor/editors/VisibilityC
 import StructureNavigator from './StructureNavigator';
 import EnhancedElementEditorFactory from './EnhancedElementEditorFactory';
 import { getContainerType, useEditor } from '../../context/EditorContext';
+import { tokens } from '../../theme/tokens';
 
 const PropertyEditorContainer = styled(Paper)`
   width: 100%;
   height: 100%;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   border-radius: 0;
-  border-left: 1px solid #E0E0E0;
+  border-left: 1px solid ${tokens.neutral.border};
 `;
 
 const EditorHeader = styled(Box)`
   padding: 1rem;
-  background-color: #F8FAFC;
-  border-bottom: 1px solid #E0E0E0;
+  background-color: ${tokens.surface.appBg};
+  border-bottom: 1px solid ${tokens.neutral.border};
 `;
 
 const EditorTitle = styled(Typography)`
   font-weight: 500;
-  color: #2A2E3F;
+  color: ${tokens.text.primary};
 `;
 
 const EditorContent = styled(Box)`
@@ -65,7 +66,7 @@ const Form = styled.form`
 const SectionTitle = styled(Typography)`
   font-weight: 500;
   margin-top: 1rem;
-  color: #009F64;
+  color: ${tokens.brand.green};
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(0, 159, 100, 0.1);
 `;
@@ -82,7 +83,7 @@ const NoElementSelected = styled(Box)`
   height: 100%;
   padding: 2rem;
   text-align: center;
-  color: #2A2E3F;
+  color: ${tokens.text.primary};
 `;
 
 interface EnhancedPropertyEditorProps {
@@ -308,7 +309,7 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
         <Box
           sx={{
             p: 2,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: tokens.surface.subtle,
             borderRadius: 1,
             fontFamily: 'monospace',
             fontSize: '0.875rem',
@@ -388,11 +389,11 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
               variant="body2"
               sx={{
                 color:
-                  getContainerType(element) === 'group' ? '#009F64' :
-                  getContainerType(element) === 'array' ? '#F05B29' :
-                  getContainerType(element) === 'chipgroup' ? '#3F51B5' :
-                  getContainerType(element) === 'custom' ? '#009F64' :
-                  getContainerType(element) === 'subflow' ? '#009F64' :
+                  getContainerType(element) === 'group' ? tokens.brand.green :
+                  getContainerType(element) === 'array' ? tokens.brand.orange :
+                  getContainerType(element) === 'chipgroup' ? tokens.accentIndigo.main :
+                  getContainerType(element) === 'custom' ? tokens.brand.green :
+                  getContainerType(element) === 'subflow' ? tokens.brand.green :
                   'text.secondary'
               }}
             >
