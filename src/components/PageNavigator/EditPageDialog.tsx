@@ -512,35 +512,35 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
               </Box>
             </Box>
 
-            {/* Modul-Zuordnung (wenn der Flow Module deklariert oder die Seite bereits getaggt ist) */}
-            {((state.currentFlow?.modules?.length ?? 0) > 0 || moduleId) && (
-              <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
-                <InputLabel id="page-module-select-label">Modul-Zuordnung</InputLabel>
-                <Select
-                  labelId="page-module-select-label"
-                  id="page-module-select"
-                  value={moduleId}
-                  label="Modul-Zuordnung"
-                  onChange={(e) => setModuleId(e.target.value)}
-                >
-                  <MenuItem value="">
-                    <em>— Kein Modul —</em>
+            {/* Modul-Zuordnung — immer sichtbar, damit das modulare-Flows-Feature auffindbar ist */}
+            <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
+              <InputLabel id="page-module-select-label">Modul-Zuordnung</InputLabel>
+              <Select
+                labelId="page-module-select-label"
+                id="page-module-select"
+                value={moduleId}
+                label="Modul-Zuordnung"
+                onChange={(e) => setModuleId(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>— Kein Modul —</em>
+                </MenuItem>
+                {(state.currentFlow?.modules ?? []).map((module) => (
+                  <MenuItem key={module.id} value={module.id}>
+                    {module.name?.de || module.name?.en || module.id}
                   </MenuItem>
-                  {(state.currentFlow?.modules ?? []).map((module) => (
-                    <MenuItem key={module.id} value={module.id}>
-                      {module.name?.de || module.name?.en || module.id}
-                    </MenuItem>
-                  ))}
-                  {moduleId &&
-                    !(state.currentFlow?.modules ?? []).some((m) => m.id === moduleId) && (
-                      <MenuItem value={moduleId}>{`⚠ Unbekannt: ${moduleId}`}</MenuItem>
-                    )}
-                </Select>
-                <FormHelperText>
-                  Seite nur sichtbar, wenn das zugeordnete Modul aktiv ist.
-                </FormHelperText>
-              </FormControl>
-            )}
+                ))}
+                {moduleId &&
+                  !(state.currentFlow?.modules ?? []).some((m) => m.id === moduleId) && (
+                    <MenuItem value={moduleId}>{`⚠ Unbekannt: ${moduleId}`}</MenuItem>
+                  )}
+              </Select>
+              <FormHelperText>
+                {(state.currentFlow?.modules?.length ?? 0) === 0
+                  ? 'Noch keine Module definiert — über „Module" in der Kopfzeile anlegen.'
+                  : 'Seite nur sichtbar, wenn das zugeordnete Modul aktiv ist.'}
+              </FormHelperText>
+            </FormControl>
 
             {/* Icon-Auswahl */}
             <Typography variant="subtitle1" gutterBottom>
