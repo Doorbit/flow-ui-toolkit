@@ -23,6 +23,7 @@ import { logger } from './utils/logger';
 import { FieldValuesProvider } from './context/FieldValuesContext';
 import { FeedbackProvider, useFeedback } from './context/FeedbackContext';
 import KeyboardShortcutsDialog from './components/HybridEditor/KeyboardShortcutsDialog';
+import ValidationStatus from './components/common/ValidationStatus';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
@@ -2405,6 +2406,7 @@ const AppContent: React.FC = () => {
           onEditModules={() => setShowModuleManager(true)}
           onOpenDocumentation={handleOpenDocumentation}
           onShowShortcuts={() => setShowShortcuts(true)}
+          validationSlot={<ValidationStatus />}
           workflowName={state.currentFlow?.name || "Workflow"}
         />
 

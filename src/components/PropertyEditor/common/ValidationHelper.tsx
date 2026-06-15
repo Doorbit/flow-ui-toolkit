@@ -2,8 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Alert,
-  AlertTitle,
   List,
   ListItem,
   ListItemButton,

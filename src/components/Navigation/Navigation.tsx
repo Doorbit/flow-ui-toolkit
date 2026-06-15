@@ -25,6 +25,7 @@ interface NavigationProps {
   onEditModules: () => void;
   onOpenDocumentation?: () => void;
   onShowShortcuts?: () => void;
+  validationSlot?: React.ReactNode;
   workflowName: string;
 }
 
@@ -63,6 +64,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onEditModules,
   onOpenDocumentation,
   onShowShortcuts,
+  validationSlot,
   workflowName
 }) => {
   return (
@@ -145,6 +147,7 @@ const Navigation: React.FC<NavigationProps> = ({
         </Box>
 
         <RightActions>
+          {validationSlot}
           {onShowShortcuts && (
             <Tooltip title="Tastaturkürzel">
               <IconButton
