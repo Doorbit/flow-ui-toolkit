@@ -36,7 +36,7 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 ## Phase 1 — Sicherheit & Korrektheit
 - [x] Löschen mit Bestätigung — **war bereits vorhanden** (Element via `ElementContextView`, Seite, Modul). Befund der Review-Agenten war ungenau.
 - [x] **Confirm-Konsolidierung** *(PR #11)*: Seiten- & Modul-Lösch-Dialoge auf das einheitliche `confirm()` umgestellt; „letzte Seite"-Sperre gibt jetzt Feedback. ElementContextView **bewusst aufgeschoben** (1087-Zeilen-Datei, bestehender Dialog gut inkl. Kind-Warnung).
-- [~] AJV-/Schema-Fehler inline: **blockiert** — `SchemaContext`-Schema ist eine unvollständige Teilmenge (fehlende Typen: String, Table, KeyValueList, ImageGallery, FieldText) → würde gültige Flows fälschlich als ungültig melden. Voraussetzung: Schema zuerst ans volle Modell angleichen (eigene Aufgabe, Schema-Sync-Regel).
+- [x] **AJV-/Schema-Validierung sichtbar** *(PR #12)*: Schema (`context/listingFlowSchema.ts`) ans volle Modell angeglichen und gegen die authoritativen Flows abgeglichen (`portal-applications/customers/doorbit_esg.json` + `enion_esg.json` validieren fehlerfrei → keine False-Positives). Lenient + vorwärtskompatibel (unbekannte `pattern_type`s erlaubt). Toolbar-Indikator (`ValidationStatus`): grün „Gültig" / rot „N Probleme" → Dialog mit Fehlerliste. Test: `listingFlowSchema.test.ts`.
 - [x] Restliche `alert/confirm`-Reste auf Feedback-System — erledigt mit F1 (#9).
 
 ## Phase 2 — Orientierung & Navigation
