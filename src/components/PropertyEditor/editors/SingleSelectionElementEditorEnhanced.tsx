@@ -34,6 +34,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import { SingleSelectionUIElement, StringUIElement } from '../../../models/uiElements';
 import { v4 as uuidv4 } from 'uuid';
 import { AccordionSection } from '../common/AccordionSection';
+import { getDuplicateKeyError } from '../common/listItemValidation';
 import { ElementTypeIndicator } from '../common/ElementTypeIndicator';
 import { ElementPreview } from '../common/ElementPreview';
 
@@ -55,13 +56,12 @@ export function getOptionKeyError(
   options: { key: string }[],
   index: number
 ): string | null {
-  const key = (options[index]?.key || '').trim();
-  if (!key) return 'Schlüssel darf nicht leer sein';
-  const duplicate = options.some(
-    (option, i) => i !== index && (option.key || '').trim() === key
+  // Delegiert an die geteilte Listen-Validierung (gleiche Meldungen wie zuvor).
+  return getDuplicateKeyError(
+    options.map((o) => o.key),
+    index,
+    'Schlüssel'
   );
-  if (duplicate) return 'Schlüssel muss eindeutig sein';
-  return null;
 }
 
 /**

@@ -29,6 +29,7 @@ import { ChipGroupUIElement, BooleanUIElement } from '../../../models/uiElements
 import TabbedTranslatableFields from '../common/TabbedTranslatableFields';
 import IconField from '../common/IconField';
 import { AccordionSection } from '../common/AccordionSection';
+import { getDuplicateKeyError } from '../common/listItemValidation';
 import { VisibilityConditionEditor } from './VisibilityConditionEditor';
 import { useSubflow } from '../../../context/SubflowContext';
 import { v4 as uuidv4 } from 'uuid';
@@ -152,6 +153,17 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
   };
   */
 
+  // Eindeutigkeits-/Leer-Prüfung der Chip-Feld-ID (geteilt mit den anderen Listen-Editoren).
+  // Der aktuell bearbeitete Chip wird ausgeschlossen; der neue Wert ans Ende gestellt und dort geprüft.
+  const otherChipKeys = element.chips
+    .filter((_, i) => i !== editingChipIndex)
+    .map((c) => c.field_id?.field_name);
+  const chipKeyError = getDuplicateKeyError(
+    [...otherChipKeys, newChip.field_id?.field_name],
+    otherChipKeys.length,
+    'Feld-ID'
+  );
+
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -239,6 +251,12 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
                 Chip hinzufügen
               </Button>
             </Box>
+
+            {element.chips.length === 0 && (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+                Noch keine Chips — über „Chip hinzufügen" anlegen.
+              </Typography>
+            )}
 
             <List>
               {element.chips.map((chip, index) => (
@@ -352,6 +370,8 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
               size="small"
               fullWidth
               value={newChip.field_id?.field_name || ''}
+              error={!!chipKeyError}
+              helperText={chipKeyError || undefined}
               onChange={(e) => {
                 setNewChip({
                   ...newChip,
@@ -362,17 +382,15 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
               }}
             />
 
-            <TextField
-              label="Icon"
-              size="small"
-              fullWidth
+            <IconField
               value={newChip.icon || ''}
-              onChange={(e) => {
+              onChange={(value) => {
                 setNewChip({
                   ...newChip,
-                  icon: e.target.value,
+                  icon: value,
                 });
               }}
+              fullWidth
             />
 
             <FormControlLabel
@@ -431,7 +449,12 @@ const ChipGroupEditor: React.FC<ChipGroupEditorProps> = ({ element, onChange }) 
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Abbrechen</Button>
-          <Button onClick={handleSaveChip} variant="contained" color="primary">
+          <Button
+            onClick={handleSaveChip}
+            variant="contained"
+            color="primary"
+            disabled={!!chipKeyError}
+          >
             Speichern
           </Button>
         </DialogActions>
