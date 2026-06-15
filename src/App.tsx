@@ -24,6 +24,7 @@ import { FieldValuesProvider } from './context/FieldValuesContext';
 import { FeedbackProvider, useFeedback } from './context/FeedbackContext';
 import KeyboardShortcutsDialog from './components/HybridEditor/KeyboardShortcutsDialog';
 import ValidationStatus from './components/common/ValidationStatus';
+import OnboardingDialog from './components/common/OnboardingDialog';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
@@ -1638,6 +1639,22 @@ const AppContent: React.FC = () => {
   const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
   const [showModuleManager, setShowModuleManager] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
+  // Erstkontakt-Onboarding: beim ersten Start automatisch zeigen (einmalig via localStorage).
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('flowToolkit.onboardingSeen') !== 'true';
+    } catch {
+      return false;
+    }
+  });
+  const closeOnboarding = () => {
+    setShowOnboarding(false);
+    try {
+      localStorage.setItem('flowToolkit.onboardingSeen', 'true');
+    } catch {
+      /* localStorage nicht verfügbar — kein Hard-Fail */
+    }
+  };
   const { showSuccess, showWarning, showError, confirm } = useFeedback();
   // Shims auf das zentrale Feedback-System — halten die bestehenden Aufrufstellen kompatibel
   const setGroupErrorSnackbar = (s: { open: boolean; message: string }) => { if (s.open) showWarning(s.message); };
@@ -2406,11 +2423,13 @@ const AppContent: React.FC = () => {
           onEditModules={() => setShowModuleManager(true)}
           onOpenDocumentation={handleOpenDocumentation}
           onShowShortcuts={() => setShowShortcuts(true)}
+          onShowOnboarding={() => setShowOnboarding(true)}
           validationSlot={<ValidationStatus />}
           workflowName={state.currentFlow?.name || "Workflow"}
         />
 
         <KeyboardShortcutsDialog open={showShortcuts} onClose={() => setShowShortcuts(false)} />
+        <OnboardingDialog open={showOnboarding} onClose={closeOnboarding} />
 
         {/* Workflow-Namen-Dialog */}
         <WorkflowNameDialog

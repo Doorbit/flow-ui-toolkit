@@ -10,7 +10,8 @@ import {
   Edit as EditIcon,
   Extension as ModulesIcon,
   HelpOutline as HelpIcon,
-  KeyboardOutlined as KeyboardIcon
+  KeyboardOutlined as KeyboardIcon,
+  SchoolOutlined as OnboardingIcon
 } from '@mui/icons-material';
 
 interface NavigationProps {
@@ -25,6 +26,7 @@ interface NavigationProps {
   onEditModules: () => void;
   onOpenDocumentation?: () => void;
   onShowShortcuts?: () => void;
+  onShowOnboarding?: () => void;
   validationSlot?: React.ReactNode;
   workflowName: string;
 }
@@ -64,6 +66,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onEditModules,
   onOpenDocumentation,
   onShowShortcuts,
+  onShowOnboarding,
   validationSlot,
   workflowName
 }) => {
@@ -148,6 +151,22 @@ const Navigation: React.FC<NavigationProps> = ({
 
         <RightActions>
           {validationSlot}
+          {onShowOnboarding && (
+            <Tooltip title="Erste Schritte (Editor-Tour)">
+              <IconButton
+                onClick={onShowOnboarding}
+                size="large"
+                aria-label="Erste Schritte anzeigen"
+                sx={{
+                  bgcolor: '#009F64',
+                  color: 'white',
+                  '&:hover': { bgcolor: '#008D58' }
+                }}
+              >
+                <OnboardingIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {onShowShortcuts && (
             <Tooltip title="Tastaturkürzel">
               <IconButton

@@ -41,8 +41,8 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 
 ## Phase 2 — Orientierung & Navigation
 - [ ] „Auswählen" vs. „Drill-down" entkoppeln/visuell trennen; `selectedElementPath`↔`currentPath` vereinfachen (`HybridEditor.tsx`, `ElementHierarchyTree.tsx:362–387`).
-- [ ] Empty States + Erstkontakt-Onboarding (3-Spalten-Modell; leere Mitte mit CTA).
-- [ ] Accessibility: `aria-label`, Fokus-Management, Kontraste, semantische Landmarks.
+- [x] **Empty States + Erstkontakt-Onboarding** *(PR Phase 2)*: `OnboardingDialog` (via DialogBase) erklärt das 3-Spalten-Modell + Grundablauf; First-Run automatisch (localStorage `flowToolkit.onboardingSeen`), jederzeit über Toolbar-Icon „Erste Schritte" erneut aufrufbar. Leere Mitte mit CTA war bereits vorhanden.
+- [~] Accessibility: 3 Spalten als Landmarks (`role="region"` + `aria-label`) **erledigt** *(PR Phase 2)*; Fokus-Management/Kontraste/weitere Landmarks weiterhin offen.
 - [x] **Keyboard-Shortcuts-Hilfe** *(PR #11)*: Dialog (via DialogBase) listet die vorhandenen, bislang undokumentierten Shortcuts (Strg+Z/Y/S, Esc); Tastatur-Icon in der Toolbar.
 
 ## Phase 3 — Auffindbarkeit & Effizienz

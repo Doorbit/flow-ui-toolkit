@@ -481,7 +481,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
   return (
     <EditorContainer>
       {/* Linke Spalte: Hierarchische Baumansicht */}
-      <LeftColumn>
+      <LeftColumn role="region" aria-label="Element-Hierarchie">
         <Typography variant="subtitle1" sx={{ p: 2, fontWeight: 'bold', color: '#2A2E3F' }}>
           Element-Hierarchie
         </Typography>
@@ -496,7 +496,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
       </LeftColumn>
 
       {/* Mittlere Spalte: Kontextbezogene Elementansicht */}
-      <MiddleColumn>
+      <MiddleColumn role="region" aria-label="Elemente der aktuellen Ebene">
         <Box sx={{ mb: 2 }}>
           <VisibilityLegend compact />
         </Box>
@@ -667,7 +667,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
       </MiddleColumn>
 
       {/* Rechte Spalte: Eigenschaftspanel */}
-      <RightColumn>
+      <RightColumn role="region" aria-label="Eigenschaften des ausgewählten Elements">
         <EnhancedPropertyEditor
           element={selectedElementPath && selectedElementPath.length > 0
             ? getElementByPath(elements, selectedElementPath)
