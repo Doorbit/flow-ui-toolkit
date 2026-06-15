@@ -45,7 +45,7 @@ export interface Module {
 export interface Page {
   pattern_type: string; // Im alten Schema "Page", im doorbit_esg.json Schema "CustomUIElement"
   id: string;
-  layout?: string; // z.B. "2_COL_RIGHT_FILL" für Edit-Seiten, "2_COL_RIGHT_WIDER" für View-Seiten
+  layout?: string; // unterstützt (portal): (absent)=Standard, 2_COL_RIGHT_WIDER, 2_COL_RIGHT_FILL — siehe pageLayouts.ts
   related_pages?: RelatedPage[]; // Verknüpfung zu korrespondierenden View- oder Edit-Seiten
   short_title?: TranslatableString;
   title?: TranslatableString;

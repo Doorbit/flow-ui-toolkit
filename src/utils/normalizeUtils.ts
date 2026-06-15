@@ -302,10 +302,24 @@ const normalizeElement = (element: any, ensureFieldId: boolean = true): any => {
     delete element.items;
   }
 
-  // Normalisiere NumberUIElement default zu default_value
-  if (patternType === 'NumberUIElement' && element.default !== undefined && element.default_value === undefined) {
-    element.default_value = element.default;
-    delete element.default;
+  // Normalisiere NumberUIElement auf die Schema-Feldnamen (minimum/maximum/default).
+  // portal kennt nur minimum/maximum/default; frühere Toolkit-Exporte nutzten
+  // min/max/step/default_value. Beim Import migrieren, damit Default-/Grenzwerte nicht
+  // verloren gehen (und kein vom Schema unbekanntes Feld zurück-exportiert wird).
+  if (patternType === 'NumberUIElement') {
+    if (element.min !== undefined && element.minimum === undefined) {
+      element.minimum = element.min;
+    }
+    if (element.max !== undefined && element.maximum === undefined) {
+      element.maximum = element.max;
+    }
+    if (element.default_value !== undefined && element.default === undefined) {
+      element.default = element.default_value;
+    }
+    delete element.min;
+    delete element.max;
+    delete element.step;
+    delete element.default_value;
   }
 
   // Normalisiere visibility_condition

@@ -74,7 +74,7 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
 
     // Konvertiere Werte zu Zahlen, wenn sie numerisch sind
     const value = event.target.value;
-    if (field === 'min' || field === 'max' || field === 'step' || field === 'default_value') {
+    if (field === 'minimum' || field === 'maximum' || field === 'default') {
       elementAny[field] = value === '' ? '' : Number(value);
     } else {
       elementAny[field] = value;
@@ -101,12 +101,10 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
   };
 
   // Berechne den Slider-Bereich
-  const min = numberElement.min !== undefined ? numberElement.min : 0;
-  const max = numberElement.max !== undefined ? numberElement.max : 100;
-  const step = numberElement.step || 1;
-  const defaultValue = numberElement.default_value !== undefined
-    ? numberElement.default_value
-    : (numberElement.default !== undefined ? numberElement.default : min);
+  const min = numberElement.minimum !== undefined ? numberElement.minimum : 0;
+  const max = numberElement.maximum !== undefined ? numberElement.maximum : 100;
+  const step = 1; // portal kennt keine Schrittweite — nur für die Slider-Vorschau
+  const defaultValue = numberElement.default !== undefined ? numberElement.default : min;
 
   return (
     <>
@@ -215,10 +213,8 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
           <TextField
             label="Default-Wert"
             type="number"
-            value={numberElement.default_value !== undefined
-              ? numberElement.default_value
-              : (numberElement.default !== undefined ? numberElement.default : '')}
-            onChange={handleTextChange('default_value')}
+            value={numberElement.default !== undefined ? numberElement.default : ''}
+            onChange={handleTextChange('default')}
             fullWidth
             size="small"
             InputProps={{
@@ -251,32 +247,22 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
             <TextField
               label="Minimum"
               type="number"
-              value={numberElement.min !== undefined ? numberElement.min : ''}
-              onChange={handleTextChange('min')}
+              value={numberElement.minimum !== undefined ? numberElement.minimum : ''}
+              onChange={handleTextChange('minimum')}
               fullWidth
               size="small"
             />
             <TextField
               label="Maximum"
               type="number"
-              value={numberElement.max !== undefined ? numberElement.max : ''}
-              onChange={handleTextChange('max')}
+              value={numberElement.maximum !== undefined ? numberElement.maximum : ''}
+              onChange={handleTextChange('maximum')}
               fullWidth
               size="small"
             />
           </Box>
 
-          <TextField
-            label="Schrittweite"
-            type="number"
-            value={numberElement.step || ''}
-            onChange={handleTextChange('step')}
-            fullWidth
-            size="small"
-            helperText={`Erlaubte Werte: ${min}, ${min + step}, ${min + 2 * step}, ...`}
-          />
-
-          {numberElement.min !== undefined && numberElement.max !== undefined && (
+          {numberElement.minimum !== undefined && numberElement.maximum !== undefined && (
             <Box sx={{ px: 2, mt: 1 }}>
               <Typography gutterBottom>Wertebereich-Vorschau</Typography>
               <Slider
@@ -311,9 +297,9 @@ const NumberElementEditor: React.FC<NumberElementEditorProps> = ({ element, onUp
                 <InputAdornment position="end">{getUnitDisplayLabel(numberElement.unit)}</InputAdornment>
               ) : null,
               inputProps: {
-                min: numberElement.min,
-                max: numberElement.max,
-                step: numberElement.step || 1
+                min: numberElement.minimum,
+                max: numberElement.maximum,
+                step: 1
               }
             }}
             disabled
