@@ -21,7 +21,6 @@ import TextFieldsIcon from '@mui/icons-material/TextFields';
 import TitleIcon from '@mui/icons-material/Title';
 import TuneIcon from '@mui/icons-material/Tune';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 interface StringElementEditorProps {
@@ -227,22 +226,6 @@ const StringElementEditor: React.FC<StringElementEditorProps> = ({ element, onUp
           <FormHelperText>
             Beispiele: ^[0-9]+$ (nur Zahlen), ^[A-Za-z]+$ (nur Buchstaben)
           </FormHelperText>
-        </Box>
-      </AccordionSection>
-
-      <AccordionSection
-        title="Erweiterte Einstellungen"
-        icon={<SettingsIcon />}
-        defaultExpanded={false}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            label="Feld-ID"
-            value={stringElement.field_id || ''}
-            onChange={handleTextChange('field_id')}
-            fullWidth
-            size="small"
-          />
         </Box>
       </AccordionSection>
 

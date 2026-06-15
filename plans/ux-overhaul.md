@@ -54,7 +54,7 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 ## Phase 4 — Editor-Konsistenz & Wartbarkeit
 - [ ] `useElementUpdate`-Hook (dedupliziert Handler-Boilerplate über ~12 Editoren).
 - [ ] Listen-Editoren vereinheitlichen (ChipGroup-Dialog vs. SingleSelection-Tabelle).
-- [ ] Pflichtfeld-Markierung, Feld-ID prominenter, Hilfetexte, Duplikat-Optionen verhindern.
+- [~] **Feld-ID-Prominenz** *(PR Phase 4)*: gemeinsame `common/FieldIdField` (Pflicht-Marker, Hilfetext, Leer-Warnung) **zentral** im `EnhancedElementEditorFactory` für alle wertführenden Typen (Boolean/String/Number/Date/SingleSelection). Befund: Feld-ID war zuvor uneinheitlich — bei Number/Date/Boolean/SingleSelection gar nicht editierbar, bei String als String statt `{field_name}`. Jetzt überall sichtbar + einheitlich als `{field_name}` geschrieben. Offen: Duplikat-Optionen verhindern, breitere Pflichtfeld-Markierungen, `useElementUpdate`-Hook.
 
 ## Phase 5 — Seiten & Flow-Metadaten
 - [ ] `pattern_type`-Auswahl bei Seitenanlage; Layout-Vorschau (`PageNavigator.tsx`, `EditPageDialog.tsx`).
