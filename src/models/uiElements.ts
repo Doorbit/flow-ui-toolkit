@@ -80,11 +80,12 @@ export interface NumberUIElement extends UIElementEdit {
   type?: 'INTEGER' | 'DOUBLE';
   field_id: FieldId;
   unit?: string;
-  min?: number;
-  max?: number;
-  step?: number;
+  // Schema-Vertrag (portal): minimum/maximum/default. Früher nutzte der Toolkit
+  // min/max/step/default_value — diese sind kein portal-Feld und wurden entfernt;
+  // normalizeUtils migriert Alt-Exporte beim Import auf diese Namen.
+  minimum?: number;
+  maximum?: number;
   default?: number;
-  default_value?: number;
 }
 
 export interface DateUIElement extends UIElementEdit {
@@ -163,7 +164,7 @@ export interface ChipGroupUIElement extends UIElementEdit {
 
 export interface KeyValueListUIElement extends UIElementEdit {
   pattern_type: 'KeyValueListUIElement';
-  type: 'TABLE';
+  type: 'COUNTER_BAR' | 'TABLE';
   items: KeyValueListItem[];
 }
 
@@ -197,6 +198,9 @@ export interface FieldTextUIElement extends UIElementEdit {
   pattern_type: 'FieldTextUIElement';
   type: 'HEADING' | 'PARAGRAPH';
   field_value: { field_id: FieldId };
+  // Textausrichtung (portal: align; GraphQL: horizontalAlignment).
+  align?: 'LEFT' | 'CENTER';
+  unit?: string;
 }
 
 /**
@@ -206,6 +210,8 @@ export interface FieldTextUIElement extends UIElementEdit {
 export interface TableUIElement extends UIElementEdit {
   pattern_type: 'TableUIElement';
   type?: 'TABLE';
+  // Blendet die Index-/Laufnummern-Spalte aus (portal: hide_index_column).
+  hide_index_column?: boolean;
   columns: TableColumn[];
 }
 

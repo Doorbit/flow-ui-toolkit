@@ -641,7 +641,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
           size="small"
           fullWidth
           type="number"
-          value={numberElement.default_value || ''}
+          value={numberElement.default ?? ''}
           onChange={(e) => {
             const updatedCustomElement = { ...element.element as CustomUIElement };
 
@@ -652,7 +652,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ element, onUpdate }) =>
               elementPath,
               {
                 ...numberElement,
-                default_value: parseFloat(e.target.value)
+                default: parseFloat(e.target.value)
               }
             );
 

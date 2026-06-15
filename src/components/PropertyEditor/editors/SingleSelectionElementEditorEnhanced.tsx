@@ -267,7 +267,7 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
               onChange={(e) => handleTypeChange(e as any)}
             >
               <MenuItem value="DROPDOWN">Dropdown</MenuItem>
-              <MenuItem value="BUTTONGROUP">Button Gruppe</MenuItem>
+              <MenuItem value="BUTTON_GROUP">Button Gruppe</MenuItem>
             </Select>
           </FormControl>
 
