@@ -1,332 +1,293 @@
-# Benutzerhandbuch - Flow UI Toolkit
+# Benutzerhandbuch — Flow UI Toolkit
 
-## Übersicht
+## 1. Über das Flow UI Toolkit
 
-Das Flow UI Toolkit ermöglicht die visuelle Erstellung und Bearbeitung von individuellem Workflow in der doorbit App und in doorbit Web. Sie können verschiedene UI-Elemente per Drag & Drop platzieren, deren Eigenschaften anpassen und mehrsprachige Inhalte verwalten.
+Das Flow UI Toolkit ist ein visueller Editor, mit dem Sie **Flows** erstellen und bearbeiten — die
+mehrseitigen, dynamischen Formular-Workflows, die in der **doorbit App** und in **doorbit Web**
+zur Laufzeit angezeigt werden. Ein Flow wird als **JSON-Datei** gespeichert und geladen; dieses
+JSON ist das Format, das doorbit rendert.
 
-## Hauptfunktionen
+Mit dem Toolkit können Sie:
 
-### 1. Navigation und Werkzeugleiste
+- Seiten und UI-Elemente per Drag & Drop anlegen und anordnen,
+- Eigenschaften jedes Elements bearbeiten (inkl. mehrsprachiger Texte),
+- Sichtbarkeitsregeln definieren,
+- Flows in **Module** gliedern, die pro Projekt zu- oder abgeschaltet werden,
+- Flows als JSON exportieren und wieder importieren.
 
-Die Hauptnavigation bietet folgende Funktionen:
-- **Neu**: Erstellt einen neuen, leeren Flow
-- **Öffnen**: Lädt einen bestehenden Flow aus einer JSON-Datei
-- **Speichern**: Speichert den aktuellen Flow als JSON-Datei
-- **Rückgängig/Wiederholen**: Ermöglicht das Rückgängigmachen und Wiederholen von Änderungen
-- **Selektionsmodus**: Aktiviert Multi-Selektion zum Gruppieren mehrerer Elemente
+> Sie arbeiten immer an genau **einem** Flow. „Speichern" lädt eine JSON-Datei herunter; es gibt
+> keine serverseitige Ablage im Toolkit selbst.
 
-### 2. Seitenverwaltung
+---
 
-- Mehrere Seiten pro Flow verwalten
-- Seiten über Tabs navigieren
-- Seiten durch Drag & Drop neu anordnen
-- Seiten hinzufügen, bearbeiten oder löschen
-- Seitentitel in mehreren Sprachen anpassen
-- Material Design Icons für Seiten auswählen
-- **Seiten aus externen JSON-Dateien importieren**
+## 2. Die Oberfläche im Überblick
 
-#### Seiten bearbeiten
-1. Klicken Sie auf das Bearbeiten-Symbol (Stift) neben dem Seiten-Tab
-2. Im Dialog können Sie folgende Eigenschaften anpassen:
-   - Titel in verschiedenen Sprachen (lang und kurz)
-   - Icon aus der Material Design Bibliothek
-   - Layout der Seite
-   - Verknüpfung mit korrespondierenden Seiten
+Der Editor ist in drei Spalten aufgebaut:
 
-#### Icon-Auswahl
-1. Klicken Sie im Seiten-Dialog auf "Icon auswählen"
-2. Wählen Sie eine Kategorie (z.B. "Haus & Gebäude", "Smart Home & HVAC")
-3. Nutzen Sie die Suchfunktion für spezifische Icons
-4. Klicken Sie auf ein Icon, um es auszuwählen
+| Spalte | Inhalt |
+|---|---|
+| **Links — Hierarchie** | Baumansicht aller Elemente der aktuellen Seite; Auswahl und Navigation durch verschachtelte Strukturen. |
+| **Mitte — Kontext** | Das aktuell geöffnete Element/Container mit seinen direkten Kindern; hier fügen Sie Elemente hinzu. |
+| **Rechts — Eigenschaften** | Der Eigenschaften-Editor für das ausgewählte Element. |
 
-#### Seiten aus anderer JSON-Datei importieren
-Sie können komplette Seiten aus einer anderen JSON-Datei in den aktuellen Flow importieren:
+Darüber liegt die **Werkzeugleiste** mit:
 
-1. Klicken Sie auf das **Import-Symbol** (Pfeil nach oben) neben dem „+"-Button in der Seitennavigation
-2. Im Import-Dialog klicken Sie auf **„Datei auswählen"** und wählen eine JSON-Datei aus
-3. Die verfügbaren Seiten der Quelldatei werden als Liste angezeigt
-4. Wählen Sie die gewünschten Seiten per Checkbox aus (oder nutzen Sie „Alle auswählen")
-5. Klicken Sie auf **„Importieren"**
+- **Neu / Öffnen / Speichern** — Flow anlegen, JSON laden, JSON herunterladen.
+- **Flow-Eigenschaften** (Schaltfläche mit dem Flow-Namen) — Name, ID, URL-Key, Titel und Icon bearbeiten.
+- **Module** — den Modul-Katalog des Flows verwalten.
+- **Erste Schritte** — eine kurze Editor-Tour (erscheint beim ersten Start automatisch).
+- **Tastaturkürzel** — Übersicht der verfügbaren Shortcuts.
+- **Dokumentation** — öffnet diese Hilfe.
+- **Rückgängig / Wiederherstellen** — Undo/Redo.
+- **Validierungs-Anzeige** — zeigt „Gültig" (grün) oder „N Probleme" (rot); ein Klick öffnet die Fehlerliste.
 
-**Hinweise:**
-- Die importierten Seiten erhalten neue interne IDs (UUIDs), um Konflikte zu vermeiden
-- Sowohl die Edit- als auch die zugehörigen View-Seiten werden automatisch als Paar importiert
-- Die `field_id`-Werte der Elemente bleiben erhalten, damit die Datenbindung innerhalb der importierten Seite intakt bleibt
-- Undo/Redo wird unterstützt – ein Import kann rückgängig gemacht werden
-- Ungültige oder leere JSON-Dateien werden mit einer Fehlermeldung abgewiesen
+Unter der Werkzeugleiste liegt die **Seiten-Navigation** (Tabs) mit „+" (neue Seite) und dem
+Import-Symbol.
 
-### 3. Verfügbare UI-Elemente
+> **Tastaturkürzel:** Rückgängig (Strg/Cmd+Z), Wiederherstellen (Strg/Cmd+Y), Speichern
+> (Strg/Cmd+S), Abbrechen/Schließen (Esc). Die vollständige Liste finden Sie über das
+> Tastatur-Symbol.
 
-#### Textuelle Elemente
-- **Text (Anzeige)** (`TextUIElement`): Für statische Textanzeige wie Überschriften oder Absätze
-  - Wird **nicht** vom Benutzer bearbeitet
-  - Dient zur Information und Strukturierung
-  - Unterstützt Überschriften (HEADING) und Absätze (PARAGRAPH)
+---
 
-- **Texteingabe** (`StringUIElement`): Für Benutzereingaben von Text
-  - Ermöglicht **Benutzereingabe** von Textdaten
-  - Speichert eingegebene Werte in einem Feld
-  - Unterstützt einzeilige und mehrzeilige Eingaben
-  - Bietet Validierungsoptionen (Mindest-/Maximallänge, Muster)
-  - Kann Platzhaltertext und Standardwerte haben
+## 3. Flows anlegen, öffnen & speichern
 
-> **Wichtig**: Verwenden Sie **Text (Anzeige)** für statische Inhalte und **Texteingabe** wenn Benutzer Text eingeben sollen.
+- **Neu:** legt einen leeren Flow an. Ungespeicherte Änderungen gehen verloren — Sie werden vorher gefragt.
+- **Öffnen:** lädt einen Flow aus einer JSON-Datei. Bei einem nicht-leeren Flow wird vor dem Überschreiben nachgefragt.
+- **Speichern:** lädt den aktuellen Flow als JSON-Datei herunter.
 
-#### Auswahloptionen
-- **Boolean**: Ja/Nein-Auswahl (Checkbox/Toggle)
-- **Einzelauswahl**: Dropdown oder Button-Gruppe
-- **Chip-Gruppe**: Mehrere aktivierbare Optionen
+### Flow-Eigenschaften bearbeiten
 
-#### Spezielle Eingaben
-- **Nummern**: Ganzzahlen oder Dezimalzahlen mit Min/Max-Werten
-- **Datum**: Auswahl von Jahr, Monat, Tag, Stunde oder Minute
-- **Datei**: Datei-Upload mit Typ-Beschränkungen
+Über die Schaltfläche mit dem Flow-Namen öffnen Sie den Dialog **„Flow-Eigenschaften"**:
 
-#### Strukturelemente
-- **Gruppe**: Fasst mehrere Elemente zusammen
-- **Array**: Ermöglicht wiederholbare Elementgruppen
-- **Benutzerdefiniert**: Spezielle Komponenten für spezifische Anwendungsfälle:
-  - **Scanner**: Scan- und doorbit Studio Integration. Hier können die Screens während des Scans bearbeitet und individualisiert werden
-  - **Adresse**: Strukturierte Adresseingabe mit Validierung
-  - **Standort**: GPS-Koordinaten und Kartenintegration
-  - **Umgebung**: Statistiken für den Standort, wie Altersverteilung und das Bildungsniveau der Bevölkerung
-### 4. Element-Bearbeitung
+- **Name** — interner Anzeigename.
+- **ID** und **URL-Key** — technische Identifier. Sie müssen gesetzt sein und dürfen nur
+  Kleinbuchstaben, Ziffern, „-" und „_" enthalten (keine Leerzeichen). Mit **„aus Name"** wird
+  automatisch ein passender Wert abgeleitet.
+- **Titel (Deutsch/Englisch)** — nutzersichtbarer Titel des Flows.
+- **Flow-Icon** — über die Icon-Auswahl.
 
-#### Platzierung
-1. Element aus der Palette auswählen
-2. Per Drag & Drop im Editor platzieren
-3. Position durch Ziehen anpassen
+Ungültige Eingaben werden direkt am Feld markiert; „Speichern" bleibt bis zur Korrektur deaktiviert.
 
-#### Eigenschaften bearbeiten
-- Titel und Beschreibungen (mehrsprachig)
-- Pflichtfeld-Status
-- Elementspezifische Einstellungen
-- Sichtbarkeitsregeln
+---
 
-#### Multi-Selektion und Gruppierung
+## 4. Seiten verwalten
 
-Sie können mehrere Elemente auswählen und zu einer neuen Gruppe zusammenfassen:
+Ein Flow besteht aus mehreren Seiten, zwischen denen Sie über die Tabs wechseln.
 
-##### Selektionsmodus aktivieren
-1. Klicken Sie auf das **Selektionsmodus-Symbol** (Checkbox-Icon) in der Werkzeugleiste des Editors
-2. Im aktiven Selektionsmodus erscheinen Checkboxen neben jedem Element
-3. Wählen Sie die gewünschten Elemente per Checkbox aus
-4. Ein **schwebender Aktionsbalken** am unteren Bildschirmrand zeigt die Anzahl der selektierten Elemente an
+- **Seite anlegen:** „+" in der Seiten-Navigation. Im Dialog vergeben Sie einen Titel und wählen
+  das **Layout** — mit einer **Live-Vorschau**, die zeigt, wie die rechte Spalte dargestellt wird.
+- **Seite bearbeiten:** Stift-Symbol am Tab. Hier setzen Sie Titel (mehrsprachig), Icon, Layout
+  (mit Vorschau), die Modul-Zuordnung und Sichtbarkeitsregeln.
+- **Reihenfolge ändern:** Tabs per Drag & Drop verschieben.
+- **Seite löschen:** mit Bestätigung; die letzte verbleibende Seite kann nicht gelöscht werden.
 
-##### Elemente gruppieren
-1. Aktivieren Sie den Selektionsmodus und wählen Sie mindestens ein Element aus
-2. Klicken Sie im Aktionsbalken auf **„Zu Gruppe zusammenfassen"**
-3. Geben Sie im Dialog einen **Gruppentitel** und eine **field_id** ein (wird automatisch vorgeschlagen)
-4. Klicken Sie auf **„Zusammenfassen"**
-5. Die ausgewählten Elemente werden in ein neues `GroupUIElement` eingebettet
+### Layouts
 
-**Validierungsregeln:**
-- Alle selektierten Elemente müssen sich auf **derselben Hierarchieebene** befinden
-- Elemente innerhalb eines **Arrays** können nicht gruppiert werden
-- Elemente innerhalb eines **SubFlows** können nicht gruppiert werden
-- **Chips** innerhalb einer Chip-Gruppe können nicht gruppiert werden
-- Bereits vorhandene **Gruppen** können nicht erneut in eine Gruppe eingebettet werden
-- Bei Verstößen wird eine verständliche Fehlermeldung angezeigt
+Es stehen genau die Layouts zur Verfügung, die doorbit auch tatsächlich darstellt:
 
-##### Gruppierung auflösen (Ungroup)
-1. Klicken Sie auf eine bestehende Gruppe im Editor
-2. Klicken Sie auf das **Auflösen-Symbol** (Ungroup-Icon) in der Elementkarte
-3. Die Gruppe wird entfernt und ihre Kinder-Elemente werden an der ursprünglichen Position der Gruppe eingefügt
+| Layout | Darstellung |
+|---|---|
+| **Standard** | rechte Spalte zentriert (kein Layout-Feld gesetzt) |
+| **2-spaltig, rechts breiter** | rechte Spalte breiter zentriert |
+| **2-spaltig, rechts gefüllt** | genau ein rechtes Element füllt die Spalte |
 
-**Hinweise:**
-- Die `field_id`-Werte der verschobenen Elemente bleiben unverändert
-- Undo/Redo wird vollständig unterstützt
-- Der Selektionsmodus wird nach dem Gruppieren automatisch deaktiviert
+### View-Modus automatisch erzeugen
 
-#### Element auf andere Seite kopieren
+Beim Bearbeiten einer Edit-Seite können Sie **„Im View-Modus anzeigen"** aktivieren. Die
+Eingabefelder werden dann automatisch in Anzeige-Elemente umgewandelt (z. B. Eingaben → Tabellen,
+Datei-Uploads → Bildergalerien). So müssen Sie die zugehörige View-Seite nicht von Hand pflegen.
+Enthält die View-Seite bereits manuelle Inhalte, werden Sie vor dem Überschreiben gewarnt.
 
-Sie können ein Element (einschließlich aller verschachtelten Kinder) auf eine andere Seite innerhalb desselben Flows kopieren:
+### Seiten aus einer anderen Datei importieren
 
-1. Klicken Sie auf das **Kopier-Symbol** (zwei übereinanderliegende Seiten) in der Elementkarte
-2. Wählen Sie im Dialog die **Zielseite** aus der Liste aller verfügbaren Seiten
-3. Wählen Sie die **Position**: „Am Anfang der Seite" oder „Am Ende der Seite"
-4. Klicken Sie auf **„Kopieren"**
+Über das Import-Symbol neben „+" übernehmen Sie ganze Seiten aus einer anderen JSON-Datei:
 
-**Hinweise:**
-- Das kopierte Element erhält neue UUIDs **und** neue `field_id`-Werte, um Duplikat-Konflikte innerhalb desselben Flows zu vermeiden
-- Alle verschachtelten Elemente (Gruppen, Arrays, etc.) werden vollständig tief-kopiert
-- Sichtbarkeitsbedingungen, die auf Felder anderer Seiten verweisen, bleiben funktionsfähig
-- Ein Erfolgs-Snackbar bestätigt die Kopie
-- Undo/Redo wird unterstützt
+1. Datei auswählen → die enthaltenen Seiten werden aufgelistet.
+2. Gewünschte Seiten per Checkbox markieren (oder „Alle auswählen").
+3. „Importieren".
 
-#### Element in andere JSON-Datei exportieren
+Importierte Seiten erhalten neue interne IDs (um Konflikte zu vermeiden); die `field_id`-Werte der
+Elemente bleiben erhalten, damit die Datenbindung intakt bleibt. Edit- und zugehörige View-Seite
+werden als Paar übernommen. Der Import lässt sich rückgängig machen.
 
-Sie können ein Element in eine externe JSON-Datei exportieren, ohne den aktuellen Flow zu verändern:
+---
 
-1. Klicken Sie auf das **Export-Symbol** (Teilen-Icon) in der Elementkarte
-2. Klicken Sie im Dialog auf **„Zieldatei auswählen"** und wählen Sie eine JSON-Datei aus
-3. Die Seiten der Zieldatei werden angezeigt – wählen Sie die **Zielseite** aus
-4. Wählen Sie die **Position**: „Am Anfang der Seite" oder „Am Ende der Seite"
-5. Klicken Sie auf **„Exportieren"**
-6. Die modifizierte Zieldatei wird automatisch als `[Dateiname]_modified.json` heruntergeladen
+## 5. Elemente hinzufügen & verschachteln
 
-**Hinweise:**
-- Der aktuelle Flow wird **nicht verändert** – nur die Zieldatei erhält das neue Element
-- Die `field_id`-Werte werden **beibehalten** (kein Konflikt, da unterschiedliche Flows)
-- UUIDs werden neu generiert, um Eindeutigkeit in der Zieldatei zu gewährleisten
-- Falls das Element Sichtbarkeitsbedingungen mit Feldverweisen enthält, wird eine **Warnung** angezeigt, da diese Felder in der Zieldatei möglicherweise nicht existieren
-- Unterstützt alle Elementtypen einschließlich verschachtelter Gruppen und Arrays
+### Element hinzufügen
 
-#### Bearbeitungsoberfläche
+In der mittleren Spalte fügen Sie über die Element-Auswahl ein neues Element hinzu. Der Auswahl-Dialog
+bietet:
 
-1. **Strukturnavigator**: Zeigt die hierarchische Struktur aller Elemente
-   - Einfache Navigation durch verschachtelte Elemente (bis zu 6 Ebenen)
-   - Direkte Auswahl von Unterelementen
-   - Übersichtliche Darstellung der Elementhierarchie
-   - Anzeige des Containertyps (Gruppe, Array, Chip-Gruppe, etc.)
-   - Farbliche Unterscheidung verschiedener Containertypen
-   - Anzeige der Anzahl von Unterelementen
+- ein **Suchfeld** (filtert nach Name, Typ und Beschreibung),
+- eine **Beschreibung je Elementtyp**,
+- eine **Vorab-Prüfung der Verschachtelungsregeln**: Typen, die im aktuellen Container nicht erlaubt
+  sind, werden deaktiviert und mit Begründung angezeigt.
 
-2. **EnhancedPropertyEditor**: Verbesserte Eigenschaftsbearbeitung
-   - Tabs für verschiedene Kategorien (Allgemein, Sichtbarkeit, Unterelemente, JSON)
-   - Spezialisierte Editoren für jeden Elementtyp
-   - Umfassende Bearbeitung aller Elementeigenschaften
-   - Anzeige des Containertyps im Header
-   - Verbesserte Strukturnavigation für Unterelemente
-   - Unterstützung für komplexe JSON-Strukturen
+### Verschachteln & Container
 
-3. **ElementContextView**: Kontextinformationen zum ausgewählten Element
-   - Anzeige des Elementpfads mit Containertyp-Informationen
-   - Schnellzugriff auf übergeordnete Elemente
-   - Kontextbezogene Aktionen je nach Containertyp
-   - Detaillierte Anzeige von Elementeigenschaften
-   - Verbesserte Darstellung von Unterelementen
-   - Containertyp-spezifische Aktionsschaltflächen
-   - **Element auf andere Seite kopieren** (Kopier-Symbol)
-   - **Element in andere JSON-Datei exportieren** (Export-Symbol)
-   - **Gruppe auflösen** (bei GroupUIElement-Elementen)
+Container-Elemente nehmen weitere Elemente auf:
 
-### 5. Verschachtelung und Container
+- **Gruppe** — fasst Elemente zusammen (bildet auch optisch eine Gruppe). Kann alle Typen enthalten.
+- **Array** — wiederholbare Elementgruppen. Kann alle Typen enthalten.
+- **Chip-Gruppe** — enthält ausschließlich Boolean-Elemente (Chips).
+- **Benutzerdefiniert (Custom)** — kann Elemente und Subflows enthalten (z. B. Scanner).
 
-Elemente können verschachtelt werden:
-1. Gruppe oder Array-Element erstellen
-2. Weitere Elemente per Drag & Drop in das Container-Element ziehen
-3. Verschachtelungstiefe nach Bedarf erweitern (bis zu 6 Ebenen werden unterstützt)
+Ziehen Sie Elemente per Drag & Drop in einen Container oder ändern Sie ihre Reihenfolge. Die
+Hierarchie ist bis zu sechs Ebenen tief gut handhabbar. In der Hierarchie (links) und im Kontext
+(Mitte) navigieren Sie durch die Ebenen; der Containertyp wird farblich gekennzeichnet.
 
-#### Containertypen
-- **Gruppe (group)**: Fasst mehrere Elemente zusammen, kann alle Elementtypen enthalten
-- **Array (array)**: Ermöglicht wiederholbare Elementgruppen, kann alle Elementtypen enthalten
-- **Chip-Gruppe (chipgroup)**: Enthält nur Boolean-Elemente als Auswahloptionen
-- **Benutzerdefiniert (custom)**: Kann sowohl Elemente als auch Subflows enthalten
-- **Subflow (subflow)**: Spezielle Container für komplexe Workflows
+---
 
-#### Navigation in verschachtelten Strukturen
-1. Nutzen Sie die Breadcrumb-Navigation oben im Editor, um durch die Hierarchie zu navigieren
-2. Verwenden Sie den Strukturnavigator, um direkt zu bestimmten Elementen zu springen
-3. Nutzen Sie die containertyp-spezifischen Schaltflächen in der ElementContextView
-4. Beachten Sie die farbliche Kennzeichnung der verschiedenen Containertypen
+## 6. Elementeigenschaften bearbeiten
 
-## Tipps & Tricks
+Im rechten Eigenschaften-Editor (mit Tabs für Allgemein, Sichtbarkeit, ggf. Unterelemente und JSON)
+bearbeiten Sie:
 
-### Effiziente Bearbeitung
-- Nutzen Sie Gruppenelemente als Container für zusammengehörige Elemente, die dann in der App und im Web auch eine optische Gruppierung bilden
-- Duplizieren Sie ähnliche Elemente statt sie neu zu erstellen
-- Verwenden Sie die JSON-Vorschau für technische Überprüfungen
-- Verschieben Sie mit Pfeilelementen die Elemente bei Bedarf, um die Reihenfolge jederzeit zu ändern
-- Seiten können Sie einfach mit Drag & Drop neu anordnen
-- Nutzen Sie die Containertyp-Anzeige, um schnell zu erkennen, welche Art von Container Sie bearbeiten
-- Verwenden Sie die verbesserte Strukturnavigation, um schnell durch komplexe Hierarchien zu navigieren
-- Beachten Sie die farbliche Kennzeichnung der verschiedenen Containertypen für eine bessere Übersicht
-- **Nutzen Sie die Multi-Selektion**, um mehrere Elemente gleichzeitig in eine Gruppe zusammenzufassen – schneller als einzelnes Drag & Drop
-- **Importieren Sie Seiten** aus bestehenden Flows, um bewährte Seitenstrukturen wiederzuverwenden
-- **Kopieren Sie Elemente zwischen Seiten**, um konsistente Formularstrukturen aufzubauen
-- **Exportieren Sie Elemente** in andere JSON-Dateien, um Flows projektübergreifend zu standardisieren
-
-### Mehrsprachigkeit
-- Füllen Sie alle Sprachversionen direkt aus
-- Nutzen Sie konsistente Bezeichnungen
-- Prüfen Sie die Textlängen in allen Sprachen
-
-### Organisation
-- Gruppieren Sie zusammengehörige Elemente
-- Nutzen Sie aussagekräftige Titel
-- Halten Sie die Verschachtelungstiefe überschaubar (max. 6 Ebenen werden optimal unterstützt)
-- Verwenden Sie den passenden Containertyp für Ihre Anforderungen:
-  - Gruppen für statische Zusammenfassungen
-  - Arrays für wiederholbare Elemente
-  - Chip-Gruppen für Mehrfachauswahl
-  - Custom-Elemente für spezielle Funktionalitäten
-  - Subflows für komplexe Teilabläufe
-- Nutzen Sie die Strukturnormalisierung für konsistente JSON-Ausgabe
-- Achten Sie auf die Validierungshinweise bei der JSON-Vorschau
+- **Titel & Beschreibung** — mehrsprachig (Deutsch/Englisch).
+- **Feld-ID** — bei eingebenden Elementen; hier wird der erfasste Wert gespeichert. Sie wird
+  einheitlich und prominent angezeigt.
+- **Pflichtfeld** — ob eine Eingabe erforderlich ist.
+- **Modul-Zuordnung** — ordnet das Element einem Modul zu (siehe Abschnitt 9). Immer sichtbar; ohne
+  definierte Module mit Hinweis, wie man welche anlegt.
+- **Elementspezifische Einstellungen** — je nach Typ (siehe Abschnitt 7).
+- **Sichtbarkeitsregeln** — siehe unten.
 
 ### Sichtbarkeitsregeln
-- Nutzen Sie den verbesserten VisibilityConditionEditor für komplexe Bedingungen
-- Kombinieren Sie Bedingungen mit logischen Operatoren (UND, ODER, NICHT)
-- Verwenden Sie feldbasierte Bedingungen für dynamische Anzeige
-- Nutzen Sie kontextbasierte Bedingungen für verschiedene Anwendungsfälle (Erstellen, Bearbeiten, Ansicht)
 
-## Best Practices
+Mit dem Bedingungs-Editor steuern Sie, wann ein Element (oder eine Seite) angezeigt wird:
+
+- **Feldbasierte Bedingungen** — abhängig vom Wert eines anderen Feldes.
+- **Kontextbedingungen** — z. B. nur beim Erstellen, Bearbeiten oder Ansehen.
+- **Logische Verknüpfung** — UND / ODER / NICHT für komplexe Bedingungen.
+
+---
+
+## 7. Elementtypen im Überblick
+
+### Anzeige (keine Benutzereingabe)
+- **Text** — statische Überschrift oder Absatz.
+- **Feld-Text** — zeigt den Wert eines Feldes als Text an (dynamisch).
+- **Schlüssel-Wert-Liste**, **Tabelle**, **Bildergalerie** — Anzeige-Elemente, v. a. für den View-Modus.
+- **Kontakt** — zeigt eine Identitäts-/Kontaktkarte (z. B. den zuständigen Energieberater).
+
+### Eingabe
+- **Texteingabe** — ein- oder mehrzeilig, mit optionaler Längen-Validierung.
+- **Nummer** — Ganzzahl oder Dezimalzahl, mit Minimum/Maximum, Default-Wert und Einheit.
+- **Datum** — Jahr, Monat, Tag oder Uhrzeit (je nach Genauigkeit).
+- **Datei** — Datei-/Bild-Upload mit Typ-Beschränkungen.
+
+### Auswahl
+- **Boolean** — Ja/Nein.
+- **Einzelauswahl** — eine Option aus mehreren, als Dropdown oder Button-Gruppe. Jede Option hat
+  einen eindeutigen Schlüssel (wird auf Eindeutigkeit geprüft), eine mehrsprachige Beschriftung und
+  optional ein Icon.
+- **Chip-Gruppe** — mehrere unabhängig aktivierbare Chips.
 
 ### Struktur
-- Logische Gruppierung verwandter Felder
-- Klare Hierarchie der Informationen
-- Konsistente Benennungen
+- **Gruppe**, **Array** — siehe Abschnitt 5.
 
-### Benutzerfreundlichkeit
-- Eindeutige Beschriftungen
-- Hilfreiche Beschreibungstexte
-- Sinnvolle Default-Werte
+### Benutzerdefiniert (Custom)
+- **Scanner** — Scan- und doorbit-Studio-Integration; die Screens während des Scans lassen sich hier
+  über Subflows anpassen.
+- **Adresse** — strukturierte Adresseingabe mit Validierung.
+- **Standort** — GPS-Koordinaten und Kartenintegration.
+- **Umgebung** — Standort-Statistiken (z. B. Altersverteilung, Bildungsniveau).
 
-## Häufige Fragen
+---
 
-### Allgemein
-1. **Wie sichere ich meine Arbeit?**
-   - Regelmäßig über "Speichern" als JSON exportieren
-   - Backups wichtiger Flows anlegen
+## 8. Mehrere Elemente: Auswählen, Gruppieren, Kopieren, Exportieren
 
-2. **Kann ich Änderungen rückgängig machen?**
-   - Ja, über die Undo/Redo-Funktionen in der Werkzeugleiste
+### Mehrfachauswahl & Gruppieren
+1. **Selektionsmodus** aktivieren (Checkbox-Symbol in der Editor-Werkzeugleiste). Neben den Elementen
+   erscheinen Checkboxen; ein **Aktionsbalken** zeigt die Anzahl der ausgewählten Elemente.
+2. Elemente markieren → **„Zu Gruppe zusammenfassen"**.
+3. Gruppentitel und Feld-ID vergeben (wird vorgeschlagen) → die Auswahl wird in eine neue Gruppe
+   eingebettet.
 
-### Technisch
-1. **Welche Dateiformate werden unterstützt?**
-   - Import/Export erfolgt im JSON-Format
-   - Falls Bilder gezeigt werden sollen in dem Workflow, dann müssen diese aktuell noch separat an uns übermittelt werden
+Voraussetzungen: Alle Elemente müssen auf **derselben Ebene** liegen; Elemente innerhalb von Arrays,
+Subflows oder Chip-Gruppen sowie bereits bestehende Gruppen können nicht (erneut) gruppiert werden.
+Bei Verstößen erscheint eine verständliche Meldung.
 
-2. **Wie funktioniert die Mehrsprachigkeit?**
-   - Texte werden in allen konfigurierten Sprachen gespeichert
-   - Sprachen können flexibel erweitert werden
+### Gruppierung auflösen
+Eine Gruppe auswählen → **Auflösen-Symbol**. Die Kinder-Elemente rücken an die Position der Gruppe;
+ihre `field_id`-Werte bleiben unverändert.
 
-3. **Wie tief können Elemente verschachtelt werden?**
-   - Bis zu 6 Ebenen werden optimal unterstützt
-   - Tiefere Verschachtelungen sind möglich, aber die Navigation wird komplexer
+### Element auf andere Seite kopieren
+Kopier-Symbol an der Elementkarte → Zielseite und Position wählen. Das kopierte Element (inkl. aller
+Kinder) erhält **neue** UUIDs und **neue** `field_id`-Werte, um Konflikte im selben Flow zu vermeiden.
 
-4. **Was sind Containertypen und wie nutze ich sie?**
-   - Containertypen (group, array, chipgroup, custom, subflow) definieren das Verhalten von Elementen
-   - Die Anzeige des Containertyps hilft bei der Navigation und Bearbeitung
-   - Jeder Containertyp hat spezifische Eigenschaften und Verwendungszwecke
+### Element in andere JSON-Datei exportieren
+Export-Symbol → Zieldatei, Zielseite und Position wählen. Die Zieldatei wird als
+`[Dateiname]_modified.json` heruntergeladen; der aktuelle Flow bleibt unverändert. Die `field_id`-Werte
+bleiben erhalten (anderer Flow → kein Konflikt). Enthält das Element Sichtbarkeitsbedingungen mit
+Feldverweisen, erscheint eine Warnung, da diese Felder in der Zieldatei evtl. fehlen.
 
-5. **Wie werden komplexe JSON-Strukturen unterstützt?**
-   - Die Strukturnormalisierung sorgt für konsistente JSON-Ausgabe
-   - Die Validierung prüft die Struktur auf Fehler
-   - Komplexe Strukturen wie doorbit_original.json werden unterstützt
+> Alle diese Aktionen unterstützen Undo/Redo.
 
-6. **Wie kann ich mehrere Elemente gleichzeitig gruppieren?**
-   - Aktivieren Sie den Selektionsmodus über das Checkbox-Symbol in der Werkzeugleiste
-   - Wählen Sie die gewünschten Elemente per Checkbox aus
-   - Klicken Sie auf „Zu Gruppe zusammenfassen" im schwebenden Aktionsbalken
-   - Alle Elemente müssen auf derselben Ebene liegen
+---
 
-7. **Wie kann ich eine Gruppe wieder auflösen?**
-   - Wählen Sie die Gruppe im Editor aus
-   - Klicken Sie auf das Auflösen-Symbol (Ungroup) in der Elementkarte
-   - Die Kinder-Elemente werden an der Position der Gruppe eingefügt
+## 9. Module (modulare Flows)
 
-8. **Wie kann ich Seiten aus einem anderen Flow übernehmen?**
-   - Nutzen Sie die Import-Funktion neben dem „+"-Button in der Seitennavigation
-   - Wählen Sie die Quell-JSON-Datei aus und markieren Sie die gewünschten Seiten
-   - Die importierten Seiten erhalten neue IDs, behalten aber ihre interne Struktur bei
+Ein Flow kann optionale **Module** deklarieren — Bündel aus Seiten/Feldern, die ein Projekt bei Bedarf
+(auch nachträglich) aktiviert. Mit `module_id` markierte Seiten oder Elemente sind nur sichtbar, wenn
+das zugehörige Modul im Projekt aktiv ist.
 
-9. **Was passiert mit field_ids beim Kopieren und Exportieren?**
-   - **Kopieren innerhalb desselben Flows**: `field_id`-Werte werden **neu generiert**, um Duplikate zu vermeiden
-   - **Exportieren in eine andere JSON-Datei**: `field_id`-Werte werden **beibehalten**, da kein Konflikt in einem anderen Flow besteht
-   - **Seitenimport**: `field_id`-Werte werden **beibehalten**, damit die Datenbindung innerhalb der Seite funktioniert
+- **Modul-Katalog verwalten:** Schaltfläche **„Module"** in der Werkzeugleiste — Module anlegen,
+  bearbeiten, löschen. Je Modul: ID, Name, Beschreibung, Icon und ob es standardmäßig aktiv ist.
+- **Auslieferungsart:**
+  - **INLINE** — das Modul ist im Flow enthalten.
+  - **CATALOG** — das Modul ist ein eigenständiges, versioniertes Artefakt, das separat exportiert/
+    importiert und nachgeladen werden kann.
+- **Zuordnung:** Im Eigenschaften-Editor (Element) und im Seiten-Dialog ordnen Sie über
+  **„Modul-Zuordnung"** ein Element/eine Seite einem Modul zu. Verweist eine Zuordnung auf ein nicht
+  (mehr) vorhandenes Modul, wird das als „⚠ Unbekannt" angezeigt; der Modul-Manager warnt vor solchen
+  verwaisten Zuordnungen.
 
-10. **Werden Sichtbarkeitsbedingungen beim Kopieren übernommen?**
-    - Ja, Sichtbarkeitsbedingungen werden mitkopiert
-    - Beim Export in eine andere Datei wird eine Warnung angezeigt, falls Feldverweise existieren, die in der Zieldatei möglicherweise nicht vorhanden sind
+---
+
+## 10. Tipps & häufige Fragen
+
+### Tipps
+- **Gruppen** schaffen auch in App und Web eine optische Zusammenfassung — nutzen Sie sie für
+  zusammengehörige Felder.
+- **Mehrfachauswahl** ist schneller als einzelnes Drag & Drop, wenn Sie mehrere Elemente gruppieren.
+- **Seiten importieren** und **Elemente kopieren/exportieren** helfen, bewährte Strukturen
+  wiederzuverwenden und projektübergreifend zu standardisieren.
+- Achten Sie auf den **Validierungs-Indikator** — er weist früh auf strukturelle Probleme hin.
+- Füllen Sie alle Sprachversionen aus und halten Sie die Verschachtelung überschaubar (≤ 6 Ebenen).
+
+### Häufige Fragen
+
+**Wie sichere ich meine Arbeit?**
+Regelmäßig über „Speichern" als JSON exportieren und Backups wichtiger Flows anlegen. Das Toolkit
+speichert nicht serverseitig.
+
+**Kann ich Änderungen rückgängig machen?**
+Ja, über Rückgängig/Wiederherstellen (Strg/Cmd+Z bzw. Y). Auch Importe, Kopien und Gruppierungen sind
+umkehrbar.
+
+**Welches Dateiformat wird verwendet?**
+Import und Export erfolgen als JSON. Sollen im Workflow Bilder gezeigt werden, müssen diese aktuell
+noch separat übermittelt werden.
+
+**Wie funktioniert die Mehrsprachigkeit?**
+Texte werden in allen konfigurierten Sprachen (mind. Deutsch/Englisch) gespeichert.
+
+**Was ist eine Feld-ID — und was passiert mit ihr beim Kopieren/Exportieren?**
+Die Feld-ID bestimmt, wo der erfasste Wert abgelegt wird. Beim **Kopieren innerhalb desselben Flows**
+wird sie **neu generiert** (Konfliktvermeidung); beim **Export in eine andere Datei** und beim
+**Seitenimport** bleibt sie **erhalten**.
+
+**Wozu dienen Module?**
+Module bündeln optionale Seiten/Felder, die pro Projekt aktiviert werden. So lässt sich ein Basis-Flow
+um projektspezifische Teile erweitern, ohne ihn zu duplizieren (siehe Abschnitt 9).
+
+**Warum kann ich ein bestimmtes Element hier nicht hinzufügen?**
+Manche Typen sind in bestimmten Containern nicht erlaubt. Der Element-Auswahl-Dialog zeigt solche
+Typen deaktiviert mit Begründung an.
+
+**Werden Sichtbarkeitsbedingungen mitkopiert?**
+Ja. Beim Export in eine andere Datei erscheint zusätzlich eine Warnung, falls die Bedingung auf Felder
+verweist, die dort evtl. nicht existieren.
