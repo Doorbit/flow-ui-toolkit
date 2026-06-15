@@ -36,7 +36,7 @@ Stack: React 19, TypeScript 4.9, Material-UI (MUI) 7, styled-components, react-d
 | **Element-Editoren** | `src/components/PropertyEditor/editors/*` (Text, Boolean, String, SingleSelection, Number, Date, File, Group, Array, ChipGroup, Custom, Visibility) |
 | **Palette** | `src/components/ElementPalette/ElementPalette.tsx` (ziehbare Element-Typen) |
 | **Seiten** | `src/components/PageNavigator/PageNavigator.tsx`, `EditPageDialog.tsx` |
-| **Flow-Metadaten** | `src/App.tsx` (hält Flow-State + leeres Template), `src/components/Navigation/Navigation.tsx`, `WorkflowNameDialog/` |
+| **Flow-Metadaten** | `src/App.tsx` (hält Flow-State + leeres Template), `src/components/Navigation/Navigation.tsx`, `FlowMetadataDialog/` (id/url-key/name/title/icon, Validierung in `utils/flowMetadata.ts`) |
 | **Export/UUID** | `src/utils/uuidUtils.ts` (Export-Transform — strippt `uuid`) |
 | **Utilities** | `SubflowManager.ts`, `normalizeUtils.ts`, `visibilityUtils.ts`, `deepCloneUtils.ts`, `pathUtils.ts` |
 

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { tokens } from './theme/tokens';
 import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
-import WorkflowNameDialog from './components/WorkflowNameDialog/WorkflowNameDialog';
+import FlowMetadataDialog, { FlowMetadata } from './components/FlowMetadataDialog/FlowMetadataDialog';
 import ModuleManagerDialog from './components/ModuleManager/ModuleManagerDialog';
 
 import Navigation from './components/Navigation/Navigation';
@@ -1638,7 +1638,7 @@ const createElement = (type: string): PatternLibraryElement => {
 const AppContent: React.FC = () => {
   const { state, dispatch } = useEditor();
   const [selectedElementPath, setSelectedElementPath] = useState<number[]>([]);
-  const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
+  const [showFlowMetadataDialog, setShowFlowMetadataDialog] = useState<boolean>(false);
   const [showModuleManager, setShowModuleManager] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   // Erstkontakt-Onboarding: beim ersten Start automatisch zeigen (einmalig via localStorage).
@@ -2218,42 +2218,25 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Handler für das Bearbeiten des Workflow-Namens
+  // Handler für das Bearbeiten der Flow-Metadaten
   const handleEditWorkflowName = () => {
-    setShowWorkflowNameDialog(true);
+    setShowFlowMetadataDialog(true);
   };
 
-  // Handler für das Speichern des Workflow-Namens
-  const handleSaveWorkflowName = (name: string) => {
-    if (!name) return;
-
-    const newFlow = {
-      ...emptyFlow,
-      id: name.toLowerCase().replace(/\s+/g, '-'),
-      'url-key': name.toLowerCase().replace(/\s+/g, '-'),
-      name: name,
-      title: {
-        de: name,
-        en: name
-      }
+  // Handler für das Speichern der Flow-Metadaten (id, url-key, name, title, icon)
+  const handleSaveFlowMetadata = (meta: FlowMetadata) => {
+    const fields = {
+      id: meta.id,
+      'url-key': meta.urlKey,
+      name: meta.name,
+      title: { de: meta.titleDe, en: meta.titleEn || meta.titleDe },
+      icon: meta.icon,
     };
 
-    // Wenn es bereits einen Flow gibt, aktualisieren wir nur den Namen
     if (state.currentFlow) {
-      const updatedFlow = {
-        ...state.currentFlow,
-        id: name.toLowerCase().replace(/\s+/g, '-'),
-        'url-key': name.toLowerCase().replace(/\s+/g, '-'),
-        name: name,
-        title: {
-          de: name,
-          en: name
-        }
-      };
-      dispatch({ type: 'UPDATE_FLOW', flow: updatedFlow });
+      dispatch({ type: 'UPDATE_FLOW', flow: { ...state.currentFlow, ...fields } });
     } else {
-      // Ansonsten erstellen wir einen neuen Flow
-      dispatch({ type: 'SET_FLOW', flow: newFlow });
+      dispatch({ type: 'SET_FLOW', flow: { ...emptyFlow, ...fields } });
     }
   };
 
@@ -2402,13 +2385,19 @@ const AppContent: React.FC = () => {
         <KeyboardShortcutsDialog open={showShortcuts} onClose={() => setShowShortcuts(false)} />
         <OnboardingDialog open={showOnboarding} onClose={closeOnboarding} />
 
-        {/* Workflow-Namen-Dialog */}
-        <WorkflowNameDialog
-          open={showWorkflowNameDialog}
-          initialName={state.currentFlow?.name || ""}
-          onClose={() => setShowWorkflowNameDialog(false)}
-          onSave={handleSaveWorkflowName}
-          isFirstTime={false}
+        {/* Flow-Metadaten-Dialog */}
+        <FlowMetadataDialog
+          open={showFlowMetadataDialog}
+          onClose={() => setShowFlowMetadataDialog(false)}
+          onSave={handleSaveFlowMetadata}
+          initial={{
+            name: state.currentFlow?.name ?? emptyFlow.name,
+            id: state.currentFlow?.id ?? emptyFlow.id,
+            urlKey: state.currentFlow?.['url-key'] ?? emptyFlow['url-key'],
+            titleDe: state.currentFlow?.title?.de ?? '',
+            titleEn: state.currentFlow?.title?.en ?? '',
+            icon: state.currentFlow?.icon ?? emptyFlow.icon,
+          }}
         />
 
         {/* Modul-Katalog-Manager */}

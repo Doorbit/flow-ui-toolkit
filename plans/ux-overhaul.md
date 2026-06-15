@@ -59,7 +59,7 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 
 ## Phase 5 — Seiten & Flow-Metadaten
 - [x] **Layout-Vorschau + Layout-Wahl bei Seitenanlage** *(PR Phase 5a)*: Zentrale `pageLayouts.ts` (Single Source of Truth, unit-getestet) + SVG-`LayoutPreview`. Schema-Abgleich mit portal (`d-fc-page-default.vue`): nur `null`/Standard, `2_COL_RIGHT_WIDER`, `2_COL_RIGHT_FILL` werden gerendert — der Editor bot zusätzlich `2_COL_LEFT_WIDER`/`1_COL` an (**Schema-Drift, entfernt**). Layout jetzt mit Vorschau in `EditPageDialog` **und** schon im Neue-Seite-Dialog wählbar; abwesendes Layout = „Standard"; nicht unterstützte Alt-Werte werden als deaktivierter „⚠ Nicht unterstützt"-Eintrag sichtbar gemacht. **`pattern_type`-Auswahl bewusst verworfen**: portal verzweigt nicht über den Page-`pattern_type` (alle Top-Level-Seiten laufen durch `d-fc-page-default`), ein Selektor wäre wirkungslos und driftgefährdet.
-- [ ] Flow-Metadaten editierbar (id/url-key mit Validierung, Flow-Icon, Title de/en); `related_pages` dokumentieren. *(Phase 5b — Flow-`description` entfällt: nicht im `ListingFlow`-Schema von portal.)*
+- [x] **Flow-Metadaten editierbar** *(PR Phase 5b)*: Neuer `FlowMetadataDialog` (über `DialogBase`) ersetzt den reinen Namens-Dialog und macht `id`, `url-key`, `name`, `title` (de/en) und `icon` editierbar; `id`/`url-key` werden als slug-artige Identifier validiert (`utils/flowMetadata.ts`, unit-getestet), mit „aus Name"-Ableitung. Befund: vorher leitete der Dialog `id`/`url-key`/`title` still aus dem Namen ab und das Icon war gar nicht editierbar. `related_pages` + Layout-Vertrag in `docs/technical_documentation.md` dokumentiert. Flow-`description` bewusst weggelassen — nicht im `ListingFlow`-Schema von portal.
 
 ---
 

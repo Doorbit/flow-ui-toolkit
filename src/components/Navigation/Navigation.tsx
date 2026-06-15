@@ -118,7 +118,7 @@ const Navigation: React.FC<NavigationProps> = ({
               Speichern
             </Button>
           </Tooltip>
-          <Tooltip title="Workflow-Namen bearbeiten">
+          <Tooltip title="Flow-Eigenschaften bearbeiten (Name, ID, URL-Key, Titel, Icon)">
             <Button
               variant="contained"
               startIcon={<EditIcon />}

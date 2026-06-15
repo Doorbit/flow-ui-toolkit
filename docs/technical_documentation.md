@@ -50,14 +50,47 @@ interface ListingFlow {
 interface Page {
   pattern_type: string; // "Page" oder "CustomUIElement"
   id: string;
-  layout?: string; // z.B. "2_COL_RIGHT_FILL" für Edit-Seiten
-  related_pages?: RelatedPage[]; // Verknüpfung zu korrespondierenden Seiten
+  layout?: string; // siehe "Seiten-Layout" unten
+  related_pages?: RelatedPage[]; // Verknüpfung Edit-/View-Seite, siehe unten
   short_title?: TranslatableString; // Kurztitel für kompakte Anzeige
   title?: TranslatableString; // Vollständiger Seitentitel
   icon?: string; // Material Design Icon-Name
   elements: PatternLibraryElement[];
 }
 ```
+
+##### Seiten-Layout (`layout`)
+
+Das `layout`-Feld steuert, wie portal die rechte Spalte einer Seite rendert. **portal
+unterstützt genau drei Werte** (Quelle: `portal-applications` → `d-fc-page-default.vue`); jeder
+andere Wert läuft dort in den „unbekannter Typ"-Zweig:
+
+| Wert | Bedeutung |
+|---|---|
+| _(nicht gesetzt)_ | **Standard** — rechte Spalte zentriert |
+| `2_COL_RIGHT_WIDER` | zwei Spalten, rechte Spalte breiter zentriert |
+| `2_COL_RIGHT_FILL` | zwei Spalten, genau ein rechtes Element füllt die Spalte |
+
+Single Source of Truth im Editor: `src/components/PageNavigator/pageLayouts.ts`. Der Editor bietet
+nur diese Werte an (mit Live-Vorschau via `LayoutPreview`); ein abwesendes Layout wird als
+„Standard" dargestellt. Frühere Optionen `2_COL_LEFT_WIDER`/`1_COL` waren Schema-Drift und wurden
+entfernt.
+
+##### Korrespondierende Seiten (`related_pages`)
+
+```typescript
+interface RelatedPage {
+  viewing_context: 'VIEW' | 'EDIT'; // Kontext der referenzierten Seite
+  page_id: string;                  // ID der referenzierten Seite
+}
+```
+
+Jeder Flow hält Seiten zweimal: `pages_edit` (Eingabe) und `pages_view` (Anzeige). `related_pages`
+verknüpft eine Edit-Seite mit ihrer View-Seite und umgekehrt — `viewing_context` gibt an, in welchem
+Kontext die referenzierte Seite steht. Der Editor pflegt diese Verknüpfung automatisch: Beim
+Speichern einer Edit-Seite mit aktivem „Im View-Modus anzeigen" wird die zugehörige View-Seite
+erzeugt/aktualisiert und über `related_pages` (bzw. die ID-Konvention `edit-…` ↔ `view-…`)
+zugeordnet (siehe `findCorrespondingViewPage()`).
 
 #### TranslatableString
 ```typescript
