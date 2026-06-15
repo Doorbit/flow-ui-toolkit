@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   FormControl,
@@ -45,6 +46,25 @@ interface SingleSelectionElementEditorEnhancedProps {
 }
 
 /**
+ * Validiert den Schlüssel einer Option an Position `index`.
+ * Der Schlüssel ist vertragskritisch: portal speichert den ausgewählten Wert
+ * über diesen `key`. Leere oder doppelte Schlüssel erzeugen fehlerhafte Flows.
+ * @returns Fehlertext oder `null`, wenn der Schlüssel gültig ist.
+ */
+export function getOptionKeyError(
+  options: { key: string }[],
+  index: number
+): string | null {
+  const key = (options[index]?.key || '').trim();
+  if (!key) return 'Schlüssel darf nicht leer sein';
+  const duplicate = options.some(
+    (option, i) => i !== index && (option.key || '').trim() === key
+  );
+  if (duplicate) return 'Schlüssel muss eindeutig sein';
+  return null;
+}
+
+/**
  * Verbesserte Editor-Komponente für SingleSelectionUIElement.
  * Ermöglicht die Bearbeitung von Auswahlfeldern mit Optionen.
  */
@@ -65,8 +85,12 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
   const handleAddOption = () => {
     if (!newOption.trim()) return;
 
-    // Erstelle eine eindeutige ID für die neue Option
-    const key = uuidv4().substring(0, 8);
+    // Erstelle eine eindeutige ID für die neue Option (Kollisionen vermeiden)
+    const existingKeys = new Set((element.options || []).map((o) => o.key));
+    let key = uuidv4().substring(0, 8);
+    while (existingKeys.has(key)) {
+      key = uuidv4().substring(0, 8);
+    }
 
     const newOptions = [
       ...(element.options || []),
@@ -275,6 +299,13 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
             Optionen
           </Typography>
 
+          {(element.options || []).some((_, i) => getOptionKeyError(element.options || [], i)) && (
+            <Alert severity="warning" sx={{ mb: 1 }}>
+              Jede Option braucht einen eindeutigen, nicht-leeren Schlüssel. Doppelte oder
+              leere Schlüssel führen zu fehlerhaften Flows.
+            </Alert>
+          )}
+
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
               <TableHead>
@@ -302,6 +333,8 @@ export const SingleSelectionElementEditorEnhanced: React.FC<SingleSelectionEleme
                         fullWidth
                         size="small"
                         value={option.key}
+                        error={!!getOptionKeyError(element.options || [], index)}
+                        helperText={getOptionKeyError(element.options || [], index) || undefined}
                         onChange={(e) => handleUpdateOptionKey(index, e.target.value)}
                       />
                     </TableCell>
