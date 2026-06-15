@@ -219,6 +219,9 @@ const TreeNode: React.FC<{
   const isSelected = arePathsEqual(path, selectedPath);
   const isInCurrentPath = path.length <= currentPath.length &&
                           path.every((value, index) => value === currentPath[index]);
+  // Genau dieser Container ist aktuell „geöffnet" (seine Kinder füllen die mittlere Spalte).
+  // Drill-down ≠ Auswahl: das wird an der Drill-Schaltfläche sichtbar gemacht.
+  const isCurrentContext = currentPath.length > 0 && arePathsEqual(path, currentPath);
 
   // Verwende die importierte getSubElements Funktion
   const children = React.useMemo(() => getSubElements(element), [element]);
@@ -226,6 +229,10 @@ const TreeNode: React.FC<{
 
   // Bestimme den Container-Typ des Elements
   const containerType = React.useMemo(() => getContainerType(element), [element]);
+  const containerColor = containerType === 'array' ? '#F05B29' :
+                         containerType === 'chipgroup' ? '#3F51B5' : '#009F64';
+  const containerColorDark = containerType === 'array' ? '#D04E24' :
+                             containerType === 'chipgroup' ? '#303F9F' : '#008555';
 
   // Bestimme, ob das Element eine Visibility Condition hat
   const hasVisibilityCondition = () => {
@@ -311,12 +318,14 @@ const TreeNode: React.FC<{
         isLastChild={isLastChildInLevel}
         hasChildren={hasActualChildren}
         onClick={() => onSelectElement(path)}
+        aria-current={isSelected ? 'true' : undefined}
         sx={isDirectMatch ? { backgroundColor: 'rgba(25, 118, 210, 0.08)', fontWeight: 'bold' } : undefined}
       >
         <TreeItemContent>
           {hasActualChildren ? (
             <IconButton
               size="small"
+              aria-label={expanded ? 'Unterelemente zuklappen' : 'Unterelemente aufklappen'}
               sx={{ position: 'relative' }} // Für ::before Pseudoelement
               onClick={(e) => {
                 e.stopPropagation();
@@ -359,26 +368,31 @@ const TreeNode: React.FC<{
           />
 
           {hasActualChildren && ( // Verwende hasActualChildren
-            <Tooltip title={`${containerType === 'group' ? 'Gruppe öffnen' :
-                             containerType === 'array' ? 'Array öffnen' :
-                             containerType === 'chipgroup' ? 'Chips anzeigen' :
-                             containerType === 'custom' ? 'Custom-Element öffnen' :
-                             containerType === 'subflow' ? 'Subflow öffnen' :
-                             'Unterelemente anzeigen'}`}>
+            <Tooltip title={isCurrentContext
+              ? 'Geöffnet — der Inhalt erscheint in der mittleren Spalte'
+              : (containerType === 'group' ? 'Gruppe öffnen' :
+                 containerType === 'array' ? 'Array öffnen' :
+                 containerType === 'chipgroup' ? 'Chips anzeigen' :
+                 containerType === 'custom' ? 'Custom-Element öffnen' :
+                 containerType === 'subflow' ? 'Subflow öffnen' :
+                 'Unterelemente anzeigen')}>
               <IconButton
                 size="small"
+                aria-label={isCurrentContext
+                  ? `${getDisplayName()}: geöffnet`
+                  : `${getDisplayName()} öffnen — Inhalt in der mittleren Spalte anzeigen`}
+                aria-pressed={isCurrentContext}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDrillDown(path);
                 }}
                 sx={{
                   ml: 'auto',
-                  color: containerType === 'group' ? '#009F64' :
-                         containerType === 'array' ? '#F05B29' :
-                         containerType === 'chipgroup' ? '#3F51B5' :
-                         containerType === 'custom' ? '#009F64' :
-                         containerType === 'subflow' ? '#009F64' :
-                         '#009F64'
+                  color: isCurrentContext ? '#fff' : containerColor,
+                  ...(isCurrentContext ? {
+                    bgcolor: containerColor,
+                    '&:hover': { bgcolor: containerColorDark },
+                  } : {}),
                 }}
               >
                 <AccountTreeIcon fontSize="small" />

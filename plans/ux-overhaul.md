@@ -40,9 +40,9 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 - [x] Restliche `alert/confirm`-Reste auf Feedback-System — erledigt mit F1 (#9).
 
 ## Phase 2 — Orientierung & Navigation
-- [ ] „Auswählen" vs. „Drill-down" entkoppeln/visuell trennen; `selectedElementPath`↔`currentPath` vereinfachen (`HybridEditor.tsx`, `ElementHierarchyTree.tsx:362–387`).
+- [~] „Auswählen" vs. „Drill-down" **visuell getrennt** *(PR Phase 2-Rest)*: Funktional waren beide schon entkoppelt (Zeile=auswählen, Baum-Icon=drill, „Gruppe öffnen"-Button=drill). Neu: die Drill-Schaltfläche des aktuell geöffneten Containers zeigt einen **aktiven Zustand** (`isCurrentContext`) + `aria-pressed` → „wo bin ich drin" ≠ „was bearbeite ich". Der tiefere `selectedElementPath`↔`currentPath`-State-Refactor bleibt **bewusst offen** (spekulativ, braucht Live-Usability-Runde).
 - [x] **Empty States + Erstkontakt-Onboarding** *(PR Phase 2)*: `OnboardingDialog` (via DialogBase) erklärt das 3-Spalten-Modell + Grundablauf; First-Run automatisch (localStorage `flowToolkit.onboardingSeen`), jederzeit über Toolbar-Icon „Erste Schritte" erneut aufrufbar. Leere Mitte mit CTA war bereits vorhanden.
-- [~] Accessibility: 3 Spalten als Landmarks (`role="region"` + `aria-label`) **erledigt** *(PR Phase 2)*; Fokus-Management/Kontraste/weitere Landmarks weiterhin offen.
+- [~] Accessibility: 3 Spalten als Landmarks (`role="region"` + `aria-label`) **erledigt** *(PR Phase 2)*; Hierarchie-Baum: `aria-label` auf Auf-/Zuklappen- & Drill-Buttons, `aria-current` für die Auswahl, `aria-pressed` am Drill-Button **erledigt** *(PR Phase 2-Rest)*. Fokus-Management/Kontraste weiterhin offen.
 - [x] **Keyboard-Shortcuts-Hilfe** *(PR #11)*: Dialog (via DialogBase) listet die vorhandenen, bislang undokumentierten Shortcuts (Strg+Z/Y/S, Esc); Tastatur-Icon in der Toolbar.
 
 ## Phase 3 — Auffindbarkeit & Effizienz
