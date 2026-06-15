@@ -25,6 +25,7 @@ import { ListingFlow, Page } from '../../models/listingFlow';
 import { normalizeElementTypes } from '../../utils/normalizeUtils';
 import { deepClonePagePair, findCorrespondingViewPage } from '../../utils/deepCloneUtils';
 import { ensureUUIDs } from '../../utils/uuidUtils';
+import { tokens } from '../../theme/tokens';
 
 interface ImportPagesDialogProps {
   open: boolean;
@@ -161,7 +162,7 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
       PaperProps={{ sx: { minHeight: 400 } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <UploadFileIcon sx={{ color: '#009F64' }} />
+        <UploadFileIcon sx={{ color: tokens.brand.green }} />
         Seiten importieren
       </DialogTitle>
 
@@ -181,7 +182,7 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
             variant="outlined"
             startIcon={<FolderOpenIcon />}
             onClick={handleFileSelect}
-            sx={{ borderColor: '#009F64', color: '#009F64' }}
+            sx={{ borderColor: tokens.brand.green, color: tokens.brand.green }}
           >
             {sourceFlow ? 'Andere Datei wählen' : 'JSON-Datei auswählen'}
           </Button>
@@ -207,7 +208,7 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
         {/* Quelldatei-Info */}
         {sourceFlow && (
           <>
-            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F8FAFC', borderRadius: 1, border: '1px solid #E0E0E0' }}>
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: tokens.surface.appBg, borderRadius: 1, border: `1px solid ${tokens.neutral.border}` }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Quelldatei: <strong>{sourceFlow.name || sourceFlow.id || sourceFileName}</strong>
               </Typography>
@@ -226,14 +227,14 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
               <Button
                 size="small"
                 onClick={handleToggleAll}
-                sx={{ color: '#009F64' }}
+                sx={{ color: tokens.brand.green }}
               >
                 {allSelected ? 'Auswahl aufheben' : 'Alle auswählen'}
               </Button>
             </Box>
 
             {/* Seitenliste */}
-            <List dense sx={{ maxHeight: 300, overflow: 'auto', border: '1px solid #E0E0E0', borderRadius: 1 }}>
+            <List dense sx={{ maxHeight: 300, overflow: 'auto', border: `1px solid ${tokens.neutral.border}`, borderRadius: 1 }}>
               {sourceFlow.pages_edit.map((page) => {
                 const isSelected = selectedPageIds.includes(page.id);
                 const pageTitle = page.title?.de || page.short_title?.de || page.id;
@@ -256,8 +257,8 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
                           tabIndex={-1}
                           disableRipple
                           sx={{
-                            color: '#009F64',
-                            '&.Mui-checked': { color: '#009F64' },
+                            color: tokens.brand.green,
+                            '&.Mui-checked': { color: tokens.brand.green },
                           }}
                         />
                       </ListItemIcon>
@@ -313,9 +314,9 @@ const ImportPagesDialog: React.FC<ImportPagesDialogProps> = ({
           onClick={handleImport}
           disabled={selectedPageIds.length === 0}
           sx={{
-            bgcolor: '#009F64',
-            '&:hover': { bgcolor: '#008755' },
-            '&.Mui-disabled': { bgcolor: '#E0E0E0' },
+            bgcolor: tokens.brand.green,
+            '&:hover': { bgcolor: tokens.brand.greenHoverAlt },
+            '&.Mui-disabled': { bgcolor: tokens.neutral.border },
           }}
         >
           {selectedPageIds.length > 0

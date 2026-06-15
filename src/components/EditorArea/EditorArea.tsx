@@ -29,6 +29,7 @@ import {
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { logger } from '../../utils/logger';
 import { UIElement, GroupUIElement } from '../../models/uiElements';
+import { tokens } from '../../theme/tokens';
 import { useEditor, getElementByPath } from '../../context/EditorContext'; // useEditor importieren
 import { useFieldValues } from '../../context/FieldValuesContext';
 import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
@@ -39,7 +40,7 @@ import { useDrop } from 'react-dnd';
 const EditorContainer = styled(Paper)`
   flex: 1;
   padding: 1rem;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
   min-height: 70vh;
   display: flex;
   flex-direction: column;
@@ -62,12 +63,12 @@ const ElementContainer = styled(Card)<{
         : props.depth === 2
           ? 'rgba(0, 159, 100, 0.05)'
           : 'rgba(0, 159, 100, 0.08)'};
-  border: 1px solid ${props => props.selected ? '#009F64' : '#e0e0e0'};
+  border: 1px solid ${props => props.selected ? tokens.brand.green : tokens.neutral.border};
   box-shadow: ${props =>
     props.isDragging
       ? '0 5px 10px rgba(0, 0, 0, 0.2)'
       : props.selected
-        ? '0 0 0 2px #009F64'
+        ? `0 0 0 2px ${tokens.brand.green}`
         : 'none'};
   opacity: ${props => props.isDragging ? 0.6 : 1};
   cursor: ${props => props.isDragging ? 'grabbing' : 'default'};
@@ -97,22 +98,22 @@ const EmptyState = styled(({ $isOver, ...props }) => <Box {...props} />)<{ $isOv
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: #343951;
+  color: ${tokens.text.secondary};
   padding: 2rem;
   background-color: ${props => props.$isOver ? 'rgba(0, 159, 100, 0.05)' : 'rgba(0, 159, 100, 0.02)'};
   border-radius: 8px;
-  border: 2px dashed ${props => props.$isOver ? '#009F64' : 'rgba(0, 159, 100, 0.2)'};
+  border: 2px dashed ${props => props.$isOver ? tokens.brand.green : 'rgba(0, 159, 100, 0.2)'};
   transition: all 0.2s ease;
 `;
 
 // Filter transient props for DropZone
 const DropZone = styled(({ $isOver, ...props }) => <Box {...props} />)<{ $isOver?: boolean }>`
-  border: 2px dashed ${props => props.$isOver ? '#009F64' : 'rgba(0, 159, 100, 0.3)'};
+  border: 2px dashed ${props => props.$isOver ? tokens.brand.green : 'rgba(0, 159, 100, 0.3)'};
   border-radius: 8px;
   padding: 1rem;
   margin: 0.5rem 0;
   text-align: center;
-  color: #343951;
+  color: ${tokens.text.secondary};
   background-color: ${props => props.$isOver ? 'rgba(0, 159, 100, 0.05)' : 'transparent'};
   transition: all 0.2s ease;
 `;
@@ -124,7 +125,7 @@ const ElementDropZoneWrapper = styled(Box)`
 
 const ElementDropZoneLine = styled(Box)<{ canDrop: boolean }>`
   height: 2px;
-  background-color: ${props => props.canDrop ? '#009F64' : '#F05B29'};
+  background-color: ${props => props.canDrop ? tokens.brand.green : tokens.brand.orange};
   width: 100%;
   transition: all 0.2s ease;
 `;
@@ -133,7 +134,7 @@ const AddElementButton = styled(Button)`
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   background-color: rgba(0, 159, 100, 0.1);
-  color: #009F64;
+  color: ${tokens.brand.green};
   &:hover {
     background-color: rgba(0, 159, 100, 0.2);
   }

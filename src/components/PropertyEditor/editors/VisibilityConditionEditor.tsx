@@ -30,6 +30,7 @@ import {
   RelationalContextOperator
 } from '../../../models/listingFlow';
 import { useFieldValues } from '../../../context/FieldValuesContext';
+import { tokens } from '../../../theme/tokens';
 
 interface VisibilityConditionEditorProps {
   visibilityCondition: VisibilityCondition | undefined;
@@ -569,9 +570,9 @@ export const VisibilityConditionEditor: React.FC<VisibilityConditionEditorProps>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{
-              backgroundColor: !!visibilityCondition ? '#e3f2fd' : 'inherit',
+              backgroundColor: !!visibilityCondition ? tokens.accentBlue.bg : 'inherit',
               '&:hover': {
-                backgroundColor: !!visibilityCondition ? '#bbdefb' : '#f5f5f5'
+                backgroundColor: !!visibilityCondition ? tokens.accentBlue.border : tokens.surface.subtle
               }
             }}
           >

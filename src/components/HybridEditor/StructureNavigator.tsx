@@ -17,6 +17,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { getElementIcon } from './ElementContextView';
 import { getContainerType, getSubElements } from '../../context/EditorContext';
+import { tokens } from '../../theme/tokens';
 
 interface StructureNavigatorProps {
   element: PatternLibraryElement;
@@ -128,11 +129,11 @@ const StructureNavigator: React.FC<StructureNavigatorProps> = ({
                             <Box component="span" sx={{
                               ml: 1,
                               color:
-                                subElementContainerType === 'group' ? '#009F64' :
-                                subElementContainerType === 'array' ? '#F05B29' :
-                                subElementContainerType === 'chipgroup' ? '#3F51B5' :
-                                subElementContainerType === 'custom' ? '#009F64' :
-                                subElementContainerType === 'subflow' ? '#009F64' :
+                                subElementContainerType === 'group' ? tokens.brand.green :
+                                subElementContainerType === 'array' ? tokens.brand.orange :
+                                subElementContainerType === 'chipgroup' ? tokens.accentIndigo.main :
+                                subElementContainerType === 'custom' ? tokens.brand.green :
+                                subElementContainerType === 'subflow' ? tokens.brand.green :
                                 'inherit'
                             }}>
                               ({subElementContainerType})

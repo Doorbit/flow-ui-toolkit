@@ -24,6 +24,7 @@ import VisibilityLegend from './VisibilityLegend';
 import { logger } from '../../utils/logger';
 import FloatingActionBar from '../EditorArea/FloatingActionBar';
 import WrapInGroupDialog from '../EditorArea/WrapInGroupDialog';
+import { tokens } from '../../theme/tokens';
 import FolderIcon from '@mui/icons-material/Folder';
 import ViewArrayIcon from '@mui/icons-material/ViewArray';
 import ToggleOnIcon from '@mui/icons-material/ToggleOn';
@@ -47,8 +48,8 @@ const LeftColumn = styled.div`
   min-width: 220px;
   height: 100%;
   overflow-y: auto;
-  background-color: #F0F2F4;
-  border-right: 1px solid #E0E0E0;
+  background-color: ${tokens.surface.subtleAlt};
+  border-right: 1px solid ${tokens.neutral.border};
   display: flex;
   flex-direction: column;
 `;
@@ -59,7 +60,7 @@ const MiddleColumn = styled.div`
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
-  background-color: #F8FAFC;
+  background-color: ${tokens.surface.appBg};
   display: flex;
   flex-direction: column;
 `;
@@ -69,15 +70,15 @@ const RightColumn = styled.div`
   min-width: 320px;
   height: 100%;
   overflow-y: auto;
-  background-color: #F8FAFC;
-  border-left: 1px solid #E0E0E0;
+  background-color: ${tokens.surface.appBg};
+  border-left: 1px solid ${tokens.neutral.border};
   padding: 1rem;
 `;
 
 const BreadcrumbContainer = styled(Box)`
   padding: 0.5rem 1rem;
-  background-color: #F8FAFC;
-  border-bottom: 1px solid #E0E0E0;
+  background-color: ${tokens.surface.appBg};
+  border-bottom: 1px solid ${tokens.neutral.border};
   display: flex;
   align-items: center;
 `;
@@ -482,7 +483,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
     <EditorContainer>
       {/* Linke Spalte: Hierarchische Baumansicht */}
       <LeftColumn role="region" aria-label="Element-Hierarchie">
-        <Typography variant="subtitle1" sx={{ p: 2, fontWeight: 'bold', color: '#2A2E3F' }}>
+        <Typography variant="subtitle1" sx={{ p: 2, fontWeight: 'bold', color: tokens.text.primary }}>
           Element-Hierarchie
         </Typography>
         <Divider />
@@ -594,7 +595,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                   {item.label}
                   {item.containerType && item.containerType !== 'root' && (
                     <Tooltip title={`Container-Typ: ${item.containerType}`}>
-                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#f0f0f0', px: 0.5, borderRadius: 1 }}>
+                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: tokens.surface.subtleAlt2, px: 0.5, borderRadius: 1 }}>
                         {item.containerType}
                       </Box>
                     </Tooltip>
@@ -612,7 +613,7 @@ const HybridEditor: React.FC<HybridEditorProps> = ({
                   {item.label}
                   {item.containerType && item.containerType !== 'root' && (
                     <Tooltip title={`Container-Typ: ${item.containerType}`}>
-                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#f0f0f0', px: 0.5, borderRadius: 1 }}>
+                      <Box component="span" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary', bgcolor: tokens.surface.subtleAlt2, px: 0.5, borderRadius: 1 }}>
                         {item.containerType}
                       </Box>
                     </Tooltip>

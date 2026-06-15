@@ -23,6 +23,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 import { useEditor } from '../../context/EditorContext';
+import { tokens } from '../../theme/tokens';
 
 const BuilderContainer = styled(Box)`
   margin-top: 1rem;
@@ -30,11 +31,11 @@ const BuilderContainer = styled(Box)`
 
 const ConditionCard = styled(Card)`
   margin-bottom: 1rem;
-  border: 1px solid #E0E0E0;
+  border: 1px solid ${tokens.neutral.border};
   border-radius: 8px;
 
   &:hover {
-    border-color: #009F64;
+    border-color: ${tokens.brand.green};
   }
 `;
 
@@ -56,12 +57,12 @@ const ValueField = styled(TextField)`
 
 const AddConditionButton = styled(Button)`
   margin-top: 1rem;
-  background-color: #43E77F;
-  color: #000000;
-  border: 1px solid #000000;
+  background-color: ${tokens.brand.greenBright};
+  color: ${tokens.neutral.black};
+  border: 1px solid ${tokens.neutral.black};
 
   &:hover {
-    background-color: #35D870;
+    background-color: ${tokens.brand.greenBrightStrong};
   }
 `;
 
@@ -73,9 +74,9 @@ const LogicOperatorChip = styled(Chip)`
 const PreviewContainer = styled(Box)`
   margin-top: 1rem;
   padding: 1rem;
-  background-color: #f5f5f5;
+  background-color: ${tokens.surface.subtle};
   border-radius: 8px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid ${tokens.neutral.border};
 `;
 
 interface VisibilityConditionBuilderProps {

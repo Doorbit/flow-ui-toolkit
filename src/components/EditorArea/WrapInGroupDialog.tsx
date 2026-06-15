@@ -16,6 +16,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import { v4 as uuidv4 } from 'uuid';
+import { tokens } from '../../theme/tokens';
 
 interface WrapInGroupDialogProps {
   open: boolean;
@@ -55,7 +56,7 @@ const WrapInGroupDialog: React.FC<WrapInGroupDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <GroupWorkIcon sx={{ color: '#009F64' }} />
+        <GroupWorkIcon sx={{ color: tokens.brand.green }} />
         Zu Gruppe zusammenfassen
       </DialogTitle>
 
@@ -118,8 +119,8 @@ const WrapInGroupDialog: React.FC<WrapInGroupDialogProps> = ({
           onClick={handleConfirm}
           disabled={!isValid}
           sx={{
-            backgroundColor: '#009F64',
-            '&:hover': { backgroundColor: '#007A4D' },
+            backgroundColor: tokens.brand.green,
+            '&:hover': { backgroundColor: tokens.brand.greenDeep },
             textTransform: 'none',
           }}
         >

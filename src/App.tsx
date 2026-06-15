@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
+import { tokens } from './theme/tokens';
 import { generateUUID, transformFlowForExport } from './utils/uuidUtils';
 import styled from 'styled-components';
 import WorkflowNameDialog from './components/WorkflowNameDialog/WorkflowNameDialog';
@@ -52,52 +53,52 @@ import {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#009F64', // Grün (Corporate Branding)
-      dark: '#005D3A', // Dunkelgrün
-      light: '#4CC695', // Helleres Grün
-      contrastText: '#FFFFFF',
+      main: tokens.brand.green, // Grün (Corporate Branding)
+      dark: tokens.brand.greenDark, // Dunkelgrün
+      light: tokens.brand.greenLight, // Helleres Grün
+      contrastText: tokens.surface.paper,
     },
     secondary: {
-      main: '#F05B29', // Orange/Rot (Corporate Branding)
-      dark: '#D04010',
-      light: '#F78057',
-      contrastText: '#FFFFFF',
+      main: tokens.brand.orange, // Orange/Rot (Corporate Branding)
+      dark: tokens.brand.orangeDark,
+      light: tokens.brand.orangeLight,
+      contrastText: tokens.surface.paper,
     },
     text: {
-      primary: '#2A2E3F', // Dunkelblau für Überschriften
-      secondary: '#343951', // Dunkelgrau für normalen Text
+      primary: tokens.text.primary, // Dunkelblau für Überschriften
+      secondary: tokens.text.secondary, // Dunkelgrau für normalen Text
     },
     background: {
-      default: '#F8FAFC', // Sehr helles Grau/Weiß
-      paper: '#FFFFFF',
+      default: tokens.surface.appBg, // Sehr helles Grau/Weiß
+      paper: tokens.surface.paper,
     },
     grey: {
-      300: '#E0E0E0',
-      400: '#BDBDBD',
-      500: '#848BA5', // Grau für Icons und sekundäre Elemente
+      300: tokens.neutral.border,
+      400: tokens.neutral.borderStrong,
+      500: tokens.neutral.icon, // Grau für Icons und sekundäre Elemente
     },
     error: {
-      main: '#F05B29', // Orange/Rot für Fehler und Warnungen
+      main: tokens.brand.orange, // Orange/Rot für Fehler und Warnungen
     },
     info: {
-      main: '#009F64', // Grün für Infos
+      main: tokens.brand.green, // Grün für Infos
     },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h6: {
       fontWeight: 500,
-      color: '#2A2E3F',
+      color: tokens.text.primary,
     },
     subtitle1: {
       fontWeight: 500,
-      color: '#343951',
+      color: tokens.text.secondary,
     },
     body1: {
-      color: '#343951',
+      color: tokens.text.secondary,
     },
     body2: {
-      color: '#343951',
+      color: tokens.text.secondary,
     },
   },
   components: {
@@ -2418,7 +2419,7 @@ const AppContent: React.FC = () => {
 
         {/* Seitennavigation */}
         {state.currentFlow && (
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f5f5f5' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: tokens.surface.subtle }}>
             <PageNavigator
               pages={state.currentFlow.pages_edit}
               selectedPageId={state.selectedPageId}
@@ -2494,7 +2495,7 @@ const AppContent: React.FC = () => {
         <Box
           sx={{
             height: '5vh',
-            borderTop: '1px solid #ddd',
+            borderTop: `1px solid ${tokens.neutral.border}`,
             overflow: 'hidden',
             position: 'relative',
             '&:hover': {

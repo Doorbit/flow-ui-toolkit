@@ -2,6 +2,7 @@ import React, { Suspense, useMemo } from 'react';
 import styled from 'styled-components';
 import { ListingFlow } from '../../models/listingFlow';
 import { transformFlowForExport } from '../../utils/uuidUtils';
+import { tokens } from '../../theme/tokens';
 
 // Lazy loading für react-json-view
 const ReactJson = React.lazy(() => import('react-json-view'));
@@ -12,7 +13,7 @@ interface JsonPreviewProps {
 }
 
 const PreviewContainer = styled.div`
-  background: #1e1e1e;
+  background: ${tokens.surface.dark};
   padding: 1rem;
   border-radius: 4px;
   overflow: auto;
@@ -23,7 +24,7 @@ const PreviewContainer = styled.div`
 const LoadingContainer = styled.div`
   padding: 1rem;
   text-align: center;
-  color: #666;
+  color: ${tokens.neutral.muted};
 `;
 
 const JsonPreview: React.FC<JsonPreviewProps> = ({ data, onEdit }) => {

@@ -22,15 +22,16 @@ import {
   TableChart as TableIcon,
   ContactMail as ContactIcon
 } from '@mui/icons-material';
+import { tokens } from '../../theme/tokens';
 
 const PaletteContainer = styled(Paper)`
   width: 250px;
   height: 100vh;
-  background-color: #F0F2F4;
+  background-color: ${tokens.surface.subtleAlt};
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid #E0E0E0;
+  border-right: 1px solid ${tokens.neutral.border};
 `;
 
 const ScrollableSection = styled.div`
@@ -53,8 +54,8 @@ const ComplexElementsSection = styled.div`
 
 const PaletteHeader = styled(Typography)`
   padding: 16px;
-  background-color: #F0F2F4;
-  color: #2A2E3F;
+  background-color: ${tokens.surface.subtleAlt};
+  color: ${tokens.text.primary};
   font-weight: 500;
 `;
 
@@ -65,10 +66,10 @@ const StyledListItemButton = styled(ListItemButton)`
   border-radius: 4px;
   margin: 2px 8px;
   padding: 8px 16px;
-  color: #2A2E3F;
+  color: ${tokens.text.primary};
 
   .MuiListItemIcon-root {
-    color: #2A2E3F;
+    color: ${tokens.text.primary};
   }
 
   &[draggable="true"] {
@@ -151,7 +152,7 @@ const ElementPalette: React.FC<ElementPaletteProps> = ({ onElementClick }) => {
     fontSize: '0.75rem',
     backgroundColor: activeTab === tab ? 'rgba(0, 159, 100, 0.1)' : 'transparent',
     fontWeight: activeTab === tab ? 'bold' : 'normal',
-    color: activeTab === tab ? '#009F64' : '#2A2E3F',
+    color: activeTab === tab ? tokens.brand.green : tokens.text.primary,
     '&:hover': {
       backgroundColor: activeTab === tab ? 'rgba(0, 159, 100, 0.15)' : 'rgba(0, 159, 100, 0.05)'
     }

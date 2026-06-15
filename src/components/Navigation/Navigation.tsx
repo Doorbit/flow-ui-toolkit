@@ -13,6 +13,7 @@ import {
   KeyboardOutlined as KeyboardIcon,
   SchoolOutlined as OnboardingIcon
 } from '@mui/icons-material';
+import { tokens } from '../../theme/tokens';
 
 interface NavigationProps {
   onNew: () => void;
@@ -32,7 +33,7 @@ interface NavigationProps {
 }
 
 const StyledAppBar = styled(AppBar)`
-  background-color: #2A2E3F;
+  background-color: ${tokens.text.primary};
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
@@ -81,9 +82,9 @@ const Navigation: React.FC<NavigationProps> = ({
               startIcon={<AddIcon />}
               onClick={onNew}
               sx={{
-                bgcolor: '#009F64',
+                bgcolor: tokens.brand.green,
                 color: 'white',
-                '&:hover': { bgcolor: '#008D58' }
+                '&:hover': { bgcolor: tokens.brand.greenHover }
               }}
             >
               Neu
@@ -95,9 +96,9 @@ const Navigation: React.FC<NavigationProps> = ({
               startIcon={<OpenIcon />}
               onClick={onOpen}
               sx={{
-                bgcolor: '#009F64',
+                bgcolor: tokens.brand.green,
                 color: 'white',
-                '&:hover': { bgcolor: '#008D58' }
+                '&:hover': { bgcolor: tokens.brand.greenHover }
               }}
             >
               Öffnen
@@ -109,9 +110,9 @@ const Navigation: React.FC<NavigationProps> = ({
               startIcon={<SaveIcon />}
               onClick={onSave}
               sx={{
-                bgcolor: '#009F64',
+                bgcolor: tokens.brand.green,
                 color: 'white',
-                '&:hover': { bgcolor: '#008D58' }
+                '&:hover': { bgcolor: tokens.brand.greenHover }
               }}
             >
               Speichern
@@ -123,9 +124,9 @@ const Navigation: React.FC<NavigationProps> = ({
               startIcon={<EditIcon />}
               onClick={onEditWorkflowName}
               sx={{
-                bgcolor: '#009F64',
+                bgcolor: tokens.brand.green,
                 color: 'white',
-                '&:hover': { bgcolor: '#008D58' },
+                '&:hover': { bgcolor: tokens.brand.greenHover },
                 fontWeight: 'bold'
               }}
             >
@@ -158,9 +159,9 @@ const Navigation: React.FC<NavigationProps> = ({
                 size="large"
                 aria-label="Erste Schritte anzeigen"
                 sx={{
-                  bgcolor: '#009F64',
+                  bgcolor: tokens.brand.green,
                   color: 'white',
-                  '&:hover': { bgcolor: '#008D58' }
+                  '&:hover': { bgcolor: tokens.brand.greenHover }
                 }}
               >
                 <OnboardingIcon />
@@ -174,9 +175,9 @@ const Navigation: React.FC<NavigationProps> = ({
                 size="large"
                 aria-label="Tastaturkürzel anzeigen"
                 sx={{
-                  bgcolor: '#009F64',
+                  bgcolor: tokens.brand.green,
                   color: 'white',
-                  '&:hover': { bgcolor: '#008D58' }
+                  '&:hover': { bgcolor: tokens.brand.greenHover }
                 }}
               >
                 <KeyboardIcon />
@@ -190,9 +191,9 @@ const Navigation: React.FC<NavigationProps> = ({
                   onClick={onOpenDocumentation}
                   size="large"
                   sx={{
-                    bgcolor: '#009F64',
+                    bgcolor: tokens.brand.green,
                     color: 'white',
-                    '&:hover': { bgcolor: '#008D58' }
+                    '&:hover': { bgcolor: tokens.brand.greenHover }
                   }}
                 >
                   <HelpIcon />
@@ -207,9 +208,9 @@ const Navigation: React.FC<NavigationProps> = ({
                 disabled={!canUndo}
                 size="large"
                 sx={{
-                  bgcolor: '#009F64',
+                  bgcolor: tokens.brand.green,
                   color: 'white',
-                  '&:hover': { bgcolor: '#008D58' },
+                  '&:hover': { bgcolor: tokens.brand.greenHover },
                   '&.Mui-disabled': { opacity: 0.4, color: 'rgba(255, 255, 255, 0.5)' }
                 }}
               >
@@ -224,9 +225,9 @@ const Navigation: React.FC<NavigationProps> = ({
                 disabled={!canRedo}
                 size="large"
                 sx={{
-                  bgcolor: '#009F64',
+                  bgcolor: tokens.brand.green,
                   color: 'white',
-                  '&:hover': { bgcolor: '#008D58' },
+                  '&:hover': { bgcolor: tokens.brand.greenHover },
                   '&.Mui-disabled': { opacity: 0.4, color: 'rgba(255, 255, 255, 0.5)' }
                 }}
               >

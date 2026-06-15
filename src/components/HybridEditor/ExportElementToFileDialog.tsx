@@ -30,6 +30,7 @@ import { ListingFlow, PatternLibraryElement } from '../../models/listingFlow';
 import { normalizeElementTypes } from '../../utils/normalizeUtils';
 import { deepCloneElement, findVisibilityFieldReferences } from '../../utils/deepCloneUtils';
 import { ensureUUIDs } from '../../utils/uuidUtils';
+import { tokens } from '../../theme/tokens';
 
 interface ExportElementToFileDialogProps {
   open: boolean;
@@ -169,7 +170,7 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
       PaperProps={{ sx: { minHeight: 400 } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <IosShareIcon sx={{ color: '#1976D2' }} />
+        <IosShareIcon sx={{ color: tokens.accentBlue.main }} />
         Element in andere JSON-Datei exportieren
       </DialogTitle>
 
@@ -184,7 +185,7 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
         />
 
         {/* Element-Info */}
-        <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F8FAFC', borderRadius: 1, border: '1px solid #E0E0E0' }}>
+        <Box sx={{ mb: 2, p: 1.5, bgcolor: tokens.surface.appBg, borderRadius: 1, border: `1px solid ${tokens.neutral.border}` }}>
           <Typography variant="subtitle2" color="text.secondary">
             Element: <strong>{elementTitle}</strong>
           </Typography>
@@ -217,7 +218,7 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
             variant="outlined"
             startIcon={<FolderOpenIcon />}
             onClick={handleFileSelect}
-            sx={{ borderColor: '#1976D2', color: '#1976D2' }}
+            sx={{ borderColor: tokens.accentBlue.main, color: tokens.accentBlue.main }}
           >
             {targetFlow ? 'Andere Zieldatei wählen' : 'Ziel-JSON-Datei auswählen'}
           </Button>
@@ -243,7 +244,7 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
         {/* Zieldatei-Info + Seitenauswahl */}
         {targetFlow && (
           <>
-            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#F0F4FF', borderRadius: 1, border: '1px solid #C8D6E5' }}>
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: tokens.accentIndigo.bg, borderRadius: 1, border: `1px solid ${tokens.neutral.borderCool}` }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Zieldatei: <strong>{targetFlow.name || targetFlow.id || targetFileName}</strong>
               </Typography>
@@ -257,7 +258,7 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
               Zielseite auswählen:
             </Typography>
 
-            <List dense sx={{ maxHeight: 200, overflow: 'auto', border: '1px solid #E0E0E0', borderRadius: 1, mb: 2 }}>
+            <List dense sx={{ maxHeight: 200, overflow: 'auto', border: `1px solid ${tokens.neutral.border}`, borderRadius: 1, mb: 2 }}>
               {targetFlow.pages_edit.map((page) => {
                 const isSelected = selectedPageId === page.id;
                 const pageTitle = page.title?.de || page.short_title?.de || page.id;
@@ -282,8 +283,8 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
                           disableRipple
                           size="small"
                           sx={{
-                            color: '#1976D2',
-                            '&.Mui-checked': { color: '#1976D2' },
+                            color: tokens.accentBlue.main,
+                            '&.Mui-checked': { color: tokens.accentBlue.main },
                           }}
                         />
                       </ListItemIcon>
@@ -321,12 +322,12 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
               >
                 <FormControlLabel
                   value="top"
-                  control={<Radio size="small" sx={{ color: '#1976D2', '&.Mui-checked': { color: '#1976D2' } }} />}
+                  control={<Radio size="small" sx={{ color: tokens.accentBlue.main, '&.Mui-checked': { color: tokens.accentBlue.main } }} />}
                   label={<Typography variant="body2">Am Anfang der Seite</Typography>}
                 />
                 <FormControlLabel
                   value="bottom"
-                  control={<Radio size="small" sx={{ color: '#1976D2', '&.Mui-checked': { color: '#1976D2' } }} />}
+                  control={<Radio size="small" sx={{ color: tokens.accentBlue.main, '&.Mui-checked': { color: tokens.accentBlue.main } }} />}
                   label={<Typography variant="body2">Am Ende der Seite</Typography>}
                 />
               </RadioGroup>
@@ -364,9 +365,9 @@ const ExportElementToFileDialog: React.FC<ExportElementToFileDialogProps> = ({
           disabled={!selectedPageId || !targetFlow}
           startIcon={<IosShareIcon />}
           sx={{
-            bgcolor: '#1976D2',
-            '&:hover': { bgcolor: '#1565C0' },
-            '&.Mui-disabled': { bgcolor: '#E0E0E0' },
+            bgcolor: tokens.accentBlue.main,
+            '&:hover': { bgcolor: tokens.accentBlue.dark },
+            '&.Mui-disabled': { bgcolor: tokens.neutral.border },
           }}
         >
           Exportieren & Herunterladen

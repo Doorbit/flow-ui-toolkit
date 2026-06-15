@@ -17,6 +17,7 @@ import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
 import TabletIcon from '@mui/icons-material/Tablet';
 import { useUserPreferences } from '../../../context/UserPreferencesContext';
+import { tokens } from '../../../theme/tokens';
 
 interface ElementPreviewProps {
   title?: string;
@@ -153,7 +154,7 @@ export const ElementPreview: React.FC<ElementPreviewProps> = ({
               maxWidth: '100%',
               mx: 'auto',
               p: 2,
-              backgroundColor: '#fff',
+              backgroundColor: tokens.surface.paper,
               border: '1px dashed rgba(0, 0, 0, 0.12)',
               borderRadius: '4px',
               ...(previewMode === 'mobile' && {
@@ -170,7 +171,7 @@ export const ElementPreview: React.FC<ElementPreviewProps> = ({
                   transform: 'translateX(-50%)',
                   width: '40%',
                   height: '12px',
-                  backgroundColor: '#111',
+                  backgroundColor: tokens.neutral.nearBlack,
                   borderBottomLeftRadius: '8px',
                   borderBottomRightRadius: '8px',
                 }

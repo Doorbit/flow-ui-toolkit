@@ -5,6 +5,7 @@ import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon, A
 import Icon from '@mdi/react';
 import { getIconPath } from '../../utils/mdiIcons';
 import { Page } from '../../models/listingFlow';
+import { tokens } from '../../theme/tokens';
 
 // Konstanten für DnD
 export const ItemTypes = {
@@ -143,7 +144,7 @@ const PageTab: React.FC<PageTabProps> = ({
     // Prüfen, ob es sich um ein MDI-Icon handelt
     if (page.icon.startsWith('mdi')) {
       const iconPath = getIconPath(page.icon);
-      return iconPath ? <Icon path={iconPath} size={0.8} color="#000000" /> : null;
+      return iconPath ? <Icon path={iconPath} size={0.8} color={tokens.neutral.black} /> : null;
     }
 
     // Fallback für alte Material UI Icons (sollte nicht mehr vorkommen)
@@ -168,10 +169,10 @@ const PageTab: React.FC<PageTabProps> = ({
       <Tab
         value={page.id}
         label={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#000000', maxWidth: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: tokens.neutral.black, maxWidth: '100%' }}>
             {renderIcon()}
-            <span style={{ 
-              color: '#000000', 
+            <span style={{
+              color: tokens.neutral.black,
               fontWeight: 500,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -210,7 +211,7 @@ const PageTab: React.FC<PageTabProps> = ({
         }
         sx={{
           cursor: 'move',
-          color: '#000000',
+          color: tokens.neutral.black,
           '&:hover .page-menu-icon': {
             opacity: 1,
           },
@@ -236,12 +237,12 @@ const PageTab: React.FC<PageTabProps> = ({
                   borderRadius: '50%',
                   opacity: 0,
                   transition: 'opacity 0.2s',
-                  color: '#000000',
+                  color: tokens.neutral.black,
                   minWidth: 28,
                   minHeight: 28,
                   '&:hover': {
                     opacity: 1,
-                    color: '#009F64',
+                    color: tokens.brand.green,
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   }
                 }}
@@ -271,13 +272,13 @@ const PageTab: React.FC<PageTabProps> = ({
       >
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
-            <EditIcon fontSize="small" sx={{ color: '#009F64' }} />
+            <EditIcon fontSize="small" sx={{ color: tokens.brand.green }} />
           </ListItemIcon>
           <ListItemText>Seite bearbeiten</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
-            <DeleteIcon fontSize="small" sx={{ color: '#F05B29' }} />
+            <DeleteIcon fontSize="small" sx={{ color: tokens.brand.orange }} />
           </ListItemIcon>
           <ListItemText>Seite löschen</ListItemText>
         </MenuItem>
