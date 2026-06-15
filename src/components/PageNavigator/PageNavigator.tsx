@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Page } from '../../models/listingFlow';
 import { useEditor } from '../../context/EditorContext';
 import { useFieldValues } from '../../context/FieldValuesContext';
+import { useFeedback } from '../../context/FeedbackContext';
 import { evaluateVisibilityCondition } from '../../utils/visibilityUtils';
 import PageTab from './PageTab';
 import EditPageDialog from './EditPageDialog';
@@ -35,10 +36,9 @@ interface PageNavigatorProps {
 const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) => {
   const { dispatch, state } = useEditor();
   const { fieldValues } = useFieldValues();
+  const { confirm, showWarning } = useFeedback();
   const [openNewPageDialog, setOpenNewPageDialog] = React.useState(false);
   const [newPageTitle, setNewPageTitle] = React.useState('');
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
-  const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
   const [editPageDialogOpen, setEditPageDialogOpen] = React.useState(false);
   const [pageToEdit, setPageToEdit] = React.useState<Page | null>(null);
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
@@ -93,14 +93,6 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     setImportSuccessMessage(`${editPages.length} Seite(n) erfolgreich importiert.`);
   }, [dispatch]);
 
-  const handleConfirmDelete = () => {
-    if (pageToDelete) {
-      dispatch({ type: 'REMOVE_PAGE', pageId: pageToDelete });
-      setDeleteConfirmOpen(false);
-      setPageToDelete(null);
-    }
-  };
-
   // Handler für Seitenklick für den direkten Tab-Klick
   const handleTabClick = useCallback((pageId: string) => {
     dispatch({ type: 'SELECT_PAGE', pageId });
@@ -111,16 +103,20 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
     dispatch({ type: 'MOVE_PAGE', sourceIndex: dragIndex, targetIndex: hoverIndex });
   }, [dispatch]);
 
-  const handleCancelDelete = () => {
-    setDeleteConfirmOpen(false);
-    setPageToDelete(null);
-  };
-
   // Handler für Löschen einer Seite
-  const handleDeletePage = (pageId: string) => {
-    if (pages.length > 1) {
-      setPageToDelete(pageId);
-      setDeleteConfirmOpen(true);
+  const handleDeletePage = async (pageId: string) => {
+    if (pages.length <= 1) {
+      showWarning('Die letzte Seite kann nicht gelöscht werden.');
+      return;
+    }
+    const ok = await confirm({
+      title: 'Seite löschen?',
+      message: 'Alle Elemente auf dieser Seite werden gelöscht.',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) {
+      dispatch({ type: 'REMOVE_PAGE', pageId });
     }
   };
 
@@ -295,20 +291,6 @@ const PageNavigator: React.FC<PageNavigatorProps> = ({ pages, selectedPageId }) 
         <DialogActions>
           <Button onClick={handleCloseNewPageDialog}>Abbrechen</Button>
           <Button onClick={handleCreateNewPage} variant="contained">Erstellen</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Dialog für Seite löschen */}
-      <Dialog open={deleteConfirmOpen} onClose={handleCancelDelete}>
-        <DialogTitle>Seite löschen</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Sind Sie sicher, dass Sie diese Seite löschen möchten? Alle Elemente auf dieser Seite werden gelöscht.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelDelete}>Abbrechen</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">Löschen</Button>
         </DialogActions>
       </Dialog>
 

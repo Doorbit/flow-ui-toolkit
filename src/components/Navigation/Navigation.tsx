@@ -9,7 +9,8 @@ import {
   Redo as RedoIcon,
   Edit as EditIcon,
   Extension as ModulesIcon,
-  HelpOutline as HelpIcon
+  HelpOutline as HelpIcon,
+  KeyboardOutlined as KeyboardIcon
 } from '@mui/icons-material';
 
 interface NavigationProps {
@@ -23,6 +24,8 @@ interface NavigationProps {
   onEditWorkflowName: () => void;
   onEditModules: () => void;
   onOpenDocumentation?: () => void;
+  onShowShortcuts?: () => void;
+  validationSlot?: React.ReactNode;
   workflowName: string;
 }
 
@@ -60,6 +63,8 @@ const Navigation: React.FC<NavigationProps> = ({
   onEditWorkflowName,
   onEditModules,
   onOpenDocumentation,
+  onShowShortcuts,
+  validationSlot,
   workflowName
 }) => {
   return (
@@ -142,6 +147,23 @@ const Navigation: React.FC<NavigationProps> = ({
         </Box>
 
         <RightActions>
+          {validationSlot}
+          {onShowShortcuts && (
+            <Tooltip title="Tastaturkürzel">
+              <IconButton
+                onClick={onShowShortcuts}
+                size="large"
+                aria-label="Tastaturkürzel anzeigen"
+                sx={{
+                  bgcolor: '#009F64',
+                  color: 'white',
+                  '&:hover': { bgcolor: '#008D58' }
+                }}
+              >
+                <KeyboardIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {onOpenDocumentation && (
             <Tooltip title="Dokumentation öffnen">
               <span>

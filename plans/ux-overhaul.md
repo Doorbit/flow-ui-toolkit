@@ -30,18 +30,20 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
   - **Datenverlust-Schutz**: „Datei öffnen" fragt bei nicht-leerem Flow nach Bestätigung.
   - **Bugfix**: stiller `catch` beim Modul-Artefakt-Import → Fehler-Toast + Validierung; Erfolgs-Toasts für Modul-CRUD/Import/Export.
 - [ ] **F2 — Theme-Tokens**: hardcodierte Farben (`#009F64`, `#43E77F`), Spacing, Font-Sizes in Theme-Tokens; Komponenten auf `primary.main` etc. umstellen. (`App.tsx` Theme, dann breit)
-- [ ] **F3 — Shared `DialogBase`**: einheitliche Titel/Actions, `fullScreen` auf Mobile, Fokus-Rückgabe, `aria`-Labels; Dialoge migrieren (`PageNavigator`, `WorkflowNameDialog`, Import/Export-Dialoge — `ModuleManagerDialog`/`EditPageDialog` haben fullScreen bereits).
-- [ ] **F4 — Desktop-first Layout-Toleranz** in `HybridEditor.tsx:35–69` (min-width + sauberer Umgang unterhalb der Breakpoints).
+- [x] **F3 — Shared `DialogBase`** *(PR #10)*: einheitliche Titel/Actions, automatisches `fullScreen` auf kleinen Screens, Fokus auf Primär-Aktion, `aria-labelledby`. `components/common/DialogBase.tsx`; `WorkflowNameDialog` migriert. Weitere Dialoge folgen schrittweise.
+- [x] **F4 — Desktop-first Layout-Toleranz** *(PR #10)*: `HybridEditor` nutzt Flex + Mindestbreiten; bei schmalen Viewports horizontal scrollen statt Spalten unbrauchbar quetschen.
 
 ## Phase 1 — Sicherheit & Korrektheit
-- [ ] Löschen mit Bestätigung für Elemente (`App.tsx handleRemoveElement`) — nutzt `confirm()`.
-- [ ] AJV-/Schema-Fehler inline sichtbar machen (`SchemaContext` + ungenutzte `ValidationHelper.tsx`).
-- [ ] Restliche `alert/confirm`-Reste in Dialogen auf Feedback-System umstellen.
+- [x] Löschen mit Bestätigung — **war bereits vorhanden** (Element via `ElementContextView`, Seite, Modul). Befund der Review-Agenten war ungenau.
+- [x] **Confirm-Konsolidierung** *(PR #11)*: Seiten- & Modul-Lösch-Dialoge auf das einheitliche `confirm()` umgestellt; „letzte Seite"-Sperre gibt jetzt Feedback. ElementContextView **bewusst aufgeschoben** (1087-Zeilen-Datei, bestehender Dialog gut inkl. Kind-Warnung).
+- [x] **AJV-/Schema-Validierung sichtbar** *(PR #12)*: Schema (`context/listingFlowSchema.ts`) ans volle Modell angeglichen und gegen die authoritativen Flows abgeglichen (`portal-applications/customers/doorbit_esg.json` + `enion_esg.json` validieren fehlerfrei → keine False-Positives). Lenient + vorwärtskompatibel (unbekannte `pattern_type`s erlaubt). Toolbar-Indikator (`ValidationStatus`): grün „Gültig" / rot „N Probleme" → Dialog mit Fehlerliste. Test: `listingFlowSchema.test.ts`.
+- [x] Restliche `alert/confirm`-Reste auf Feedback-System — erledigt mit F1 (#9).
 
 ## Phase 2 — Orientierung & Navigation
 - [ ] „Auswählen" vs. „Drill-down" entkoppeln/visuell trennen; `selectedElementPath`↔`currentPath` vereinfachen (`HybridEditor.tsx`, `ElementHierarchyTree.tsx:362–387`).
 - [ ] Empty States + Erstkontakt-Onboarding (3-Spalten-Modell; leere Mitte mit CTA).
-- [ ] Accessibility: `aria-label`, Fokus-Management, Kontraste, semantische Landmarks, Keyboard-Shortcuts-Hilfe.
+- [ ] Accessibility: `aria-label`, Fokus-Management, Kontraste, semantische Landmarks.
+- [x] **Keyboard-Shortcuts-Hilfe** *(PR #11)*: Dialog (via DialogBase) listet die vorhandenen, bislang undokumentierten Shortcuts (Strg+Z/Y/S, Esc); Tastatur-Icon in der Toolbar.
 
 ## Phase 3 — Auffindbarkeit & Effizienz
 - [ ] Palette: Suche/Filter + Tooltips je Typ; Palette sichtbar im Layout (`ElementPalette.tsx`).
