@@ -47,7 +47,7 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 
 ## Phase 3 — Auffindbarkeit & Effizienz
 - [~] **Element-Picker: Suche + Beschreibungen** *(PR Phase 3)*: Befund — die `ElementPalette.tsx`-Komponente ist **tot** (in `App.tsx` auskommentiert, nicht gerendert). Der real genutzte Picker ist der `ElementTypeDialog` in `ElementContextView`. Dort ergänzt: Suchfeld (filtert Label/Typ/Beschreibung über beide Kategorien) + sichtbare **Beschreibung je Typ** (statt nur Hover-Tooltip → besser auffindbar/Touch). Offen: tote `ElementPalette` aufräumen/entfernen.
-- [ ] Drag&Drop: Drop-Indikatoren + Verschachtelungsregeln vorab (ungültiges Hinzufügen deaktivieren).
+- [~] **Verschachtelungsregeln vorab** *(PR Phase 3)*: Regeln in `utils/nestingRules.ts` extrahiert (Single Source of Truth, Unit-Test) und im Element-Typ-Dialog angewandt — unerlaubte Typen werden **deaktiviert + mit Grund** angezeigt, statt erst nach der Auswahl einen Fehler zu werfen (Fallback in App.tsx bleibt). Offen: ausgefeiltere Drop-Indikatoren beim Reorder-Drag (heute simple Top-Border).
 - [ ] Multi-Select-Affordance (sichtbarer Toggle/Checkboxen).
 - [ ] Modul-Zuordnung immer sichtbar. *(INLINE/CATALOG- & Modul-Tooltips bereits via PR #8.)*
 

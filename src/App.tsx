@@ -16,6 +16,7 @@ import PageNavigator from './components/PageNavigator/PageNavigator';
 import CopyElementToPageDialog from './components/HybridEditor/CopyElementToPageDialog';
 import ExportElementToFileDialog from './components/HybridEditor/ExportElementToFileDialog';
 import { deepCloneElement } from './utils/deepCloneUtils';
+import { isElementAllowedInParent } from './utils/nestingRules';
 // DndProvider wird jetzt in index.tsx importiert
 // import { DndProvider } from './components/DndProvider';
 import { EditorProvider, useEditor, getElementByPath, getContainerType } from './context/EditorContext';
@@ -1718,38 +1719,7 @@ const AppContent: React.FC = () => {
   const currentPage = state.currentFlow?.pages_edit.find(page => page.id === state.selectedPageId);
   const currentElements = currentPage?.elements || [];
 
-  // Hilfsfunktion zur Prüfung der Verschachtelungsregeln
-  const isElementAllowedInParent = (elementType: string, parentType: string): { allowed: boolean, message: string } => {
-    // Prüfe, ob das Ziel eine ChipGroup ist
-    if (parentType === 'ChipGroupUIElement') {
-      // Nur BooleanUIElements in ChipGroups erlauben
-      return {
-        allowed: elementType === 'BooleanUIElement',
-        message: "Nur Boolean-Elemente können in Chip-Gruppen hinzugefügt werden"
-      };
-    }
-
-    // Prüfe, ob das Ziel ein Array-Element ist
-    if (parentType === 'ArrayUIElement') {
-      // Arrays dürfen keine weiteren Arrays oder komplexe Elemente enthalten
-      const isComplex = ['ArrayUIElement', 'GroupUIElement', 'CustomUIElement', 'ChipGroupUIElement'].includes(elementType);
-      return {
-        allowed: !isComplex,
-        message: "Arrays dürfen keine weiteren Arrays oder komplexe Elemente enthalten"
-      };
-    }
-
-    // Prüfe, ob das Ziel ein Gruppen-Element ist
-    if (parentType === 'GroupUIElement') {
-      // Gruppen dürfen keine weiteren Gruppen enthalten
-      return {
-        allowed: elementType !== 'GroupUIElement',
-        message: "Gruppen dürfen keine weiteren Gruppen enthalten"
-      };
-    }
-
-    return { allowed: true, message: "" };
-  };
+  // Verschachtelungsregeln: siehe utils/nestingRules.ts (geteilt mit dem Element-Typ-Dialog)
 
   // Element-Handler für Haupt- und verschachtelte Elemente
   // Verbesserte Version, die besser mit der Komplexität von doorbit_original.json umgehen kann
