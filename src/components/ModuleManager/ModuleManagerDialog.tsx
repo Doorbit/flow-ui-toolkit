@@ -95,7 +95,7 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { state, dispatch } = useEditor();
-  const { showSuccess, showError } = useFeedback();
+  const { showSuccess, showError, confirm } = useFeedback();
 
   const modules = state.currentFlow?.modules ?? [];
   const dangling = danglingModuleIds(state.currentFlow);
@@ -106,8 +106,6 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
   const [editModule, setEditModule] = useState<Module>(emptyModule());
   const [languageTab, setLanguageTab] = useState(0);
 
-  // Lösch-Bestätigung
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -143,13 +141,17 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
     showSuccess(`Modul „${moduleToSave.id}" gespeichert.`);
   };
 
-  const handleConfirmDelete = () => {
-    if (confirmDeleteId) {
-      const deletedId = confirmDeleteId;
-      dispatch({ type: 'REMOVE_MODULE', moduleId: deletedId });
-      showSuccess(`Modul „${deletedId}" gelöscht.`);
+  const handleDeleteModule = async (moduleId: string) => {
+    const ok = await confirm({
+      title: 'Modul löschen?',
+      message: 'Das Modul wird aus dem Katalog entfernt. Bestehende Zuordnungen (module_id) an Seiten und Elementen werden dabei gelöst — die betroffenen Inhalte bleiben erhalten und sind wieder modul-unabhängig sichtbar.',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) {
+      dispatch({ type: 'REMOVE_MODULE', moduleId });
+      showSuccess(`Modul „${moduleId}" gelöscht.`);
     }
-    setConfirmDeleteId(null);
   };
 
   // Exportiert ein Modul als eigenständiges CATALOG-Artefakt (flow-förmige JSON).
@@ -289,7 +291,7 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => setConfirmDeleteId(module.id)}
+                          onClick={() => handleDeleteModule(module.id)}
                           aria-label="Löschen"
                         >
                           <DeleteIcon fontSize="small" />
@@ -427,23 +429,6 @@ const ModuleManagerDialog: React.FC<ModuleManagerDialogProps> = ({ open, onClose
         </DialogActions>
       </Dialog>
 
-      {/* Lösch-Bestätigung */}
-      <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Modul löschen?</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">
-            Das Modul wird aus dem Katalog entfernt. Bestehende Zuordnungen (module_id) an Seiten und
-            Elementen werden dabei gelöst — die betroffenen Inhalte bleiben erhalten und sind wieder
-            modul-unabhängig sichtbar.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDeleteId(null)}>Abbrechen</Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
-            Löschen
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

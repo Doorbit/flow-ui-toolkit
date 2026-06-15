@@ -22,6 +22,7 @@ import { EditorProvider, useEditor, getElementByPath, getContainerType } from '.
 import { logger } from './utils/logger';
 import { FieldValuesProvider } from './context/FieldValuesContext';
 import { FeedbackProvider, useFeedback } from './context/FeedbackContext';
+import KeyboardShortcutsDialog from './components/HybridEditor/KeyboardShortcutsDialog';
 import { SchemaProvider } from './context/SchemaContext';
 import { SubflowProvider } from './context/SubflowContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
@@ -1635,6 +1636,7 @@ const AppContent: React.FC = () => {
   const [selectedElementPath, setSelectedElementPath] = useState<number[]>([]);
   const [showWorkflowNameDialog, setShowWorkflowNameDialog] = useState<boolean>(false);
   const [showModuleManager, setShowModuleManager] = useState<boolean>(false);
+  const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const { showSuccess, showWarning, showError, confirm } = useFeedback();
   // Shims auf das zentrale Feedback-System — halten die bestehenden Aufrufstellen kompatibel
   const setGroupErrorSnackbar = (s: { open: boolean; message: string }) => { if (s.open) showWarning(s.message); };
@@ -2402,8 +2404,11 @@ const AppContent: React.FC = () => {
           onEditWorkflowName={handleEditWorkflowName}
           onEditModules={() => setShowModuleManager(true)}
           onOpenDocumentation={handleOpenDocumentation}
+          onShowShortcuts={() => setShowShortcuts(true)}
           workflowName={state.currentFlow?.name || "Workflow"}
         />
+
+        <KeyboardShortcutsDialog open={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
         {/* Workflow-Namen-Dialog */}
         <WorkflowNameDialog
