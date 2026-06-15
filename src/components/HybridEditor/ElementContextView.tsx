@@ -62,6 +62,7 @@ import { useDrag, useDrop } from 'react-dnd';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
 import { arePathsEqual } from '../../utils/pathUtils';
+import { isElementAllowedInParent, resolvePatternType } from '../../utils/nestingRules';
 import { getContainerType } from '../../context/EditorContext';
 import { logger } from '../../utils/logger';
 
@@ -271,7 +272,8 @@ const ElementTypeDialog: React.FC<{
   open: boolean;
   onClose: () => void;
   onSelectElementType: (type: string) => void;
-}> = ({ open, onClose, onSelectElementType }) => {
+  parentType?: string;
+}> = ({ open, onClose, onSelectElementType, parentType }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [search, setSearch] = useState('');
 
@@ -299,12 +301,25 @@ const ElementTypeDialog: React.FC<{
   const basicElements = elementTypes.filter(e => e.category === 'basic');
   const complexElements = elementTypes.filter(e => e.category === 'complex');
 
-  const renderItem = (element: ElementType) => (
-    <ListItemButton key={element.type} onClick={() => handlePick(element.type)} alignItems="flex-start">
-      <ListItemIcon sx={{ mt: 0.5 }}>{element.icon}</ListItemIcon>
-      <ListItemText primary={element.label} secondary={element.description} />
-    </ListItemButton>
-  );
+  const renderItem = (element: ElementType) => {
+    // Verschachtelungsregeln vorab anwenden: unerlaubte Typen deaktivieren statt
+    // erst nach der Auswahl einen Fehler zu zeigen.
+    const rule = parentType
+      ? isElementAllowedInParent(resolvePatternType(element.type), parentType)
+      : { allowed: true, message: '' };
+    const disabled = !rule.allowed;
+    return (
+      <ListItemButton
+        key={element.type}
+        onClick={() => handlePick(element.type)}
+        alignItems="flex-start"
+        disabled={disabled}
+      >
+        <ListItemIcon sx={{ mt: 0.5 }}>{element.icon}</ListItemIcon>
+        <ListItemText primary={element.label} secondary={disabled ? rule.message : element.description} />
+      </ListItemButton>
+    );
+  };
 
   return (
     <Dialog
@@ -1086,6 +1101,14 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
     setElementTypeDialogOpen(true);
   }, []);
 
+  // Eltern-Typ für die Vorab-Validierung im Dialog: nur bestimmbar, wenn als Unterelement
+  // eines direkten Kindes der aktuellen Ebene hinzugefügt wird (dort ist das Element bekannt).
+  // Für „auf aktueller Ebene hinzufügen" (null) greift weiterhin die Validierung in App.tsx.
+  const dialogParentType =
+    selectedElementForDialog && selectedElementForDialog.length === currentPath.length + 1
+      ? elements[selectedElementForDialog[selectedElementForDialog.length - 1]]?.element?.pattern_type
+      : undefined;
+
   // Rendere die Elementkarten
   const renderElementCards = () => {
     logger.log('renderElementCards - elements:', elements);
@@ -1138,6 +1161,7 @@ const ElementContextView: React.FC<ElementContextViewProps> = ({
         open={elementTypeDialogOpen}
         onClose={() => setElementTypeDialogOpen(false)}
         onSelectElementType={handleSelectElementType}
+        parentType={dialogParentType}
       />
 
       {elements.length > 0 ? (
