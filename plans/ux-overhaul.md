@@ -46,7 +46,7 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 - [x] **Keyboard-Shortcuts-Hilfe** *(PR #11)*: Dialog (via DialogBase) listet die vorhandenen, bislang undokumentierten Shortcuts (Strg+Z/Y/S, Esc); Tastatur-Icon in der Toolbar.
 
 ## Phase 3 — Auffindbarkeit & Effizienz
-- [ ] Palette: Suche/Filter + Tooltips je Typ; Palette sichtbar im Layout (`ElementPalette.tsx`).
+- [~] **Element-Picker: Suche + Beschreibungen** *(PR Phase 3)*: Befund — die `ElementPalette.tsx`-Komponente ist **tot** (in `App.tsx` auskommentiert, nicht gerendert). Der real genutzte Picker ist der `ElementTypeDialog` in `ElementContextView`. Dort ergänzt: Suchfeld (filtert Label/Typ/Beschreibung über beide Kategorien) + sichtbare **Beschreibung je Typ** (statt nur Hover-Tooltip → besser auffindbar/Touch). Offen: tote `ElementPalette` aufräumen/entfernen.
 - [ ] Drag&Drop: Drop-Indikatoren + Verschachtelungsregeln vorab (ungültiges Hinzufügen deaktivieren).
 - [ ] Multi-Select-Affordance (sichtbarer Toggle/Checkboxen).
 - [ ] Modul-Zuordnung immer sichtbar. *(INLINE/CATALOG- & Modul-Tooltips bereits via PR #8.)*
