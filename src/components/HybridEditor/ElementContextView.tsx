@@ -22,6 +22,8 @@ import {
   ListItemText,
   Tabs,
   Tab,
+  TextField,
+  InputAdornment,
   Menu,
   MenuItem,
   Divider
@@ -54,6 +56,8 @@ import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { PatternLibraryElement } from '../../models/listingFlow';
@@ -241,24 +245,25 @@ interface ElementType {
   label: string;
   icon: React.ReactNode;
   category: 'basic' | 'complex';
+  description: string;
 }
 
 // Elementtypen-Liste
 const elementTypes: ElementType[] = [
-  { type: 'TextUIElement', label: 'Text (Anzeige)', icon: <TextFieldsIcon />, category: 'basic' },
-  { type: 'StringUIElement', label: 'Texteingabe', icon: <InputIcon />, category: 'basic' },
-  { type: 'BooleanUIElement', label: 'Boolean', icon: <CheckBoxIcon />, category: 'basic' },
-  { type: 'SingleSelectionUIElement', label: 'Auswahl', icon: <RadioButtonCheckedIcon />, category: 'basic' },
-  { type: 'NumberUIElement', label: 'Nummer', icon: <NumbersIcon />, category: 'basic' },
-  { type: 'DateUIElement', label: 'Datum', icon: <CalendarTodayIcon />, category: 'basic' },
-  { type: 'FileUIElement', label: 'Datei', icon: <AttachFileIcon />, category: 'basic' },
-  { type: 'GroupUIElement', label: 'Gruppe', icon: <ViewModuleIcon />, category: 'complex' },
-  { type: 'ArrayUIElement', label: 'Array', icon: <ListIcon />, category: 'complex' },
-  { type: 'ChipGroupUIElement', label: 'Chip-Gruppe', icon: <LabelIcon />, category: 'complex' },
-  { type: 'CustomUIElement_SCANNER', label: 'Scanner', icon: <ViewInArIcon />, category: 'complex' },
-  { type: 'CustomUIElement_ADDRESS', label: 'Adresseingabe', icon: <HomeIcon />, category: 'complex' },
-  { type: 'CustomUIElement_LOCATION', label: 'Standort/Karte', icon: <LocationOnIcon />, category: 'complex' },
-  { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <ApartmentIcon />, category: 'complex' }
+  { type: 'TextUIElement', label: 'Text (Anzeige)', icon: <TextFieldsIcon />, category: 'basic', description: 'Statischer Text (Überschrift oder Absatz) — keine Eingabe.' },
+  { type: 'StringUIElement', label: 'Texteingabe', icon: <InputIcon />, category: 'basic', description: 'Ein- oder mehrzeilige Texteingabe.' },
+  { type: 'BooleanUIElement', label: 'Boolean', icon: <CheckBoxIcon />, category: 'basic', description: 'Ja/Nein — als Schalter, Checkbox oder Radio.' },
+  { type: 'SingleSelectionUIElement', label: 'Auswahl', icon: <RadioButtonCheckedIcon />, category: 'basic', description: 'Eine Option wählen (Dropdown oder Button-Gruppe).' },
+  { type: 'NumberUIElement', label: 'Nummer', icon: <NumbersIcon />, category: 'basic', description: 'Zahleneingabe mit optionaler Einheit und Min/Max.' },
+  { type: 'DateUIElement', label: 'Datum', icon: <CalendarTodayIcon />, category: 'basic', description: 'Datumseingabe (Jahr bis Tag/Uhrzeit).' },
+  { type: 'FileUIElement', label: 'Datei', icon: <AttachFileIcon />, category: 'basic', description: 'Datei- oder Bild-Upload.' },
+  { type: 'GroupUIElement', label: 'Gruppe', icon: <ViewModuleIcon />, category: 'complex', description: 'Bündelt mehrere Elemente zu einer logischen Gruppe.' },
+  { type: 'ArrayUIElement', label: 'Array', icon: <ListIcon />, category: 'complex', description: 'Wiederholbare Liste gleichartiger Elemente.' },
+  { type: 'ChipGroupUIElement', label: 'Chip-Gruppe', icon: <LabelIcon />, category: 'complex', description: 'Mehrere Boolean-Optionen als Chips.' },
+  { type: 'CustomUIElement_SCANNER', label: 'Scanner', icon: <ViewInArIcon />, category: 'complex', description: 'Bettet das Web-CAD (LiDAR-Scan/Gebäudemodell) ein.' },
+  { type: 'CustomUIElement_ADDRESS', label: 'Adresseingabe', icon: <HomeIcon />, category: 'complex', description: 'Strukturierte Adresseingabe.' },
+  { type: 'CustomUIElement_LOCATION', label: 'Standort/Karte', icon: <LocationOnIcon />, category: 'complex', description: 'Standort auf einer Karte verorten.' },
+  { type: 'CustomUIElement_ADMIN_BOUNDARY', label: 'Umgebungsinfos', icon: <ApartmentIcon />, category: 'complex', description: 'Verwaltungs-/Umgebungsinfos zum Standort.' }
 ];
 
 // Element-Typ-Dialog-Komponente
@@ -268,68 +273,97 @@ const ElementTypeDialog: React.FC<{
   onSelectElementType: (type: string) => void;
 }> = ({ open, onClose, onSelectElementType }) => {
   const [tabIndex, setTabIndex] = useState(0);
+  const [search, setSearch] = useState('');
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
+  const handleClose = () => {
+    setSearch('');
+    onClose();
+  };
+
+  const handlePick = (type: string) => {
+    onSelectElementType(type);
+    handleClose();
+  };
+
+  const q = search.trim().toLowerCase();
+  const matches = (e: ElementType) =>
+    e.label.toLowerCase().includes(q) ||
+    e.type.toLowerCase().includes(q) ||
+    e.description.toLowerCase().includes(q);
+
+  const searchResults = q ? elementTypes.filter(matches) : [];
   const basicElements = elementTypes.filter(e => e.category === 'basic');
   const complexElements = elementTypes.filter(e => e.category === 'complex');
+
+  const renderItem = (element: ElementType) => (
+    <ListItemButton key={element.type} onClick={() => handlePick(element.type)} alignItems="flex-start">
+      <ListItemIcon sx={{ mt: 0.5 }}>{element.icon}</ListItemIcon>
+      <ListItemText primary={element.label} secondary={element.description} />
+    </ListItemButton>
+  );
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="xs"
       fullWidth
     >
       <DialogTitle>Element hinzufügen</DialogTitle>
       <DialogContent>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs value={tabIndex} onChange={handleTabChange}>
-            <Tab label="Basis-Elemente" />
-            <Tab label="Komplexe Elemente" />
-          </Tabs>
-        </Box>
+        <TextField
+          autoFocus
+          fullWidth
+          size="small"
+          placeholder="Elementtyp suchen…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ mb: 2, mt: 1 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton size="small" aria-label="Suche leeren" onClick={() => setSearch('')}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
+          }}
+        />
 
-        <Box>
-          {tabIndex === 0 && (
-            <List>
-              {basicElements.map(element => (
-                <ListItemButton
-                  key={element.type}
-                  onClick={() => {
-                    onSelectElementType(element.type);
-                    onClose();
-                  }}
-                >
-                  <ListItemIcon>{element.icon}</ListItemIcon>
-                  <ListItemText primary={element.label} />
-                </ListItemButton>
-              ))}
-            </List>
-          )}
-
-          {tabIndex === 1 && (
-            <List>
-              {complexElements.map(element => (
-                <ListItemButton
-                  key={element.type}
-                  onClick={() => {
-                    onSelectElementType(element.type);
-                    onClose();
-                  }}
-                >
-                  <ListItemIcon>{element.icon}</ListItemIcon>
-                  <ListItemText primary={element.label} />
-                </ListItemButton>
-              ))}
-            </List>
-          )}
-        </Box>
+        {q ? (
+          searchResults.length > 0 ? (
+            <List>{searchResults.map(renderItem)}</List>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+              Keine Treffer für „{search}"
+            </Typography>
+          )
+        ) : (
+          <>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+              <Tabs value={tabIndex} onChange={handleTabChange}>
+                <Tab label="Basis-Elemente" />
+                <Tab label="Komplexe Elemente" />
+              </Tabs>
+            </Box>
+            <Box>
+              {tabIndex === 0 && <List>{basicElements.map(renderItem)}</List>}
+              {tabIndex === 1 && <List>{complexElements.map(renderItem)}</List>}
+            </Box>
+          </>
+        )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Abbrechen</Button>
+        <Button onClick={handleClose}>Abbrechen</Button>
       </DialogActions>
     </Dialog>
   );
