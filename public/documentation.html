@@ -238,428 +238,334 @@
     <div class="toc">
       <h3>Inhaltsverzeichnis</h3>
       <ul>
-        <li><a href="#overview">Übersicht</a></li>
-        <li><a href="#main-features">Hauptfunktionen</a>
-          <ul>
-            <li><a href="#navigation">Navigation und Werkzeugleiste</a></li>
-            <li><a href="#page-management">Seitenverwaltung</a></li>
-            <li><a href="#ui-elements">UI-Elemente</a></li>
-            <li><a href="#property-editor">Eigenschaftseditor</a></li>
-            <li><a href="#visibility-conditions">Sichtbarkeitsbedingungen</a></li>
-          </ul>
-        </li>
-        <li><a href="#element-types">Elementtypen</a>
-          <ul>
-            <li><a href="#text-elements">Textelemente</a></li>
-            <li><a href="#input-elements">Eingabeelemente</a></li>
-            <li><a href="#selection-elements">Auswahlelemente</a></li>
-            <li><a href="#container-elements">Container-Elemente</a></li>
-            <li><a href="#custom-elements">Benutzerdefinierte Elemente</a></li>
-          </ul>
-        </li>
-        <li><a href="#workflow">Arbeitsablauf</a></li>
-        <li><a href="#tips">Tipps und Tricks</a></li>
+        <li><a href="#overview">1. Über das Flow UI Toolkit</a></li>
+        <li><a href="#interface">2. Die Oberfläche im Überblick</a></li>
+        <li><a href="#flows">3. Flows anlegen, öffnen &amp; speichern</a></li>
+        <li><a href="#pages">4. Seiten verwalten</a></li>
+        <li><a href="#elements">5. Elemente hinzufügen &amp; verschachteln</a></li>
+        <li><a href="#properties">6. Elementeigenschaften bearbeiten</a></li>
+        <li><a href="#element-types">7. Elementtypen im Überblick</a></li>
+        <li><a href="#multi">8. Mehrere Elemente: Auswählen, Gruppieren, Kopieren, Exportieren</a></li>
+        <li><a href="#modules">9. Module (modulare Flows)</a></li>
+        <li><a href="#tips">10. Tipps &amp; häufige Fragen</a></li>
       </ul>
     </div>
 
     <section id="overview" class="card">
-      <h2>Übersicht</h2>
-      <div style="background-color: #E8F5E9; padding: 12px; border-left: 4px solid #009F64; margin-bottom: 15px;">
-        <strong>🆕 Neu in Version 2.0 (Februar 2026):</strong>
-        <ul style="margin: 8px 0 0 20px;">
-          <li><strong>Multi-Selektion & Gruppierung:</strong> Elemente können mit Strg+Klick ausgewählt und zu Gruppen zusammengefasst werden</li>
-          <li><strong>Suchfunktion:</strong> Hierarchie-Baum mit Suche, Auto-Expand und Treffer-Highlighting</li>
-          <li><strong>Element Drag & Drop:</strong> Elemente per Drag-Handle verschieben</li>
-          <li><strong>Tastaturkürzel:</strong> Strg+Z (Undo), Strg+Y (Redo), Strg+S (Speichern), Escape (Selektion beenden)</li>
-          <li><strong>Doppelklick-Navigation:</strong> Container per Doppelklick öffnen</li>
-          <li><strong>Übersichts-Menü:</strong> Elementaktionen in ⋮-Menü gruppiert</li>
-        </ul>
-      </div>
-      <p>Das Flow UI Toolkit ermöglicht die visuelle Erstellung und Bearbeitung von individuellem Workflow in der doorbit App und in doorbit Web. Sie können verschiedene UI-Elemente per Drag & Drop platzieren, deren Eigenschaften anpassen und mehrsprachige Inhalte verwalten.</p>
-
-      <p>Mit diesem Tool können Sie:</p>
+      <h2>1. Über das Flow UI Toolkit</h2>
+      <p>Das Flow UI Toolkit ist ein visueller Editor, mit dem Sie <strong>Flows</strong> erstellen
+        und bearbeiten — die mehrseitigen, dynamischen Formular-Workflows, die in der
+        <strong>doorbit App</strong> und in <strong>doorbit Web</strong> zur Laufzeit angezeigt
+        werden. Ein Flow wird als <strong>JSON-Datei</strong> gespeichert und geladen; dieses JSON
+        ist das Format, das doorbit rendert.</p>
+      <p>Mit dem Toolkit können Sie:</p>
       <ul>
-        <li>Verschiedene UI-Elemente per Drag & Drop platzieren</li>
-        <li>Eigenschaften der Elemente anpassen</li>
-        <li>Mehrsprachige Inhalte verwalten (Deutsch und Englisch)</li>
-        <li>Komplexe Sichtbarkeitsbedingungen definieren</li>
-        <li>Mehrere Seiten in einem Flow verwalten</li>
-        <li>JSON-Dateien importieren und exportieren</li>
-        <li><strong>NEU:</strong> Mehrere Elemente gleichzeitig auswählen und gruppieren</li>
-        <li><strong>NEU:</strong> Elemente im Hierarchie-Baum suchen und filtern</li>
-        <li><strong>NEU:</strong> Elemente per Drag & Drop verschieben</li>
-        <li><strong>NEU:</strong> Tastaturkürzel für schnellere Bearbeitung nutzen</li>
+        <li>Seiten und UI-Elemente per Drag &amp; Drop anlegen und anordnen,</li>
+        <li>Eigenschaften jedes Elements bearbeiten (inkl. mehrsprachiger Texte),</li>
+        <li>Sichtbarkeitsregeln definieren,</li>
+        <li>Flows in <strong>Module</strong> gliedern, die pro Projekt zu- oder abgeschaltet werden,</li>
+        <li>Flows als JSON exportieren und wieder importieren.</li>
+      </ul>
+      <div class="note">
+        <p>Sie arbeiten immer an genau <strong>einem</strong> Flow. „Speichern" lädt eine
+          JSON-Datei herunter; es gibt keine serverseitige Ablage im Toolkit selbst.</p>
+      </div>
+    </section>
+
+    <section id="interface" class="card">
+      <h2>2. Die Oberfläche im Überblick</h2>
+      <p>Der Editor ist in drei Spalten aufgebaut:</p>
+      <table>
+        <tr><th>Spalte</th><th>Inhalt</th></tr>
+        <tr><td><strong>Links — Hierarchie</strong></td><td>Baumansicht aller Elemente der aktuellen Seite; Auswahl und Navigation durch verschachtelte Strukturen.</td></tr>
+        <tr><td><strong>Mitte — Kontext</strong></td><td>Das aktuell geöffnete Element/Container mit seinen direkten Kindern; hier fügen Sie Elemente hinzu.</td></tr>
+        <tr><td><strong>Rechts — Eigenschaften</strong></td><td>Der Eigenschaften-Editor für das ausgewählte Element.</td></tr>
+      </table>
+
+      <h4>Werkzeugleiste</h4>
+      <ul>
+        <li><strong>Neu / Öffnen / Speichern</strong> — Flow anlegen, JSON laden, JSON herunterladen.</li>
+        <li><strong>Flow-Eigenschaften</strong> (Schaltfläche mit dem Flow-Namen) — Name, ID, URL-Key, Titel und Icon bearbeiten.</li>
+        <li><strong>Module</strong> — den Modul-Katalog des Flows verwalten.</li>
+        <li><strong>Erste Schritte</strong> — eine kurze Editor-Tour (erscheint beim ersten Start automatisch).</li>
+        <li><strong>Tastaturkürzel</strong> — Übersicht der verfügbaren Shortcuts.</li>
+        <li><strong>Dokumentation</strong> — öffnet diese Hilfe.</li>
+        <li><strong>Rückgängig / Wiederherstellen</strong> — Undo/Redo.</li>
+        <li><strong>Validierungs-Anzeige</strong> — zeigt „Gültig" (grün) oder „N Probleme" (rot); ein Klick öffnet die Fehlerliste.</li>
+      </ul>
+      <p>Unter der Werkzeugleiste liegt die <strong>Seiten-Navigation</strong> (Tabs) mit „+"
+        (neue Seite) und dem Import-Symbol.</p>
+      <div class="note">
+        <p><strong>Tastaturkürzel:</strong> Rückgängig (Strg/Cmd+Z), Wiederherstellen (Strg/Cmd+Y),
+          Speichern (Strg/Cmd+S), Abbrechen/Schließen (Esc).</p>
+      </div>
+    </section>
+
+    <section id="flows" class="card">
+      <h2>3. Flows anlegen, öffnen &amp; speichern</h2>
+      <ul>
+        <li><strong>Neu:</strong> legt einen leeren Flow an. Ungespeicherte Änderungen gehen verloren — Sie werden vorher gefragt.</li>
+        <li><strong>Öffnen:</strong> lädt einen Flow aus einer JSON-Datei. Bei einem nicht-leeren Flow wird vor dem Überschreiben nachgefragt.</li>
+        <li><strong>Speichern:</strong> lädt den aktuellen Flow als JSON-Datei herunter.</li>
+      </ul>
+
+      <h3>Flow-Eigenschaften bearbeiten</h3>
+      <p>Über die Schaltfläche mit dem Flow-Namen öffnen Sie den Dialog <strong>„Flow-Eigenschaften"</strong>:</p>
+      <ul>
+        <li><strong>Name</strong> — interner Anzeigename.</li>
+        <li><strong>ID</strong> und <strong>URL-Key</strong> — technische Identifier. Sie müssen
+          gesetzt sein und dürfen nur Kleinbuchstaben, Ziffern, „-" und „_" enthalten (keine
+          Leerzeichen). Mit <strong>„aus Name"</strong> wird automatisch ein passender Wert abgeleitet.</li>
+        <li><strong>Titel (Deutsch/Englisch)</strong> — nutzersichtbarer Titel des Flows.</li>
+        <li><strong>Flow-Icon</strong> — über die Icon-Auswahl.</li>
+      </ul>
+      <p>Ungültige Eingaben werden direkt am Feld markiert; „Speichern" bleibt bis zur Korrektur deaktiviert.</p>
+    </section>
+
+    <section id="pages" class="card">
+      <h2>4. Seiten verwalten</h2>
+      <p>Ein Flow besteht aus mehreren Seiten, zwischen denen Sie über die Tabs wechseln.</p>
+      <ul>
+        <li><strong>Seite anlegen:</strong> „+" in der Seiten-Navigation. Im Dialog vergeben Sie
+          einen Titel und wählen das <strong>Layout</strong> — mit einer <strong>Live-Vorschau</strong>,
+          die zeigt, wie die rechte Spalte dargestellt wird.</li>
+        <li><strong>Seite bearbeiten:</strong> Stift-Symbol am Tab. Hier setzen Sie Titel
+          (mehrsprachig), Icon, Layout (mit Vorschau), die Modul-Zuordnung und Sichtbarkeitsregeln.</li>
+        <li><strong>Reihenfolge ändern:</strong> Tabs per Drag &amp; Drop verschieben.</li>
+        <li><strong>Seite löschen:</strong> mit Bestätigung; die letzte verbleibende Seite kann nicht gelöscht werden.</li>
+      </ul>
+
+      <h3>Layouts</h3>
+      <p>Es stehen genau die Layouts zur Verfügung, die doorbit auch tatsächlich darstellt:</p>
+      <table>
+        <tr><th>Layout</th><th>Darstellung</th></tr>
+        <tr><td><strong>Standard</strong></td><td>rechte Spalte zentriert (kein Layout-Feld gesetzt)</td></tr>
+        <tr><td><strong>2-spaltig, rechts breiter</strong></td><td>rechte Spalte breiter zentriert</td></tr>
+        <tr><td><strong>2-spaltig, rechts gefüllt</strong></td><td>genau ein rechtes Element füllt die Spalte</td></tr>
+      </table>
+
+      <h3>View-Modus automatisch erzeugen</h3>
+      <p>Beim Bearbeiten einer Edit-Seite können Sie <strong>„Im View-Modus anzeigen"</strong>
+        aktivieren. Die Eingabefelder werden dann automatisch in Anzeige-Elemente umgewandelt
+        (z. B. Eingaben → Tabellen, Datei-Uploads → Bildergalerien). So müssen Sie die zugehörige
+        View-Seite nicht von Hand pflegen. Enthält die View-Seite bereits manuelle Inhalte, werden
+        Sie vor dem Überschreiben gewarnt.</p>
+
+      <h3>Seiten aus einer anderen Datei importieren</h3>
+      <p>Über das Import-Symbol neben „+" übernehmen Sie ganze Seiten aus einer anderen JSON-Datei:</p>
+      <ol>
+        <li>Datei auswählen → die enthaltenen Seiten werden aufgelistet.</li>
+        <li>Gewünschte Seiten per Checkbox markieren (oder „Alle auswählen").</li>
+        <li>„Importieren".</li>
+      </ol>
+      <p>Importierte Seiten erhalten neue interne IDs (um Konflikte zu vermeiden); die
+        <code>field_id</code>-Werte der Elemente bleiben erhalten, damit die Datenbindung intakt
+        bleibt. Edit- und zugehörige View-Seite werden als Paar übernommen. Der Import lässt sich
+        rückgängig machen.</p>
+    </section>
+
+    <section id="elements" class="card">
+      <h2>5. Elemente hinzufügen &amp; verschachteln</h2>
+      <h3>Element hinzufügen</h3>
+      <p>In der mittleren Spalte fügen Sie über die Element-Auswahl ein neues Element hinzu. Der
+        Auswahl-Dialog bietet:</p>
+      <ul>
+        <li>ein <strong>Suchfeld</strong> (filtert nach Name, Typ und Beschreibung),</li>
+        <li>eine <strong>Beschreibung je Elementtyp</strong>,</li>
+        <li>eine <strong>Vorab-Prüfung der Verschachtelungsregeln</strong>: Typen, die im aktuellen
+          Container nicht erlaubt sind, werden deaktiviert und mit Begründung angezeigt.</li>
+      </ul>
+
+      <h3>Verschachteln &amp; Container</h3>
+      <p>Container-Elemente nehmen weitere Elemente auf:</p>
+      <ul>
+        <li><strong>Gruppe</strong> — fasst Elemente zusammen (bildet auch optisch eine Gruppe). Kann alle Typen enthalten.</li>
+        <li><strong>Array</strong> — wiederholbare Elementgruppen. Kann alle Typen enthalten.</li>
+        <li><strong>Chip-Gruppe</strong> — enthält ausschließlich Boolean-Elemente (Chips).</li>
+        <li><strong>Benutzerdefiniert (Custom)</strong> — kann Elemente und Subflows enthalten (z. B. Scanner).</li>
+      </ul>
+      <p>Ziehen Sie Elemente per Drag &amp; Drop in einen Container oder ändern Sie ihre
+        Reihenfolge. Die Hierarchie ist bis zu sechs Ebenen tief gut handhabbar. In der Hierarchie
+        (links) und im Kontext (Mitte) navigieren Sie durch die Ebenen; der Containertyp wird
+        farblich gekennzeichnet.</p>
+    </section>
+
+    <section id="properties" class="card">
+      <h2>6. Elementeigenschaften bearbeiten</h2>
+      <p>Im rechten Eigenschaften-Editor (mit Tabs für Allgemein, Sichtbarkeit, ggf. Unterelemente
+        und JSON) bearbeiten Sie:</p>
+      <ul>
+        <li><strong>Titel &amp; Beschreibung</strong> — mehrsprachig (Deutsch/Englisch).</li>
+        <li><strong>Feld-ID</strong> — bei eingebenden Elementen; hier wird der erfasste Wert
+          gespeichert. Sie wird einheitlich und prominent angezeigt.</li>
+        <li><strong>Pflichtfeld</strong> — ob eine Eingabe erforderlich ist.</li>
+        <li><strong>Modul-Zuordnung</strong> — ordnet das Element einem Modul zu (siehe Abschnitt 9).
+          Immer sichtbar; ohne definierte Module mit Hinweis, wie man welche anlegt.</li>
+        <li><strong>Elementspezifische Einstellungen</strong> — je nach Typ (siehe Abschnitt 7).</li>
+        <li><strong>Sichtbarkeitsregeln</strong> — siehe unten.</li>
+      </ul>
+
+      <h3>Sichtbarkeitsregeln</h3>
+      <p>Mit dem Bedingungs-Editor steuern Sie, wann ein Element (oder eine Seite) angezeigt wird:</p>
+      <ul>
+        <li><strong>Feldbasierte Bedingungen</strong> — abhängig vom Wert eines anderen Feldes.</li>
+        <li><strong>Kontextbedingungen</strong> — z. B. nur beim Erstellen, Bearbeiten oder Ansehen.</li>
+        <li><strong>Logische Verknüpfung</strong> — UND / ODER / NICHT für komplexe Bedingungen.</li>
       </ul>
     </section>
 
-    <section id="main-features">
-      <h2>Hauptfunktionen</h2>
+    <section id="element-types" class="card">
+      <h2>7. Elementtypen im Überblick</h2>
 
-      <div id="navigation" class="card">
-        <h3>Navigation und Werkzeugleiste</h3>
-        <p>Die Hauptnavigation bietet folgende Funktionen:</p>
-        <ul>
-          <li><strong>Neu</strong>: Erstellt einen neuen, leeren Flow</li>
-          <li><strong>Öffnen</strong>: Lädt einen bestehenden Flow aus einer JSON-Datei</li>
-          <li><strong>Speichern</strong>: Speichert den aktuellen Flow als JSON-Datei</li>
-          <li><strong>Workflow-Name</strong>: Bearbeitet den Namen des aktuellen Workflows</li>
-          <li><strong>Rückgängig/Wiederholen</strong>: Ermöglicht das Rückgängigmachen und Wiederholen von Änderungen</li>
-        </ul>
-      </div>
+      <h3>Anzeige (keine Benutzereingabe)</h3>
+      <ul>
+        <li><strong>Text</strong> — statische Überschrift oder Absatz.</li>
+        <li><strong>Feld-Text</strong> — zeigt den Wert eines Feldes als Text an (dynamisch).</li>
+        <li><strong>Schlüssel-Wert-Liste</strong>, <strong>Tabelle</strong>, <strong>Bildergalerie</strong> — Anzeige-Elemente, v. a. für den View-Modus.</li>
+        <li><strong>Kontakt</strong> — zeigt eine Identitäts-/Kontaktkarte (z. B. den zuständigen Energieberater).</li>
+      </ul>
 
-      <div id="page-management" class="card">
-        <h3>Seitenverwaltung</h3>
-        <p>Das Flow UI Toolkit unterstützt die Verwaltung mehrerer Seiten innerhalb eines Flows:</p>
-        <ul>
-          <li>Seiten über Tabs navigieren</li>
-          <li>Seiten durch Drag & Drop neu anordnen</li>
-          <li>Seiten hinzufügen, bearbeiten oder löschen</li>
-          <li>Seitentitel in mehreren Sprachen anpassen (Deutsch und Englisch)</li>
-          <li>Material Design Icons für Seiten auswählen</li>
-          <li>Sichtbarkeitsbedingungen für Seiten definieren</li>
-        </ul>
+      <h3>Eingabe</h3>
+      <ul>
+        <li><strong>Texteingabe</strong> — ein- oder mehrzeilig, mit optionaler Längen-Validierung.</li>
+        <li><strong>Nummer</strong> — Ganzzahl oder Dezimalzahl, mit Minimum/Maximum, Default-Wert und Einheit.</li>
+        <li><strong>Datum</strong> — Jahr, Monat, Tag oder Uhrzeit (je nach Genauigkeit).</li>
+        <li><strong>Datei</strong> — Datei-/Bild-Upload mit Typ-Beschränkungen.</li>
+      </ul>
 
-        <h4>Seiten bearbeiten</h4>
-        <ol>
-          <li>Klicken Sie auf das Bearbeiten-Symbol (Stift) neben dem Seiten-Tab</li>
-          <li>Im Dialog können Sie folgende Eigenschaften anpassen:
-            <ul>
-              <li>Titel in verschiedenen Sprachen (lang und kurz)</li>
-              <li>Icon aus der Material Design Bibliothek</li>
-              <li>Layout der Seite</li>
-              <li>Verknüpfung mit korrespondierenden Seiten</li>
-            </ul>
-          </li>
-        </ol>
+      <h3>Auswahl</h3>
+      <ul>
+        <li><strong>Boolean</strong> — Ja/Nein.</li>
+        <li><strong>Einzelauswahl</strong> — eine Option aus mehreren, als Dropdown oder
+          Button-Gruppe. Jede Option hat einen eindeutigen Schlüssel (wird auf Eindeutigkeit
+          geprüft), eine mehrsprachige Beschriftung und optional ein Icon.</li>
+        <li><strong>Chip-Gruppe</strong> — mehrere unabhängig aktivierbare Chips.</li>
+      </ul>
 
-        <h4>Icon-Auswahl</h4>
-        <ol>
-          <li>Klicken Sie im Seiten-Dialog auf "Icon auswählen"</li>
-          <li>Wählen Sie eine Kategorie (z.B. "Haus & Gebäude", "Smart Home & HVAC")</li>
-          <li>Nutzen Sie die Suchfunktion für spezifische Icons</li>
-          <li>Klicken Sie auf ein Icon, um es auszuwählen</li>
-        </ol>
-      </div>
+      <h3>Struktur</h3>
+      <ul>
+        <li><strong>Gruppe</strong>, <strong>Array</strong> — siehe Abschnitt 5.</li>
+      </ul>
+
+      <h3>Benutzerdefiniert (Custom)</h3>
+      <ul>
+        <li><strong>Scanner</strong> — Scan- und doorbit-Studio-Integration; die Screens während des
+          Scans lassen sich hier über Subflows anpassen.</li>
+        <li><strong>Adresse</strong> — strukturierte Adresseingabe mit Validierung.</li>
+        <li><strong>Standort</strong> — GPS-Koordinaten und Kartenintegration.</li>
+        <li><strong>Umgebung</strong> — Standort-Statistiken (z. B. Altersverteilung, Bildungsniveau).</li>
+      </ul>
     </section>
 
-      <div id="ui-elements" class="card">
-        <h3>UI-Elemente</h3>
-        <p>Das Flow UI Toolkit bietet verschiedene UI-Elemente, die per Drag & Drop platziert werden können:</p>
+    <section id="multi" class="card">
+      <h2>8. Mehrere Elemente: Auswählen, Gruppieren, Kopieren, Exportieren</h2>
 
-        <h4>Elementtypen</h4>
-        <table>
-          <tr>
-            <th>Element</th>
-            <th>Beschreibung</th>
-            <th>Anpassbare Eigenschaften</th>
-          </tr>
-          <tr>
-            <td>TextUIElement</td>
-            <td>Statischer Text (Überschriften, Absätze)</td>
-            <td>Text, Texttyp (Überschrift, Absatz), Mehrsprachigkeit</td>
-          </tr>
-          <tr>
-            <td>BooleanUIElement</td>
-            <td>Ja/Nein-Auswahl</td>
-            <td>Darstellungsart (Checkbox, Toggle, Dropdown), Beschriftungen</td>
-          </tr>
-          <tr>
-            <td>SingleSelectionUIElement</td>
-            <td>Auswahl aus mehreren Optionen</td>
-            <td>Optionen, Darstellungsart (Dropdown, Radio)</td>
-          </tr>
-          <tr>
-            <td>NumberUIElement</td>
-            <td>Zahleneingabe</td>
-            <td>Min/Max-Werte, Schrittgröße, Einheit</td>
-          </tr>
-          <tr>
-            <td>DateUIElement</td>
-            <td>Datumseingabe</td>
-            <td>Format, Min/Max-Datum</td>
-          </tr>
-          <tr>
-            <td>FileUIElement</td>
-            <td>Datei-Upload</td>
-            <td>Erlaubte Dateitypen, Maximale Größe</td>
-          </tr>
-          <tr>
-            <td>GroupUIElement</td>
-            <td>Container für andere Elemente</td>
-            <td>Layout, Titel, enthaltene Elemente</td>
-          </tr>
-          <tr>
-            <td>ArrayUIElement</td>
-            <td>Liste gleichartiger Elemente</td>
-            <td>Min/Max-Anzahl, Elementtyp</td>
-          </tr>
-          <tr>
-            <td>ChipGroupUIElement</td>
-            <td>Gruppe von auswählbaren Chips</td>
-            <td>Optionen, Mehrfachauswahl</td>
-          </tr>
-          <tr>
-            <td>CustomUIElement</td>
-            <td>Benutzerdefinierte Komponenten</td>
-            <td>Typ (Scanner/doorbit Studio, Address, Location, Environment)</td>
-          </tr>
-        </table>
-      </div>
-
-      <div id="property-editor" class="card">
-        <h3>Eigenschaftseditor</h3>
-        <p>Der Eigenschaftseditor ermöglicht die detaillierte Anpassung der ausgewählten Elemente:</p>
-
-        <h4>Allgemeine Eigenschaften</h4>
-        <ul>
-          <li><strong>Titel</strong>: Der Titel des Elements (mehrsprachig)</li>
-          <li><strong>Beschreibung</strong>: Eine optionale Beschreibung (mehrsprachig)</li>
-          <li><strong>Feld-ID</strong>: Eine eindeutige ID für das Element (wird automatisch generiert)</li>
-          <li><strong>Pflichtfeld</strong>: Gibt an, ob das Feld ausgefüllt werden muss</li>
-        </ul>
-
-        <h4>Elementspezifische Eigenschaften</h4>
-        <p>Je nach Elementtyp stehen verschiedene spezifische Eigenschaften zur Verfügung:</p>
-        <ul>
-          <li>Für Textelemente: Texttyp (Überschrift, Absatz), Textinhalt</li>
-          <li>Für Boolesche Elemente: Darstellungsart, Beschriftungen für Wahr/Falsch</li>
-          <li>Für Auswahlfelder: Optionen, Darstellungsart</li>
-          <li>Für Zahlenfelder: Min/Max-Werte, Schrittgröße</li>
-          <li>Für Container: Layout, enthaltene Elemente</li>
-        </ul>
-      </div>
-
-      <div id="visibility-conditions" class="card">
-        <h3>Sichtbarkeitsbedingungen</h3>
-        <p>Mit Sichtbarkeitsbedingungen können Sie festlegen, wann ein Element oder eine Seite angezeigt wird:</p>
-
-        <h4>Bedingungstypen</h4>
-        <ul>
-          <li><strong>Einfache Bedingung</strong>: Basierend auf dem Wert eines anderen Feldes</li>
-          <li><strong>Komplexe Bedingung</strong>: Mehrere Bedingungen mit UND/ODER verknüpft</li>
-        </ul>
-
-        <h4>Verfügbare Operatoren</h4>
-        <ul>
-          <li>Gleich (=)</li>
-          <li>Ungleich (!=)</li>
-          <li>Größer als (>)</li>
-          <li>Kleiner als (<)</li>
-          <li>Größer oder gleich (>=)</li>
-          <li>Kleiner oder gleich (<=)</li>
-          <li>Enthält (contains)</li>
-        </ul>
-
-        <div class="note">
-          <p><strong>Hinweis:</strong> Sichtbarkeitsbedingungen können auf alle Felder im Flow angewendet werden, auch auf Felder anderer Seiten.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="element-types">
-      <h2>Elementtypen im Detail</h2>
-
-      <div id="text-elements" class="card element-card">
-        <h3>Textelemente</h3>
-        <p>Es gibt zwei Arten von Textelementen mit unterschiedlichen Zwecken:</p>
-
-        <h4>Text (Anzeige) - TextUIElement</h4>
-        <p>Für <strong>statische Textanzeige</strong> ohne Benutzereingabe.</p>
-        <ul>
-          <li><strong>Zweck</strong>: Anzeige von Überschriften, Absätzen und Informationstexten</li>
-          <li><strong>Texttyp</strong>: HEADING (Überschrift) oder PARAGRAPH (Absatz)</li>
-          <li><strong>Text</strong>: Der anzuzeigende Text (mehrsprachig)</li>
-          <li><strong>Keine Datenspeicherung</strong>: Dient nur zur Anzeige, speichert keine Benutzereingaben</li>
-        </ul>
-
-        <h4>Texteingabe - StringUIElement</h4>
-        <p>Für <strong>Benutzereingaben</strong> von Textdaten.</p>
-        <ul>
-          <li><strong>Zweck</strong>: Erfassung von Textdaten vom Benutzer</li>
-          <li><strong>Eingabetyp</strong>: TEXT (einzeilig) oder TEXT_AREA (mehrzeilig)</li>
-          <li><strong>Feld-ID</strong>: Eindeutige ID zur Speicherung der Eingabe</li>
-          <li><strong>Validierung</strong>: Mindest-/Maximallänge, Muster (Regex)</li>
-          <li><strong>Platzhalter</strong>: Optionaler Hinweistext im leeren Feld</li>
-          <li><strong>Standardwert</strong>: Vorbelegter Wert</li>
-        </ul>
-
-        <div class="note">
-          <p><strong>Wichtig:</strong> Verwenden Sie <strong>Text (Anzeige)</strong> für statische Inhalte wie Überschriften und Beschreibungen. Verwenden Sie <strong>Texteingabe</strong> wenn Benutzer Text eingeben und speichern sollen.</p>
-        </div>
-
-        <h4>Verwendungsbeispiele</h4>
-        <p><strong>Text (Anzeige)</strong> eignet sich für:</p>
-        <ul>
-          <li>Abschnittsüberschriften</li>
-          <li>Erklärungstexte und Anleitungen</li>
-          <li>Hinweise und Warnungen</li>
-          <li>Rechtliche Informationen</li>
-        </ul>
-
-        <p><strong>Texteingabe</strong> eignet sich für:</p>
-        <ul>
-          <li>Namen, Adressen, Beschreibungen</li>
-          <li>Kommentare und Notizen</li>
-          <li>Suchfelder</li>
-          <li>Beliebige Textdaten vom Benutzer</li>
-        </ul>
-      </div>
-
-      <div id="input-elements" class="card element-card">
-        <h3>Weitere Eingabeelemente</h3>
-        <p>Neben Texteingaben gibt es weitere spezialisierte Eingabeelemente für verschiedene Datentypen.</p>
-
-        <h4>Typen von Eingabeelementen</h4>
-        <ul>
-          <li><strong>NumberUIElement</strong>: Für Zahleneingaben (Ganzzahlen oder Dezimalzahlen)</li>
-          <li><strong>DateUIElement</strong>: Für Datumseingaben (Jahr, Monat, Tag)</li>
-          <li><strong>FileUIElement</strong>: Für Datei-Uploads (Bilder, Dokumente)</li>
-        </ul>
-
-        <h4>Validierung</h4>
-        <p>Für Eingabeelemente können verschiedene Validierungsregeln definiert werden:</p>
-        <ul>
-          <li>Pflichtfeld-Validierung</li>
-          <li>Min/Max-Länge für Texte</li>
-          <li>Min/Max-Werte für Zahlen</li>
-          <li>Datumsbereich für Datumsfelder</li>
-          <li>Dateitypen und -größen für Datei-Uploads</li>
-        </ul>
-      </div>
-
-      <div id="selection-elements" class="card element-card">
-        <h3>Auswahlelemente</h3>
-        <p>Auswahlelemente ermöglichen die Auswahl aus vordefinierten Optionen.</p>
-
-        <h4>Typen von Auswahlelementen</h4>
-        <ul>
-          <li><strong>BooleanUIElement</strong>: Ja/Nein-Auswahl (Checkbox, Toggle, Dropdown)</li>
-          <li><strong>SingleSelectionUIElement</strong>: Einzelauswahl aus mehreren Optionen</li>
-          <li><strong>ChipGroupUIElement</strong>: Mehrfachauswahl mit visuellen Chips</li>
-        </ul>
-
-        <h4>Darstellungsarten</h4>
-        <p>Je nach Elementtyp stehen verschiedene Darstellungsarten zur Verfügung:</p>
-        <ul>
-          <li>Für BooleanUIElement: SWITCH, CHECKBOX, DROPDOWN, RADIO, BUTTONGROUP</li>
-          <li>Für SingleSelectionUIElement: DROPDOWN, RADIO, BUTTONGROUP</li>
-        </ul>
-
-        <div class="note">
-          <p><strong>Hinweis:</strong> Bei ChipGroupUIElement können nur BooleanUIElements als Unterelemente hinzugefügt werden. Diese erhalten automatisch eine eindeutige UUID als Feld-ID.</p>
-        </div>
-      </div>
-
-      <div id="container-elements" class="card element-card">
-        <h3>Container-Elemente</h3>
-        <p>Container-Elemente dienen zur Strukturierung und Gruppierung anderer Elemente.</p>
-
-        <h4>Typen von Container-Elementen</h4>
-        <ul>
-          <li><strong>GroupUIElement</strong>: Gruppiert verschiedene Elemente</li>
-          <li><strong>ArrayUIElement</strong>: Enthält mehrere Instanzen des gleichen Elementtyps</li>
-        </ul>
-
-        <h4>Einschränkungen</h4>
-        <ul>
-          <li>GroupUIElement kann alle Elementtypen enthalten, außer andere GroupUIElements</li>
-          <li>ArrayUIElement sollte keine komplexen Elemente oder andere Arrays enthalten</li>
-        </ul>
-
-        <div class="warning">
-          <p><strong>Wichtig:</strong> Alle Elemente, die zu Containern hinzugefügt werden, sollten eindeutige UUIDs als Feld-IDs haben, damit Sichtbarkeitsregeln korrekt funktionieren.</p>
-        </div>
-      </div>
-
-      <div id="custom-elements" class="card element-card">
-        <h3>Benutzerdefinierte Elemente</h3>
-        <p>CustomUIElements sind spezialisierte Komponenten für bestimmte Anwendungsfälle.</p>
-
-        <h4>Verfügbare Typen</h4>
-        <ul>
-          <li><strong>Scanner</strong>: Scan- und doorbit Studio Integration. Hier können die Screens, die während des Scans bearbeitet werden inkl. der Notizfunktion individualisiert werden</li>
-          <li><strong>Address</strong>: Für strukturierte Adresseingaben</li>
-          <li><strong>Location</strong>: Für Standortdaten mit Koordinaten</li>
-          <li><strong>Environment</strong>: Für sozioökonomische Umgebungsdaten (Statistiken)</li>
-        </ul>
-
-        <h4>Besonderheiten</h4>
-        <p>CustomUIElements generieren komplexe JSON-Strukturen, die Subflows enthalten können. Diese werden automatisch mit eindeutigen UUIDs für alle Elemente generiert.</p>
-      </div>
-    </section>
-
-    <section id="workflow" class="card">
-      <h2>Arbeitsablauf</h2>
-      <p>Ein typischer Arbeitsablauf im Flow UI Toolkit sieht wie folgt aus:</p>
-
+      <h3>Mehrfachauswahl &amp; Gruppieren</h3>
       <ol>
-        <li><strong>Workflow erstellen oder öffnen</strong>
-          <ul>
-            <li>Neuen Workflow erstellen über den "Neu"-Button</li>
-            <li>Bestehenden Workflow öffnen über den "Öffnen"-Button</li>
-            <li>Workflow-Namen festlegen</li>
-          </ul>
-        </li>
-        <li><strong>Seiten verwalten</strong>
-          <ul>
-            <li>Seiten hinzufügen, bearbeiten oder löschen</li>
-            <li>Seitentitel und Icons anpassen</li>
-            <li>Seitenreihenfolge durch Drag & Drop ändern</li>
-          </ul>
-        </li>
-        <li><strong>UI-Elemente hinzufügen</strong>
-          <ul>
-            <li>Elemente per Drag & Drop aus der Elementpalette ziehen</li>
-            <li>Elemente in Container-Elementen verschachteln</li>
-            <li>Elemente in der Hierarchie neu anordnen</li>
-          </ul>
-        </li>
-        <li><strong>Eigenschaften anpassen</strong>
-          <ul>
-            <li>Allgemeine Eigenschaften wie Titel und Beschreibung festlegen</li>
-            <li>Elementspezifische Eigenschaften konfigurieren</li>
-            <li>Mehrsprachige Inhalte für Deutsch und Englisch definieren</li>
-          </ul>
-        </li>
-        <li><strong>Sichtbarkeitsbedingungen definieren</strong>
-          <ul>
-            <li>Bedingungen für die Anzeige von Elementen festlegen</li>
-            <li>Komplexe Bedingungen mit UND/ODER-Verknüpfungen erstellen</li>
-          </ul>
-        </li>
-        <li><strong>Workflow speichern</strong>
-          <ul>
-            <li>Workflow als JSON-Datei speichern</li>
-            <li>Die generierte JSON-Datei kann direkt verwendet werden</li>
-          </ul>
-        </li>
+        <li><strong>Selektionsmodus</strong> aktivieren (Checkbox-Symbol in der Editor-Werkzeugleiste).
+          Neben den Elementen erscheinen Checkboxen; ein <strong>Aktionsbalken</strong> zeigt die
+          Anzahl der ausgewählten Elemente.</li>
+        <li>Elemente markieren → <strong>„Zu Gruppe zusammenfassen"</strong>.</li>
+        <li>Gruppentitel und Feld-ID vergeben (wird vorgeschlagen) → die Auswahl wird in eine neue
+          Gruppe eingebettet.</li>
       </ol>
+      <p>Voraussetzungen: Alle Elemente müssen auf <strong>derselben Ebene</strong> liegen; Elemente
+        innerhalb von Arrays, Subflows oder Chip-Gruppen sowie bereits bestehende Gruppen können
+        nicht (erneut) gruppiert werden. Bei Verstößen erscheint eine verständliche Meldung.</p>
+
+      <h3>Gruppierung auflösen</h3>
+      <p>Eine Gruppe auswählen → <strong>Auflösen-Symbol</strong>. Die Kinder-Elemente rücken an die
+        Position der Gruppe; ihre <code>field_id</code>-Werte bleiben unverändert.</p>
+
+      <h3>Element auf andere Seite kopieren</h3>
+      <p>Kopier-Symbol an der Elementkarte → Zielseite und Position wählen. Das kopierte Element
+        (inkl. aller Kinder) erhält <strong>neue</strong> UUIDs und <strong>neue</strong>
+        <code>field_id</code>-Werte, um Konflikte im selben Flow zu vermeiden.</p>
+
+      <h3>Element in andere JSON-Datei exportieren</h3>
+      <p>Export-Symbol → Zieldatei, Zielseite und Position wählen. Die Zieldatei wird als
+        <code>[Dateiname]_modified.json</code> heruntergeladen; der aktuelle Flow bleibt unverändert.
+        Die <code>field_id</code>-Werte bleiben erhalten (anderer Flow → kein Konflikt). Enthält das
+        Element Sichtbarkeitsbedingungen mit Feldverweisen, erscheint eine Warnung, da diese Felder
+        in der Zieldatei evtl. fehlen.</p>
+      <div class="note">
+        <p>Alle diese Aktionen unterstützen Undo/Redo.</p>
+      </div>
+    </section>
+
+    <section id="modules" class="card">
+      <h2>9. Module (modulare Flows)</h2>
+      <p>Ein Flow kann optionale <strong>Module</strong> deklarieren — Bündel aus Seiten/Feldern, die
+        ein Projekt bei Bedarf (auch nachträglich) aktiviert. Mit <code>module_id</code> markierte
+        Seiten oder Elemente sind nur sichtbar, wenn das zugehörige Modul im Projekt aktiv ist.</p>
+      <ul>
+        <li><strong>Modul-Katalog verwalten:</strong> Schaltfläche <strong>„Module"</strong> in der
+          Werkzeugleiste — Module anlegen, bearbeiten, löschen. Je Modul: ID, Name, Beschreibung,
+          Icon und ob es standardmäßig aktiv ist.</li>
+        <li><strong>Auslieferungsart:</strong>
+          <ul>
+            <li><strong>INLINE</strong> — das Modul ist im Flow enthalten.</li>
+            <li><strong>CATALOG</strong> — das Modul ist ein eigenständiges, versioniertes Artefakt,
+              das separat exportiert/importiert und nachgeladen werden kann.</li>
+          </ul>
+        </li>
+        <li><strong>Zuordnung:</strong> Im Eigenschaften-Editor (Element) und im Seiten-Dialog ordnen
+          Sie über <strong>„Modul-Zuordnung"</strong> ein Element/eine Seite einem Modul zu. Verweist
+          eine Zuordnung auf ein nicht (mehr) vorhandenes Modul, wird das als „⚠ Unbekannt" angezeigt;
+          der Modul-Manager warnt vor solchen verwaisten Zuordnungen.</li>
+      </ul>
     </section>
 
     <section id="tips" class="card">
-      <h2>Tipps und Tricks</h2>
+      <h2>10. Tipps &amp; häufige Fragen</h2>
 
-      <h3>Allgemeine Tipps</h3>
+      <h3>Tipps</h3>
       <ul>
-        <li><strong>Regelmäßiges Speichern</strong>: Speichern Sie Ihren Workflow regelmäßig, um Datenverlust zu vermeiden.</li>
-        <li><strong>Undo/Redo</strong>: Nutzen Sie die Undo/Redo-Funktionen, um Änderungen rückgängig zu machen oder wiederherzustellen.</li>
-        <li><strong>Eindeutige IDs</strong>: Achten Sie darauf, dass alle Elemente eindeutige UUIDs als Feld-IDs haben, besonders wenn Sie Sichtbarkeitsbedingungen verwenden.</li>
-        <li><strong>Mehrsprachigkeit</strong>: Füllen Sie immer beide Sprachversionen (Deutsch und Englisch) aus, um eine vollständige Mehrsprachigkeit zu gewährleisten.</li>
+        <li><strong>Gruppen</strong> schaffen auch in App und Web eine optische Zusammenfassung —
+          nutzen Sie sie für zusammengehörige Felder.</li>
+        <li><strong>Mehrfachauswahl</strong> ist schneller als einzelnes Drag &amp; Drop, wenn Sie
+          mehrere Elemente gruppieren.</li>
+        <li><strong>Seiten importieren</strong> und <strong>Elemente kopieren/exportieren</strong>
+          helfen, bewährte Strukturen wiederzuverwenden und projektübergreifend zu standardisieren.</li>
+        <li>Achten Sie auf den <strong>Validierungs-Indikator</strong> — er weist früh auf
+          strukturelle Probleme hin.</li>
+        <li>Füllen Sie alle Sprachversionen aus und halten Sie die Verschachtelung überschaubar
+          (≤ 6 Ebenen).</li>
       </ul>
 
-      <h3>Leistungsoptimierung</h3>
-      <ul>
-        <li><strong>Komplexität reduzieren</strong>: Vermeiden Sie zu tiefe Verschachtelungen von Elementen.</li>
-        <li><strong>Sichtbarkeitsbedingungen</strong>: Komplexe Sichtbarkeitsbedingungen können die Leistung beeinträchtigen. Halten Sie sie so einfach wie möglich.</li>
-        <li><strong>Icon-Auswahl</strong>: Die Suche nach Icons funktioniert über alle Kategorien hinweg, auch wenn ein bestimmter Filter ausgewählt ist.</li>
-      </ul>
+      <h3>Häufige Fragen</h3>
+      <h4>Wie sichere ich meine Arbeit?</h4>
+      <p>Regelmäßig über „Speichern" als JSON exportieren und Backups wichtiger Flows anlegen. Das
+        Toolkit speichert nicht serverseitig.</p>
 
-      <h3>Bekannte Einschränkungen</h3>
-      <ul>
-        <li>GroupUIElements können keine anderen GroupUIElements enthalten.</li>
-        <li>ArrayUIElements sollten keine komplexen Elemente oder andere Arrays enthalten.</li>
-        <li>Bei ChipGroupUIElements können nur BooleanUIElements hinzugefügt werden.</li>
-      </ul>
+      <h4>Kann ich Änderungen rückgängig machen?</h4>
+      <p>Ja, über Rückgängig/Wiederherstellen (Strg/Cmd+Z bzw. Y). Auch Importe, Kopien und
+        Gruppierungen sind umkehrbar.</p>
+
+      <h4>Welches Dateiformat wird verwendet?</h4>
+      <p>Import und Export erfolgen als JSON. Sollen im Workflow Bilder gezeigt werden, müssen diese
+        aktuell noch separat übermittelt werden.</p>
+
+      <h4>Wie funktioniert die Mehrsprachigkeit?</h4>
+      <p>Texte werden in allen konfigurierten Sprachen (mind. Deutsch/Englisch) gespeichert.</p>
+
+      <h4>Was ist eine Feld-ID — und was passiert mit ihr beim Kopieren/Exportieren?</h4>
+      <p>Die Feld-ID bestimmt, wo der erfasste Wert abgelegt wird. Beim <strong>Kopieren innerhalb
+        desselben Flows</strong> wird sie <strong>neu generiert</strong> (Konfliktvermeidung); beim
+        <strong>Export in eine andere Datei</strong> und beim <strong>Seitenimport</strong> bleibt
+        sie <strong>erhalten</strong>.</p>
+
+      <h4>Wozu dienen Module?</h4>
+      <p>Module bündeln optionale Seiten/Felder, die pro Projekt aktiviert werden. So lässt sich ein
+        Basis-Flow um projektspezifische Teile erweitern, ohne ihn zu duplizieren (siehe Abschnitt 9).</p>
+
+      <h4>Warum kann ich ein bestimmtes Element hier nicht hinzufügen?</h4>
+      <p>Manche Typen sind in bestimmten Containern nicht erlaubt. Der Element-Auswahl-Dialog zeigt
+        solche Typen deaktiviert mit Begründung an.</p>
+
+      <h4>Werden Sichtbarkeitsbedingungen mitkopiert?</h4>
+      <p>Ja. Beim Export in eine andere Datei erscheint zusätzlich eine Warnung, falls die Bedingung
+        auf Felder verweist, die dort evtl. nicht existieren.</p>
     </section>
   </div>
 
