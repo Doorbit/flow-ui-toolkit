@@ -58,8 +58,8 @@ Editor-Factory-Muster, `AccordionSection`, `TabbedTranslatableFields`, `ElementP
 - [x] **Duplikat-/Leer-Optionen verhindern** *(PR Phase 4)*: Auswahlfeld-Optionen-Schlüssel werden auf Eindeutigkeit und Nicht-Leere geprüft (`getOptionKeyError`, Unit-getestet). Befund: `handleUpdateOptionKey` erlaubte beliebige Keys ohne Prüfung — doppelte/leere `key`s sind vertragskritisch (portal speichert den Wert über `key`). Jetzt: Fehlerstatus + Hilfetext am Key-Feld, Sammel-Warnung über der Optionen-Tabelle, kollisionssichere Auto-Key-Generierung beim Hinzufügen.
 
 ## Phase 5 — Seiten & Flow-Metadaten
-- [ ] `pattern_type`-Auswahl bei Seitenanlage; Layout-Vorschau (`PageNavigator.tsx`, `EditPageDialog.tsx`).
-- [ ] Flow-Metadaten editierbar (id/url-key mit Validierung, Flow-Icon, Beschreibung); `related_pages` dokumentieren.
+- [x] **Layout-Vorschau + Layout-Wahl bei Seitenanlage** *(PR Phase 5a)*: Zentrale `pageLayouts.ts` (Single Source of Truth, unit-getestet) + SVG-`LayoutPreview`. Schema-Abgleich mit portal (`d-fc-page-default.vue`): nur `null`/Standard, `2_COL_RIGHT_WIDER`, `2_COL_RIGHT_FILL` werden gerendert — der Editor bot zusätzlich `2_COL_LEFT_WIDER`/`1_COL` an (**Schema-Drift, entfernt**). Layout jetzt mit Vorschau in `EditPageDialog` **und** schon im Neue-Seite-Dialog wählbar; abwesendes Layout = „Standard"; nicht unterstützte Alt-Werte werden als deaktivierter „⚠ Nicht unterstützt"-Eintrag sichtbar gemacht. **`pattern_type`-Auswahl bewusst verworfen**: portal verzweigt nicht über den Page-`pattern_type` (alle Top-Level-Seiten laufen durch `d-fc-page-default`), ein Selektor wäre wirkungslos und driftgefährdet.
+- [ ] Flow-Metadaten editierbar (id/url-key mit Validierung, Flow-Icon, Title de/en); `related_pages` dokumentieren. *(Phase 5b — Flow-`description` entfällt: nicht im `ListingFlow`-Schema von portal.)*
 
 ---
 

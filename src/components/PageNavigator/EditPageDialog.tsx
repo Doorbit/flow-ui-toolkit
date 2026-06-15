@@ -39,6 +39,13 @@ import VisibilityConditionBuilder from '../HybridEditor/VisibilityConditionBuild
 import { toBuilderFormat, fromBuilderFormat, BuilderCondition } from '../../utils/visibilityConverters';
 import { transformEditPageToViewPage } from '../../utils/viewModeTransformer';
 import { tokens } from '../../theme/tokens';
+import LayoutPreview from './LayoutPreview';
+import {
+  SUPPORTED_PAGE_LAYOUTS,
+  PAGE_LAYOUT_STANDARD,
+  isSupportedLayout,
+  layoutForPersistence,
+} from './pageLayouts';
 
 interface EditPageDialogProps {
   open: boolean;
@@ -62,7 +69,8 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
   const [titleDe, setTitleDe] = useState(page.title?.de || '');
   const [titleEn, setTitleEn] = useState(page.title?.en || '');
   const [icon, setIcon] = useState(page.icon || '');
-  const [layout, setLayout] = useState(page.layout || (isEditPage ? '2_COL_RIGHT_FILL' : '2_COL_RIGHT_WIDER'));
+  // Layout treu zum gespeicherten Wert; abwesendes layout = Standard (leerer String im Select).
+  const [layout, setLayout] = useState<string>(page.layout ?? PAGE_LAYOUT_STANDARD);
   const [moduleId, setModuleId] = useState(page.module_id || '');
   const [iconSelectorOpen, setIconSelectorOpen] = useState(false);
   const [visibilityCondition, setVisibilityCondition] = useState<VisibilityCondition | undefined>(page.visibility_condition);
@@ -254,7 +262,7 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
         en: finalTitleEn  // short_title wird automatisch mit title synchronisiert
       },
       icon: icon,
-      layout: layout,
+      layout: layoutForPersistence(layout),
       module_id: moduleId || undefined,
       visibility_condition: visibilityCondition
     };
@@ -464,25 +472,45 @@ const EditPageDialog: React.FC<EditPageDialogProps> = ({
 
             {/* Kurztitel ausgeblendet, um die UI nicht zu überfrachten */}
 
-            {/* Layout-Auswahl */}
-            <FormControl fullWidth margin="dense" sx={{ mb: 3 }}>
-              <InputLabel id="layout-select-label">Layout</InputLabel>
-              <Select
-                labelId="layout-select-label"
-                id="layout-select"
-                value={layout}
-                label="Layout"
-                onChange={(e) => setLayout(e.target.value)}
-              >
-                <MenuItem value="2_COL_RIGHT_FILL">2-spaltig (rechts gefüllt)</MenuItem>
-                <MenuItem value="2_COL_RIGHT_WIDER">2-spaltig (rechts breiter)</MenuItem>
-                <MenuItem value="2_COL_LEFT_WIDER">2-spaltig (links breiter)</MenuItem>
-                <MenuItem value="1_COL">1-spaltig</MenuItem>
-              </Select>
-              <FormHelperText>
-                Wähle das Layout für diese Seite (empfohlen: 2_COL_RIGHT_FILL für Edit, 2_COL_RIGHT_WIDER für View)
-              </FormHelperText>
-            </FormControl>
+            {/* Layout-Auswahl mit Vorschau */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                alignItems: 'flex-start',
+                mb: 3,
+                flexDirection: { xs: 'column', sm: 'row' },
+              }}
+            >
+              <FormControl fullWidth margin="dense" sx={{ flex: 1, mt: 0 }}>
+                <InputLabel id="layout-select-label">Layout</InputLabel>
+                <Select
+                  labelId="layout-select-label"
+                  id="layout-select"
+                  value={layout}
+                  label="Layout"
+                  onChange={(e) => setLayout(e.target.value)}
+                >
+                  {SUPPORTED_PAGE_LAYOUTS.map((opt) => (
+                    <MenuItem key={opt.value || 'standard'} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                  {!isSupportedLayout(layout) && (
+                    <MenuItem value={layout} disabled>
+                      {`⚠ Nicht unterstützt: ${layout}`}
+                    </MenuItem>
+                  )}
+                </Select>
+                <FormHelperText>
+                  {SUPPORTED_PAGE_LAYOUTS.find((o) => o.value === layout)?.description ||
+                    'Dieses Layout wird vom portal nicht gerendert — bitte ein unterstütztes Layout wählen.'}
+                </FormHelperText>
+              </FormControl>
+              <Box sx={{ flexShrink: 0, pt: { xs: 0, sm: 1 } }}>
+                <LayoutPreview layout={isSupportedLayout(layout) ? layout : PAGE_LAYOUT_STANDARD} />
+              </Box>
+            </Box>
 
             {/* Modul-Zuordnung (wenn der Flow Module deklariert oder die Seite bereits getaggt ist) */}
             {((state.currentFlow?.modules?.length ?? 0) > 0 || moduleId) && (
