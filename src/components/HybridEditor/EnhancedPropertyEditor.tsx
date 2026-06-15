@@ -193,38 +193,38 @@ const EnhancedPropertyEditor: React.FC<EnhancedPropertyEditorProps> = ({
             </FormField>
           )}
 
-          {/* Modul-Zuordnung (wenn der Flow Module deklariert oder dieses Element bereits getaggt ist) */}
-          {(modules.length > 0 || (element.element as any).module_id) && (
-            <FormField>
-              <FormControl fullWidth size="small">
-                <InputLabel id="module-id-select-label">Modul-Zuordnung</InputLabel>
-                <Select
-                  labelId="module-id-select-label"
-                  label="Modul-Zuordnung"
-                  value={(element.element as any).module_id || ''}
-                  onChange={(e) => handleModuleIdChange(e.target.value as string)}
-                >
-                  <MenuItem value="">
-                    <em>— Kein Modul —</em>
+          {/* Modul-Zuordnung — immer sichtbar, damit das modulare-Flows-Feature auffindbar ist */}
+          <FormField>
+            <FormControl fullWidth size="small">
+              <InputLabel id="module-id-select-label">Modul-Zuordnung</InputLabel>
+              <Select
+                labelId="module-id-select-label"
+                label="Modul-Zuordnung"
+                value={(element.element as any).module_id || ''}
+                onChange={(e) => handleModuleIdChange(e.target.value as string)}
+              >
+                <MenuItem value="">
+                  <em>— Kein Modul —</em>
+                </MenuItem>
+                {modules.map((module) => (
+                  <MenuItem key={module.id} value={module.id}>
+                    {module.name?.de || module.name?.en || module.id}
                   </MenuItem>
-                  {modules.map((module) => (
-                    <MenuItem key={module.id} value={module.id}>
-                      {module.name?.de || module.name?.en || module.id}
+                ))}
+                {(element.element as any).module_id &&
+                  !modules.some((m) => m.id === (element.element as any).module_id) && (
+                    <MenuItem value={(element.element as any).module_id}>
+                      {`⚠ Unbekannt: ${(element.element as any).module_id}`}
                     </MenuItem>
-                  ))}
-                  {(element.element as any).module_id &&
-                    !modules.some((m) => m.id === (element.element as any).module_id) && (
-                      <MenuItem value={(element.element as any).module_id}>
-                        {`⚠ Unbekannt: ${(element.element as any).module_id}`}
-                      </MenuItem>
-                    )}
-                </Select>
-                <FormHelperText>
-                  Element nur sichtbar, wenn das zugeordnete Modul aktiv ist.
-                </FormHelperText>
-              </FormControl>
-            </FormField>
-          )}
+                  )}
+              </Select>
+              <FormHelperText>
+                {modules.length === 0
+                  ? 'Noch keine Module definiert — über „Module" in der Kopfzeile anlegen.'
+                  : 'Element nur sichtbar, wenn das zugeordnete Modul aktiv ist.'}
+              </FormHelperText>
+            </FormControl>
+          </FormField>
 
           {/* Verwende die EnhancedElementEditorFactory für spezialisierte Editoren */}
           <EnhancedElementEditorFactory element={element} onUpdate={onUpdate} />
