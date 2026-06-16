@@ -66,7 +66,7 @@ Detaillierte Dokumentation finden Sie in:
   - Verbesserungen der Codestruktur
   - Performance-Optimierungen
 
-- [Benutzerhandbuch](docs/user_documentation.md)
+- [Benutzerhandbuch](https://doorbit.github.io/flow-ui-toolkit/documentation.html) — die ausgespielte In-App-Hilfe (auch im Editor über „Dokumentation"). Einzige Quelle: `public/documentation.html`.
   - Einführung
   - Funktionsübersicht
   - Best Practices
